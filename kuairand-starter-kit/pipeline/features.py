@@ -1,11 +1,16 @@
 """特征工程 —— 唯一允许改特征的地方。见 AGENT_RULES.md。
 
-只能读 data.py 提供的 splits（每行 schema 见 data.IDX），不允许读 test 的 label
-以外的任何东西来构造特征（比如不能用 test 集统计量做分桶边界）。
+kit/data.py 是冻结的 Starter Kit 代码，不能改，这个文件也不从它 import 任何东西 ——
+只能读 kit/data.load(splits) 返回的 splits（每行 schema 见下面的 IDX，这是对
+kit/data.py 那个定长 tuple 的复述，不是另一份定义，改 kit/data.py 的人如果动了
+行 schema，这里也要跟着改）。不允许读 test 的 label 以外的任何东西来构造特征
+（比如不能用 test 集统计量做分桶边界）。
 
-同一行的输入特征一律走 same_row(x, name)，它会拒绝 data.LEAKY_COLUMNS 里的
-曝光后结果列（is_click/is_like/.../play_time_ms/label 等）—— 这些列只能当
-同一行的多任务目标，或用于别的行（该用户历史）的序列特征，不能当同一行输入。
+同一行的输入特征一律走 same_row(x, name)，它会拒绝 LEAKY_COLUMNS 里的曝光后结果列
+（is_click/is_like/.../play_time_ms/label 等）—— 这些列只能当同一行的多任务目标，
+或用于别的行（该用户历史）的序列特征，不能当同一行输入。kit/data.py 目前只加载了
+这 11 列里的 label 本身；其余 10 列如果以后要接进来（多任务/序列特征），只能在这个
+文件里自己读 CSV 加进去 —— kit/data.py 不能改 —— 加的时候同样受这条规则约束。
 
 对外契约：
     encode(splits) -> (enc, dim)
@@ -14,7 +19,23 @@
 FIELDS 只是文档用途（当前实现里字段顺序由 raw() 决定），改 raw() 时保持同步。
 """
 import numpy as np
-from data import IDX, LEAKY_COLUMNS
+
+# kit/data.py 的 load() 返回的定长 tuple 的字段顺序（复述，唯一的 schema 来源仍是
+# kit/data.py 本身）。
+IDX = {'date': 0, 'user_id': 1, 'video_id': 2, 'author_id': 3,
+       'tab': 4, 'duration_ms': 5, 'label': 6}
+
+# 曝光后才产生的结果列（post-impression outcome/feedback）。同一行绝不能拿来预测
+# 同一行的 label —— 就算完全只用 train 数据算，同一行内用这些列当输入照样泄漏，
+# 因为它们和 label 是同一次曝光的并发结果，不是曝光前已知的信息。目前 kit/data.py
+# 只加载了 label；其余列不在当前 IDX 里，same_row() 对它们会直接 KeyError（安全的
+# 失败方式）——这个集合列出完整的 11 个名字，是给以后真的把这些列读进来时用的。
+LEAKY_COLUMNS = frozenset({
+    'label',            # long_view，主任务目标本身
+    'is_click', 'is_like', 'is_follow', 'is_comment', 'is_forward',
+    'is_hate', 'play_time_ms', 'profile_stay_time', 'comment_stay_time',
+    'is_profile_enter',
+})
 
 # 5 个特征域（当前 kit 的 baseline）。想加特征就在 raw() 里加列，并在这里登记名字。
 FIELDS = ['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket']

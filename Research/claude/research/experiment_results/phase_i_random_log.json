@@ -1,0 +1,90 @@
+{
+  "row_count_validation_period": 288338,
+  "date_coverage_validation_period": {
+    "min": 20220422,
+    "max": 20220428,
+    "n_unique_dates": 7
+  },
+  "rows_by_period": {
+    "validation_rows": 288338,
+    "evaluation_rows_DATE_ONLY": 897721
+  },
+  "is_rand_flag_check": {
+    "pct_rows_is_rand_eq_1": 100.0,
+    "standard_train_is_rand_1_pct": 0.0,
+    "standard_valid_is_rand_1_pct": 0.0
+  },
+  "entity_overlap_with_standard": {
+    "random_users": 19091,
+    "random_videos": 7546,
+    "random_users_also_in_standard_pct": 98.89476716777538,
+    "random_videos_also_in_standard_pct": 99.49642194540154,
+    "standard_users_also_in_random_pct": 70.89215980775008,
+    "standard_videos_also_in_random_pct": 99.50960901259111
+  },
+  "uv_pair_overlap_validation_period_only": {
+    "random_valid_period_uv_pairs": 288328,
+    "standard_valid_uv_pairs": 121337,
+    "shared_uv_pairs": 17,
+    "pct_of_random_valid_period_shared_with_standard_valid": 0.00589606281734691
+  },
+  "descriptive_by_period": {
+    "validation_period_random_log": {
+      "rows": 288338,
+      "long_view_rate": 0.08055823373956954,
+      "unique_users": 19091,
+      "unique_videos": 7546
+    }
+  },
+  "daily_random_log": [
+    {
+      "date": 20220422,
+      "rows": 24849,
+      "long_view_rate": 0.08237756046520987,
+      "uniq_users": 7131,
+      "uniq_videos": 7239
+    },
+    {
+      "date": 20220423,
+      "rows": 52359,
+      "long_view_rate": 0.08630798907542162,
+      "uniq_users": 10145,
+      "uniq_videos": 7462
+    },
+    {
+      "date": 20220424,
+      "rows": 44441,
+      "long_view_rate": 0.0799261942800567,
+      "uniq_users": 9422,
+      "uniq_videos": 7444
+    },
+    {
+      "date": 20220425,
+      "rows": 41837,
+      "long_view_rate": 0.0776824342089538,
+      "uniq_users": 9135,
+      "uniq_videos": 7397
+    },
+    {
+      "date": 20220426,
+      "rows": 42367,
+      "long_view_rate": 0.07760757193098403,
+      "uniq_users": 9054,
+      "uniq_videos": 7385
+    },
+    {
+      "date": 20220427,
+      "rows": 41737,
+      "long_view_rate": 0.08069578551405228,
+      "uniq_users": 9031,
+      "uniq_videos": 7363
+    },
+    {
+      "date": 20220428,
+      "rows": 40748,
+      "long_view_rate": 0.07862962599391381,
+      "uniq_users": 8943,
+      "uniq_videos": 7338
+    }
+  ]
+}

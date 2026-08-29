@@ -1,0 +1,14 @@
+{
+  "checked_on": "2026-08-30",
+  "source": "https://github.com/chongminggao/KuaiRand/blob/main/README.md",
+  "source_type": "official KuaiRand repository documentation",
+  "facts": {
+    "video_statistics_description": "Average per-day, per-scenario video statistics over one month; counts is the number of component statistics.",
+    "exact_calendar_window_or_cutoff_disclosed": false,
+    "causal_validity_for_april_22_to_28_validation": "not established because the documentation does not state the one-month window's endpoints or cutoff relative to each scored impression",
+    "pure_sequence_caveat": "The official documentation says KuaiRand-Pure has incomplete sequential logs and recommends 27K/1K when rigorous sequential logs are required.",
+    "random_intervention_period": "2022-04-22 through 2022-05-08",
+    "random_intervention_mechanism": "A normally recommended list item is replaced by a uniformly sampled item from the 7,583-item pool with a fixed undisclosed probability."
+  },
+  "test_or_evaluation_labels_accessed": false
+}

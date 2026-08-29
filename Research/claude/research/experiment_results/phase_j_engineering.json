@@ -1,0 +1,61 @@
+{
+  "memory_start_mb": 93.474816,
+  "csv_load_seconds": {
+    "train_log": 1.091569423675537,
+    "valid_log": 1.7177364826202393,
+    "video_basic": 0.014763116836547852,
+    "video_stat": 0.06662702560424805,
+    "user_features": 0.09600234031677246,
+    "total": 2.9866983890533447
+  },
+  "memory_after_load_mb": 300.929024,
+  "encode_seconds": 4.814704895019531,
+  "encoded_dim": 40260,
+  "memory_after_encode_mb": 333.152256,
+  "fm_train_total_seconds": 49.70785045623779,
+  "fm_epochs_run": 11,
+  "fm_seconds_per_epoch_mean": 4.430481412193992,
+  "fm_final_metrics": {
+    "GAUC": "0.6671334",
+    "nDCG@5": "0.5358057",
+    "primary": "0.6014695",
+    "users": 22377,
+    "rows": 124909
+  },
+  "memory_after_train_mb": 363.773952,
+  "predict_only_seconds": 0.07603788375854492,
+  "cold_run_total_seconds_load_encode_train": 57.50925374031067,
+  "cache_test": {
+    "write_seconds": 0.02916407585144043,
+    "read_seconds": 0.018319129943847656,
+    "reload_vs_recompute_speedup_x": 262.82388463740955,
+    "reproduces_identical_arrays": true,
+    "no_labels_used_beyond_train_valid": true
+  },
+  "windows_subprocess_timeout": {
+    "timeout_triggered": true,
+    "elapsed_seconds": 30.113869190216064,
+    "note": "subprocess.run(timeout=N) raises TimeoutExpired and Python kills the direct child, but on Windows this does NOT reliably kill grandchild processes spawned by that child (no process-group signal semantics like POSIX). A harness that needs true tree-kill on Windows should launch with CREATE_NEW_PROCESS_GROUP and use taskkill /T /F on the PID, or use psutil.Process(pid).children(recursive=True).",
+    "orphaned_grandchild_pids_still_running": []
+  },
+  "syntax_error_recovery": {
+    "returncode": 1,
+    "stderr_contains_SyntaxError": true,
+    "recoverable_signal": "nonzero returncode + SyntaxError in stderr is a clean, detectable failure mode"
+  },
+  "nan_inf_recovery": {
+    "rejected": true,
+    "error_message": "\u7b2c 2 \u884c score \u662f NaN/Inf\uff0c\u4e0d\u5141\u8bb8"
+  },
+  "memory_end_mb": 491.08992,
+  "system_memory": {
+    "total_gb": 16.76,
+    "available_gb": 0.68,
+    "percent_used": 96.0
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.7",
+    "cpu_count": 8
+  }
+}

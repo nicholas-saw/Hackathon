@@ -5,12 +5,17 @@
   --model random: 随机打分（下界，用来自检评测代码没坏）
 只依赖 numpy。用法见 README.md
 """
-import argparse, collections, time
+import argparse, collections, os, sys, time
 import numpy as np
-from data import load, IDX
-from features import encode, FIELDS
-from model import FM
+
+# kit/ 是冻结目录，跟 pipeline/ 是兄弟目录，默认不在 sys.path 上 —— 这两行只是让
+# `from data import ...` / `from evaluate import ...` 能找到它，不代表 kit/ 可以改。
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'kit'))
+
+from data import load
 from evaluate import evaluate
+from features import encode, FIELDS, IDX
+from model import FM
 
 # ---------------- item popularity（官方 baseline） ----------------
 def run_pop(splits, prior=20.0, report_test=False):

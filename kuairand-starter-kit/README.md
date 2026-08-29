@@ -17,7 +17,7 @@ tar xzf KuaiRand-Pure.tar.gz
 ## 运行
 
 ```bash
-python3 train.py --model fm
+python3 pipeline/train.py --model fm
 ```
 
 `--data_dir` 默认 `./KuaiRand-Pure/data`；数据放在别处时显式指定。
@@ -75,7 +75,7 @@ baseline 已经吃掉可用区间的三成，剩余 headroom 是 0.27 而不是 
 FM 在 5 个随机种子上的 std 均为 **0.0008**。据此收敛判据取 **ε = 0.002（≈2.5σ）, N = 3**：
 连续 3 轮迭代 validation 主分提升不超过 0.002 即判定收敛。
 
-> 自检：如果你的评测代码跑 `--model random --final` 得不到 test primary ≈ 0.475（±0.001），说明 harness 有问题，先修它。
+> 自检：如果你的评测代码跑 `pipeline/train.py --model random --final` 得不到 test primary ≈ 0.475（±0.001），说明 harness 有问题，先修它。
 
 ## 提交格式
 
@@ -100,9 +100,9 @@ row_id,user_id,video_id,score
 生成与校验：
 
 ```bash
-python3 submit.py --make  --split test  submission.csv    # 用官方 FM baseline 生成一份示例提交
-python3 submit.py --check --split test  submission.csv    # 校验格式与对齐
-python3 submit.py --score --split valid submission.csv    # 校验并打分（本地 valid 可用）
+python3 kit/submit.py --make  --split test  submission.csv    # 用官方 FM baseline 生成一份示例提交
+python3 kit/submit.py --check --split test  submission.csv    # 校验格式与对齐
+python3 kit/submit.py --score --split valid submission.csv    # 校验并打分（本地 valid 可用）
 ```
 
 `--check` 会拒绝：表头错误、行数不符、`row_id` 跳号、`user_id`/`video_id` 与评测集不对齐、
@@ -157,7 +157,7 @@ print(evaluate(user_ids, labels, scores))   # scores 可以来自任何模型
 - `labels`：该行的 `long_view`（0/1）
 - `scores`：你的模型给该行打的分（任意实数，只用相对大小）
 
-所以你可以完全不用 `model.py`/`train.py`，换成 PyTorch、LightGBM 或 [CWM](https://github.com/hyz20/CWM) 的 xDeepFM，
+所以你可以完全不用 `pipeline/model.py`/`pipeline/train.py`，换成 PyTorch、LightGBM 或 [CWM](https://github.com/hyz20/CWM) 的 xDeepFM，
 只要最后把 `scores` 交给 `evaluate()` 即可。**评分口径由 `evaluate.py` 唯一决定。**
 
 > 用 CWM 需注意：它依赖 `torch==1.6.0`（2020 年版本，新 GPU 上大概装不上），
@@ -166,14 +166,18 @@ print(evaluate(user_ids, labels, scores))   # scores 可以来自任何模型
 
 ## 文件
 
+`kit/` 是冻结的 Starter Kit 原始代码（文件系统层面只读，见 `AGENT_RULES.md`）；
+`pipeline/` 是唯一允许改的 3 个文件。
+
 | | |
 |---|---|
-| `evaluate.py` | 指标实现 + 全部口径约定。**不要改。** |
-| `data.py` | 数据加载、官方划分、冻结的行 schema（`IDX`）。**不要改。** |
-| `features.py` | 特征工程。加特征改这里。 |
-| `model.py` | 模型/损失函数（FM）。换模型、换 loss 改这里。 |
-| `train.py` | 训练循环 + CLI。三个 baseline 都在这，FM 是要打败的那个。 |
-| `baseline_scores.json` | 官方发布的分数 + 种子方差 + 收敛参数。 |
-| `submit.py` | 生成 / 校验提交文件。 |
+| `kit/evaluate.py` | 指标实现 + 全部口径约定。**不要改，也改不了（只读）。** |
+| `kit/data.py` | 数据加载、官方划分。**不要改，也改不了（只读）。** |
+| `kit/submit.py` | 生成 / 校验提交文件。 |
+| `kit/baseline.py` | 原始的官方 FM baseline 实现，留作对照，不是你要迭代的那份。 |
+| `kit/baseline_scores.json` | 官方发布的分数 + 种子方差 + 收敛参数。 |
+| `pipeline/features.py` | 特征工程。加特征改这里。 |
+| `pipeline/model.py` | 模型/损失函数（FM）。换模型、换 loss 改这里。 |
+| `pipeline/train.py` | 训练循环 + CLI。三个 baseline 都在这，FM 是要打败的那个。 |
 | `ablation_features.py` | 特征消融实验，可复现「加特征没有收益」那组数字。 |
-| `AGENT_RULES.md` | 给自动化 agent 看的规则：只能改 `features.py`/`model.py`/`train.py`，以及为什么。 |
+| `AGENT_RULES.md` | 给自动化 agent 看的规则：只能改 `pipeline/` 下的 3 个文件，以及为什么。 |

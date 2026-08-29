@@ -1,0 +1,14 @@
+{
+  "cache_version": "train-valid-raw-v1",
+  "included_source_sha256": "534366e40044981a424530ea7e88a350deeca8035e80d6b24ee07cef03a31cd3",
+  "included_rows": 1266021,
+  "test_labels_accessed": false,
+  "rows": {
+    "train": 1141112,
+    "valid": 124909
+  },
+  "frame_sha256": {
+    "train": "b2f6d43dd9336f51146ffa753cd25ef710cbbe6c7922c98e6b22fec2a3a62ac3",
+    "valid": "057769a4b3d80b57fcd74a1618b718ef722161d50eaa3230adea90ff5a3fbab2"
+  }
+}

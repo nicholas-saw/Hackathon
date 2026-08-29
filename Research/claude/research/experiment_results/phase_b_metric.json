@@ -1,0 +1,219 @@
+{
+  "uniform_label_users": {
+    "all_negative": {
+      "users": 6785,
+      "pct_users": 30.32131206149171,
+      "rows": 21807,
+      "pct_rows": 17.45830964942478
+    },
+    "all_positive": {
+      "users": 2663,
+      "pct_users": 11.900612235777807,
+      "rows": 4540,
+      "pct_rows": 3.634646022304237
+    },
+    "mixed_movable": {
+      "users": 12929,
+      "pct_users": 57.77807570273048,
+      "rows": 98562,
+      "pct_rows": 78.90704432827098
+    },
+    "single_impression": {
+      "users": 3917,
+      "pct_users": 17.504580596147832,
+      "rows": 3917,
+      "pct_rows": 3.135882922767775
+    }
+  },
+  "oracle_ceiling_local_valid": {
+    "GAUC": 1.0,
+    "nDCG@5": 0.6967868793850829,
+    "primary": 0.8483934396925414,
+    "users": 22377,
+    "rows": 124909
+  },
+  "baseline_seed0_local_valid": {
+    "GAUC": 0.6671326321610643,
+    "nDCG@5": 0.5358048805448538,
+    "primary": 0.601468756352959,
+    "users": 22377,
+    "rows": 124909
+  },
+  "list_length_buckets": {
+    "1": {
+      "n_users": 3917,
+      "n_rows": 3917,
+      "baseline_nDCG5": 0.4054123053357161,
+      "baseline_GAUC": 0.5,
+      "baseline_primary": 0.4527061526678581,
+      "oracle_nDCG5": 0.4054123053357161,
+      "oracle_GAUC": 0.5,
+      "gauc_weight_share_pct": 0.0,
+      "movable_nDCG5_gap": 0.0,
+      "overall_GAUC_gap_contribution": 0.0,
+      "overall_nDCG5_gap_contribution": 0.0,
+      "overall_primary_gap_contribution": 0.0
+    },
+    "2-3": {
+      "n_users": 6218,
+      "n_rows": 15323,
+      "baseline_nDCG5": 0.541292741561413,
+      "baseline_GAUC": 0.647212052942833,
+      "baseline_primary": 0.594252397252123,
+      "oracle_nDCG5": 0.6085558057253136,
+      "oracle_GAUC": 1.0,
+      "gauc_weight_share_pct": 10.265379278445884,
+      "movable_nDCG5_gap": 0.0672630641639006,
+      "overall_GAUC_gap_contribution": 0.036215020814061055,
+      "overall_nDCG5_gap_contribution": 0.018690697277165567,
+      "overall_primary_gap_contribution": 0.02745285904561331
+    },
+    "4-5": {
+      "n_users": 4119,
+      "n_rows": 18326,
+      "baseline_nDCG5": 0.618537335028712,
+      "baseline_GAUC": 0.6645314248689397,
+      "baseline_primary": 0.6415343799488258,
+      "oracle_nDCG5": 0.7492109735372663,
+      "oracle_GAUC": 1.0,
+      "gauc_weight_share_pct": 16.35927382053654,
+      "movable_nDCG5_gap": 0.1306736385085543,
+      "overall_GAUC_gap_contribution": 0.05488022278754251,
+      "overall_nDCG5_gap_contribution": 0.024053479779091707,
+      "overall_primary_gap_contribution": 0.03946685128331711
+    },
+    "6-10": {
+      "n_users": 5225,
+      "n_rows": 39587,
+      "baseline_nDCG5": 0.5912724710616656,
+      "baseline_GAUC": 0.6755737561262238,
+      "baseline_primary": 0.6334231135939448,
+      "oracle_nDCG5": 0.8535885167464115,
+      "oracle_GAUC": 1.0,
+      "gauc_weight_share_pct": 36.39280758556892,
+      "movable_nDCG5_gap": 0.26231604568474587,
+      "overall_GAUC_gap_contribution": 0.11806781869007192,
+      "overall_nDCG5_gap_contribution": 0.06125045085144556,
+      "overall_primary_gap_contribution": 0.08965913477075874
+    },
+    "11-20": {
+      "n_users": 2346,
+      "n_rows": 32609,
+      "baseline_nDCG5": 0.503674708226497,
+      "baseline_GAUC": 0.6676830645621215,
+      "baseline_primary": 0.5856788863943092,
+      "oracle_nDCG5": 0.9181585677749361,
+      "oracle_GAUC": 1.0,
+      "gauc_weight_share_pct": 27.081406105457912,
+      "movable_nDCG5_gap": 0.41448385954843914,
+      "overall_GAUC_gap_contribution": 0.08999609884314427,
+      "overall_nDCG5_gap_contribution": 0.04345440114852921,
+      "overall_primary_gap_contribution": 0.06672524999583675
+    },
+    "21+": {
+      "n_users": 552,
+      "n_rows": 15147,
+      "baseline_nDCG5": 0.3934288680135643,
+      "baseline_GAUC": 0.6595520331945353,
+      "baseline_primary": 0.5264904506040498,
+      "oracle_nDCG5": 0.9420289855072463,
+      "oracle_GAUC": 1.0,
+      "gauc_weight_share_pct": 9.90113320999075,
+      "movable_nDCG5_gap": 0.5486001174936821,
+      "overall_GAUC_gap_contribution": 0.03370820670411415,
+      "overall_nDCG5_gap_contribution": 0.01353296978399752,
+      "overall_primary_gap_contribution": 0.023620588244055836
+    }
+  },
+  "activity_tier_buckets": {
+    "Cold": {
+      "n_users": 422,
+      "n_rows": 1990,
+      "baseline_GAUC": 0.6877021920828241,
+      "baseline_nDCG5": 0.5305276208930025,
+      "baseline_primary": 0.6091149064879133,
+      "oracle_GAUC": 1.0,
+      "oracle_nDCG5": 0.6421800947867299,
+      "fixed_users_pct": 57.10900473933649,
+      "gauc_weight_share_pct": 1.6911424606845513,
+      "movable_nDCG5_gap": 0.11165247389372734,
+      "overall_GAUC_gap_contribution": 0.005281400833474442,
+      "overall_nDCG5_gap_contribution": 0.002105614871660765,
+      "overall_primary_gap_contribution": 0.0036935078525676033
+    },
+    "T1": {
+      "n_users": 5713,
+      "n_rows": 18419,
+      "baseline_GAUC": 0.6514714852122143,
+      "baseline_nDCG5": 0.5351688307587138,
+      "baseline_primary": 0.5933201579854641,
+      "oracle_GAUC": 1.0,
+      "oracle_nDCG5": 0.6224400490110275,
+      "fixed_users_pct": 58.813232977419915,
+      "gauc_weight_share_pct": 14.668131359851987,
+      "movable_nDCG5_gap": 0.08727121825231365,
+      "overall_GAUC_gap_contribution": 0.05112262037561356,
+      "overall_nDCG5_gap_contribution": 0.022280934436048973,
+      "overall_primary_gap_contribution": 0.03670177740583127
+    },
+    "T2": {
+      "n_users": 5480,
+      "n_rows": 24752,
+      "baseline_GAUC": 0.672335499499637,
+      "baseline_nDCG5": 0.5450496691204122,
+      "baseline_primary": 0.6086925843100246,
+      "oracle_GAUC": 1.0,
+      "oracle_nDCG5": 0.6720802919708029,
+      "fixed_users_pct": 45.91240875912409,
+      "gauc_weight_share_pct": 21.345975948196113,
+      "movable_nDCG5_gap": 0.12703062285039068,
+      "overall_GAUC_gap_contribution": 0.06994318546758442,
+      "overall_nDCG5_gap_contribution": 0.03110907687447562,
+      "overall_primary_gap_contribution": 0.05052613117103002
+    },
+    "T3": {
+      "n_users": 5373,
+      "n_rows": 31501,
+      "baseline_GAUC": 0.6633403453889654,
+      "baseline_nDCG5": 0.5521391765018671,
+      "baseline_primary": 0.6077397609454163,
+      "oracle_GAUC": 1.0,
+      "oracle_nDCG5": 0.7288293318444072,
+      "fixed_users_pct": 35.60394565419691,
+      "gauc_weight_share_pct": 27.503469010175763,
+      "movable_nDCG5_gap": 0.17669015534254018,
+      "overall_GAUC_gap_contribution": 0.09259308377571067,
+      "overall_nDCG5_gap_contribution": 0.042425535355743324,
+      "overall_primary_gap_contribution": 0.067509309565727
+    },
+    "T4": {
+      "n_users": 5389,
+      "n_rows": 48247,
+      "baseline_GAUC": 0.6725412994636009,
+      "baseline_nDCG5": 0.5112057234526685,
+      "baseline_primary": 0.5918735114581346,
+      "oracle_GAUC": 1.0,
+      "oracle_nDCG5": 0.7730562256448321,
+      "fixed_users_pct": 26.312859528669513,
+      "gauc_weight_share_pct": 34.79128122109158,
+      "movable_nDCG5_gap": 0.26185050219216366,
+      "overall_GAUC_gap_contribution": 0.11392707738655075,
+      "overall_nDCG5_gap_contribution": 0.06306083730230012,
+      "overall_primary_gap_contribution": 0.08849395734442544
+    }
+  },
+  "activity_tier_edges": [
+    17.0,
+    36.0,
+    65.0
+  ],
+  "gauc_weight_denominator_positive_rows_from_mixed_users": 34592,
+  "list_length_distribution": {
+    "min": 1,
+    "median": 4.0,
+    "mean": 5.582026187603343,
+    "p90": 12.0,
+    "p99": 26.0,
+    "max": 74
+  }
+}

@@ -1,0 +1,210 @@
+{
+  "seed_variance": {
+    "per_seed": [
+      {
+        "GAUC": "0.6671334",
+        "nDCG@5": "0.5358057",
+        "primary": "0.6014695",
+        "users": 22377,
+        "rows": 124909
+      },
+      {
+        "GAUC": "0.66739476",
+        "nDCG@5": "0.536127",
+        "primary": "0.60176086",
+        "users": 22377,
+        "rows": 124909
+      },
+      {
+        "GAUC": "0.66706425",
+        "nDCG@5": "0.53511643",
+        "primary": "0.6010903",
+        "users": 22377,
+        "rows": 124909
+      },
+      {
+        "GAUC": "0.6674611",
+        "nDCG@5": "0.53554505",
+        "primary": "0.6015031",
+        "users": 22377,
+        "rows": 124909
+      },
+      {
+        "GAUC": "0.6679478",
+        "nDCG@5": "0.5361264",
+        "primary": "0.6020371",
+        "users": 22377,
+        "rows": 124909
+      }
+    ],
+    "mean_primary": "0.60157216",
+    "std_primary": 0.00031598690238864686,
+    "mean_GAUC": "0.66740024",
+    "std_GAUC": 0.0003123091953904673,
+    "mean_nDCG5": "0.53574413",
+    "std_nDCG5": 0.0003821268114736335
+  },
+  "field_ablations": {
+    "full_5field": {
+      "fields": [
+        "user_id",
+        "video_id",
+        "author_id",
+        "tab",
+        "dur_bucket"
+      ],
+      "mean_primary": "0.60144025",
+      "std_primary": 0.00027453393543162553,
+      "mean_GAUC": "0.66719747",
+      "mean_nDCG5": "0.53568304"
+    },
+    "drop_user_id": {
+      "fields": [
+        "video_id",
+        "author_id",
+        "tab",
+        "dur_bucket"
+      ],
+      "mean_primary": "0.59325063",
+      "std_primary": 6.283366240225509e-05,
+      "mean_GAUC": "0.6556689",
+      "mean_nDCG5": "0.53083235"
+    },
+    "drop_video_id": {
+      "fields": [
+        "user_id",
+        "author_id",
+        "tab",
+        "dur_bucket"
+      ],
+      "mean_primary": "0.6028025",
+      "std_primary": 0.0003193054589357701,
+      "mean_GAUC": "0.6690796",
+      "mean_nDCG5": "0.5365254"
+    },
+    "drop_author_id": {
+      "fields": [
+        "user_id",
+        "video_id",
+        "tab",
+        "dur_bucket"
+      ],
+      "mean_primary": "0.60300726",
+      "std_primary": 0.00026452245579783627,
+      "mean_GAUC": "0.66945964",
+      "mean_nDCG5": "0.5365549"
+    },
+    "drop_tab": {
+      "fields": [
+        "user_id",
+        "video_id",
+        "author_id",
+        "dur_bucket"
+      ],
+      "mean_primary": "0.5855376",
+      "std_primary": 0.00042866380156378965,
+      "mean_GAUC": "0.6459486",
+      "mean_nDCG5": "0.5251267"
+    },
+    "drop_dur_bucket": {
+      "fields": [
+        "user_id",
+        "video_id",
+        "author_id",
+        "tab"
+      ],
+      "mean_primary": "0.60084945",
+      "std_primary": 0.00022528746138108588,
+      "mean_GAUC": "0.66665983",
+      "mean_nDCG5": "0.5350391"
+    }
+  },
+  "lr_sensitivity": {
+    "0.0003": {
+      "mean_primary": "0.6017876",
+      "std_primary": 0.00011254494808432186
+    },
+    "0.001": {
+      "mean_primary": "0.60144025",
+      "std_primary": 0.00027453393543162553
+    },
+    "0.003": {
+      "mean_primary": "0.6000948",
+      "std_primary": 0.000840998453160934
+    },
+    "0.01": {
+      "mean_primary": "0.59709156",
+      "std_primary": 0.0005329830493799428
+    }
+  },
+  "embedding_dim": {
+    "8": {
+      "mean_primary": "0.60111034",
+      "std_primary": 0.0007962584329467829
+    },
+    "16": {
+      "mean_primary": "0.60144025",
+      "std_primary": 0.00027453393543162553
+    },
+    "32": {
+      "mean_primary": "0.6014599",
+      "std_primary": 0.0006876951431361843
+    },
+    "64": {
+      "mean_primary": "0.60098547",
+      "std_primary": 0.000439905592914502
+    }
+  },
+  "static_feature_expansion": {
+    "base_5field": {
+      "fields": [
+        "user_id",
+        "video_id",
+        "author_id",
+        "tab",
+        "dur_bucket"
+      ],
+      "mean_primary": "0.60144025",
+      "std_primary": 0.00027453393543162553,
+      "mean_GAUC": "0.66719747",
+      "mean_nDCG5": "0.53568304"
+    },
+    "item_8field": {
+      "fields": [
+        "user_id",
+        "video_id",
+        "author_id",
+        "tab",
+        "dur_bucket",
+        "music_id",
+        "video_type",
+        "upload_type"
+      ],
+      "mean_primary": "0.6011079",
+      "std_primary": 0.0004613392737411301,
+      "mean_GAUC": "0.6663488",
+      "mean_nDCG5": "0.5358669"
+    },
+    "cwm_13field": {
+      "fields": [
+        "user_id",
+        "video_id",
+        "author_id",
+        "tab",
+        "dur_bucket",
+        "music_id",
+        "video_type",
+        "upload_type",
+        "follow_user_num_range",
+        "register_days_range",
+        "fans_user_num_range",
+        "friend_user_num_range",
+        "user_active_degree"
+      ],
+      "mean_primary": "0.59993035",
+      "std_primary": 0.0005228218221755264,
+      "mean_GAUC": "0.6646576",
+      "mean_nDCG5": "0.53520316"
+    }
+  }
+}

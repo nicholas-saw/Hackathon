@@ -1,0 +1,683 @@
+{
+  "video_basic_inventory": {
+    "video_type": {
+      "n_unique": 3,
+      "top_pct": {
+        "NORMAL": 98.98,
+        "AD": 1.0,
+        "UNKNOWN": 0.01
+      }
+    },
+    "upload_type": {
+      "n_unique": 14,
+      "top_pct": {
+        "LongImport": 38.57,
+        "Web": 31.86,
+        "ShortImport": 12.09,
+        "Kmovie": 11.59,
+        "LongPicture": 1.89,
+        "UNKNOWN": 1.05,
+        "PictureSet": 0.96,
+        "LongCamera": 0.84,
+        "ShortCamera": 0.57,
+        "ShareFromOtherApp": 0.38
+      }
+    },
+    "visible_status": {
+      "n_unique": 1,
+      "top_pct": {
+        "0.0": 100.0
+      }
+    },
+    "music_type": {
+      "n_unique": 6,
+      "top_pct": {
+        "9.0": 87.89,
+        "4.0": 8.66,
+        "nan": 2.68,
+        "8.0": 0.54,
+        "7.0": 0.18,
+        "11.0": 0.04
+      }
+    },
+    "video_duration": {
+      "min": 5000.0,
+      "median": 81170.5,
+      "p90": 237829.79999999996,
+      "max": 1177720.0,
+      "missing_pct": 3.1517868917315046
+    },
+    "server_width": {
+      "min": 270.0,
+      "median": 720.0,
+      "p90": 1280.0,
+      "max": 2400.0,
+      "missing_pct": 0.0
+    },
+    "server_height": {
+      "min": 448.0,
+      "median": 1280.0,
+      "p90": 1280.0,
+      "max": 2400.0,
+      "missing_pct": 0.0
+    },
+    "tag_cardinality": 111,
+    "music_id_cardinality": 7202
+  },
+  "tab_long_view_rate_train": [
+    {
+      "tab": 0,
+      "mean": 0.04221634125042496,
+      "count": 150013
+    },
+    {
+      "tab": 1,
+      "mean": 0.3860740996267709,
+      "count": 834876
+    },
+    {
+      "tab": 2,
+      "mean": 0.3805451630144308,
+      "count": 39291
+    },
+    {
+      "tab": 3,
+      "mean": 0.004196978175713486,
+      "count": 3574
+    },
+    {
+      "tab": 4,
+      "mean": 0.48928817329590596,
+      "count": 75524
+    },
+    {
+      "tab": 5,
+      "mean": 0.16990005878894768,
+      "count": 3402
+    },
+    {
+      "tab": 6,
+      "mean": 0.08695359104849854,
+      "count": 29671
+    },
+    {
+      "tab": 7,
+      "mean": 0.2132132132132132,
+      "count": 333
+    },
+    {
+      "tab": 8,
+      "mean": 0.01764014112112897,
+      "count": 2551
+    },
+    {
+      "tab": 9,
+      "mean": 0.16666666666666666,
+      "count": 252
+    },
+    {
+      "tab": 10,
+      "mean": 0.6125,
+      "count": 80
+    },
+    {
+      "tab": 11,
+      "mean": 0.11510791366906475,
+      "count": 417
+    },
+    {
+      "tab": 12,
+      "mean": 0.09592326139088729,
+      "count": 834
+    },
+    {
+      "tab": 13,
+      "mean": 0.18021201413427562,
+      "count": 283
+    },
+    {
+      "tab": 14,
+      "mean": 0.0,
+      "count": 11
+    }
+  ],
+  "dur_bucket_long_view_rate_train": [
+    {
+      "dur_bucket": 0,
+      "mean": 0.2809558417904959,
+      "count": 114203
+    },
+    {
+      "dur_bucket": 1,
+      "mean": 0.27303125545660906,
+      "count": 114540
+    },
+    {
+      "dur_bucket": 2,
+      "mean": 0.3478932313146026,
+      "count": 113966
+    },
+    {
+      "dur_bucket": 3,
+      "mean": 0.3670071223444896,
+      "count": 113867
+    },
+    {
+      "dur_bucket": 4,
+      "mean": 0.36287064061774166,
+      "count": 114093
+    },
+    {
+      "dur_bucket": 5,
+      "mean": 0.3592001403262586,
+      "count": 114020
+    },
+    {
+      "dur_bucket": 6,
+      "mean": 0.3759625745748903,
+      "count": 114147
+    },
+    {
+      "dur_bucket": 7,
+      "mean": 0.34450526389423247,
+      "count": 114364
+    },
+    {
+      "dur_bucket": 8,
+      "mean": 0.3367386193631118,
+      "count": 116975
+    },
+    {
+      "dur_bucket": 9,
+      "mean": 0.3178650946032433,
+      "count": 110937
+    }
+  ],
+  "video_stat_inventory": {
+    "show_cnt": {
+      "missing_pct": 0.0,
+      "min": 65.25,
+      "median": 4518.577235772358,
+      "mean": 10552.44095195712,
+      "p90": 24219.151696428577,
+      "max": 535130.091954023
+    },
+    "show_user_num": {
+      "missing_pct": 0.0,
+      "min": 62.044117647058826,
+      "median": 3922.366666666667,
+      "mean": 9252.093645619132,
+      "p90": 21453.192292993634,
+      "max": 472355.5632183908
+    },
+    "play_cnt": {
+      "missing_pct": 0.0,
+      "min": 33.310810810810814,
+      "median": 2559.6,
+      "mean": 7747.1723257024705,
+      "p90": 18428.684116575587,
+      "max": 538563.7471264368
+    },
+    "play_user_num": {
+      "missing_pct": 0.0,
+      "min": 29.91891891891892,
+      "median": 2290.9851851851854,
+      "mean": 6907.637046900959,
+      "p90": 16433.765118679057,
+      "max": 480039.0632183908
+    },
+    "play_duration": {
+      "missing_pct": 0.0,
+      "min": 191287.98648648648,
+      "median": 75444161.22543353,
+      "mean": 306802707.7583045,
+      "p90": 698562188.2810814,
+      "max": 34713000543.772224
+    },
+    "complete_play_cnt": {
+      "missing_pct": 0.0,
+      "min": 1.108108108108108,
+      "median": 413.8360655737705,
+      "mean": 1887.1640487943298,
+      "p90": 4043.8558139534885,
+      "max": 256629.7055555556
+    },
+    "valid_play_cnt": {
+      "missing_pct": 0.0,
+      "min": 5.77027027027027,
+      "median": 1318.2328767123288,
+      "mean": 4589.035593528209,
+      "p90": 10791.519106181177,
+      "max": 326529.9425287356
+    },
+    "long_time_play_cnt": {
+      "missing_pct": 0.0,
+      "min": 0.0,
+      "median": 977.971098265896,
+      "mean": 3687.3516347537984,
+      "p90": 8541.985816993467,
+      "max": 301135.775862069
+    },
+    "short_time_play_cnt": {
+      "missing_pct": 0.0,
+      "min": 0.0,
+      "median": 751.3146853146853,
+      "mean": 2107.189972766843,
+      "p90": 4939.5811688311705,
+      "max": 160785.01149425286
+    },
+    "play_progress": {
+      "missing_pct": 0.0,
+      "min": 0.0,
+      "median": 0.1545871304190334,
+      "mean": 0.17099623381415563,
+      "p90": 0.3040332196591226,
+      "max": 0.571328285658556
+    },
+    "like_cnt": {
+      "missing_pct": 0.0,
+      "min": 0.4545454545454545,
+      "median": 57.542635658914726,
+      "mean": 230.74518304095386,
+      "p90": 536.0536312849162,
+      "max": 17396.166666666668
+    },
+    "comment_cnt": {
+      "missing_pct": 0.0,
+      "min": 0.0,
+      "median": 2.4563758389261743,
+      "mean": 12.933660330517341,
+      "p90": 22.769004261913995,
+      "max": 3116.977011494253
+    },
+    "follow_cnt": {
+      "missing_pct": 0.0,
+      "min": 0.0,
+      "median": 3.797619047619048,
+      "mean": 17.408571344197686,
+      "p90": 37.12083689763331,
+      "max": 1829.8722222222225
+    },
+    "share_cnt": {
+      "missing_pct": 0.0,
+      "min": 0.0,
+      "median": 0.7349397590361446,
+      "mean": 4.914520670724258,
+      "p90": 8.866666666666667,
+      "max": 1354.125
+    },
+    "download_cnt": {
+      "missing_pct": 0.0,
+      "min": 0.0,
+      "median": 0.4812030075187969,
+      "mean": 4.423281058598501,
+      "p90": 6.84777777777778,
+      "max": 639.5681818181819
+    },
+    "collect_cnt": {
+      "missing_pct": 0.0,
+      "min": 0.0294117647058823,
+      "median": 6.927272727272728,
+      "mean": 28.747691781837613,
+      "p90": 64.64864197530865,
+      "max": 5866.917808219178
+    },
+    "counts": {
+      "missing_pct": 0.0,
+      "min": 45.0,
+      "median": 147.0,
+      "mean": 141.83700382434392,
+      "p90": 174.0,
+      "max": 181.0
+    }
+  },
+  "video_stat_correlation": {
+    "show_cnt": {
+      "show_cnt": 1.0,
+      "show_user_num": 0.994,
+      "play_cnt": 0.967,
+      "play_user_num": 0.963,
+      "play_duration": 0.789,
+      "complete_play_cnt": 0.77,
+      "valid_play_cnt": 0.945,
+      "long_time_play_cnt": 0.927,
+      "short_time_play_cnt": 0.938,
+      "play_progress": 0.173,
+      "like_cnt": 0.731,
+      "comment_cnt": 0.418,
+      "follow_cnt": 0.623,
+      "share_cnt": 0.405,
+      "download_cnt": 0.228,
+      "collect_cnt": 0.565
+    },
+    "show_user_num": {
+      "show_cnt": 0.994,
+      "show_user_num": 1.0,
+      "play_cnt": 0.976,
+      "play_user_num": 0.977,
+      "play_duration": 0.784,
+      "complete_play_cnt": 0.776,
+      "valid_play_cnt": 0.954,
+      "long_time_play_cnt": 0.936,
+      "short_time_play_cnt": 0.947,
+      "play_progress": 0.181,
+      "like_cnt": 0.732,
+      "comment_cnt": 0.427,
+      "follow_cnt": 0.61,
+      "share_cnt": 0.416,
+      "download_cnt": 0.232,
+      "collect_cnt": 0.558
+    },
+    "play_cnt": {
+      "show_cnt": 0.967,
+      "show_user_num": 0.976,
+      "play_cnt": 1.0,
+      "play_user_num": 0.998,
+      "play_duration": 0.806,
+      "complete_play_cnt": 0.821,
+      "valid_play_cnt": 0.986,
+      "long_time_play_cnt": 0.973,
+      "short_time_play_cnt": 0.956,
+      "play_progress": 0.23,
+      "like_cnt": 0.716,
+      "comment_cnt": 0.413,
+      "follow_cnt": 0.619,
+      "share_cnt": 0.403,
+      "download_cnt": 0.228,
+      "collect_cnt": 0.554
+    },
+    "play_user_num": {
+      "show_cnt": 0.963,
+      "show_user_num": 0.977,
+      "play_cnt": 0.998,
+      "play_user_num": 1.0,
+      "play_duration": 0.791,
+      "complete_play_cnt": 0.822,
+      "valid_play_cnt": 0.984,
+      "long_time_play_cnt": 0.971,
+      "short_time_play_cnt": 0.956,
+      "play_progress": 0.232,
+      "like_cnt": 0.712,
+      "comment_cnt": 0.416,
+      "follow_cnt": 0.603,
+      "share_cnt": 0.407,
+      "download_cnt": 0.228,
+      "collect_cnt": 0.544
+    },
+    "play_duration": {
+      "show_cnt": 0.789,
+      "show_user_num": 0.784,
+      "play_cnt": 0.806,
+      "play_user_num": 0.791,
+      "play_duration": 1.0,
+      "complete_play_cnt": 0.466,
+      "valid_play_cnt": 0.79,
+      "long_time_play_cnt": 0.771,
+      "short_time_play_cnt": 0.759,
+      "play_progress": 0.095,
+      "like_cnt": 0.516,
+      "comment_cnt": 0.24,
+      "follow_cnt": 0.562,
+      "share_cnt": 0.23,
+      "download_cnt": 0.104,
+      "collect_cnt": 0.42
+    },
+    "complete_play_cnt": {
+      "show_cnt": 0.77,
+      "show_user_num": 0.776,
+      "play_cnt": 0.821,
+      "play_user_num": 0.822,
+      "play_duration": 0.466,
+      "complete_play_cnt": 1.0,
+      "valid_play_cnt": 0.857,
+      "long_time_play_cnt": 0.882,
+      "short_time_play_cnt": 0.718,
+      "play_progress": 0.324,
+      "like_cnt": 0.549,
+      "comment_cnt": 0.33,
+      "follow_cnt": 0.421,
+      "share_cnt": 0.3,
+      "download_cnt": 0.143,
+      "collect_cnt": 0.337
+    },
+    "valid_play_cnt": {
+      "show_cnt": 0.945,
+      "show_user_num": 0.954,
+      "play_cnt": 0.986,
+      "play_user_num": 0.984,
+      "play_duration": 0.79,
+      "complete_play_cnt": 0.857,
+      "valid_play_cnt": 1.0,
+      "long_time_play_cnt": 0.994,
+      "short_time_play_cnt": 0.899,
+      "play_progress": 0.265,
+      "like_cnt": 0.701,
+      "comment_cnt": 0.399,
+      "follow_cnt": 0.598,
+      "share_cnt": 0.366,
+      "download_cnt": 0.181,
+      "collect_cnt": 0.494
+    },
+    "long_time_play_cnt": {
+      "show_cnt": 0.927,
+      "show_user_num": 0.936,
+      "play_cnt": 0.973,
+      "play_user_num": 0.971,
+      "play_duration": 0.771,
+      "complete_play_cnt": 0.882,
+      "valid_play_cnt": 0.994,
+      "long_time_play_cnt": 1.0,
+      "short_time_play_cnt": 0.877,
+      "play_progress": 0.273,
+      "like_cnt": 0.674,
+      "comment_cnt": 0.378,
+      "follow_cnt": 0.577,
+      "share_cnt": 0.345,
+      "download_cnt": 0.162,
+      "collect_cnt": 0.456
+    },
+    "short_time_play_cnt": {
+      "show_cnt": 0.938,
+      "show_user_num": 0.947,
+      "play_cnt": 0.956,
+      "play_user_num": 0.956,
+      "play_duration": 0.759,
+      "complete_play_cnt": 0.718,
+      "valid_play_cnt": 0.899,
+      "long_time_play_cnt": 0.877,
+      "short_time_play_cnt": 1.0,
+      "play_progress": 0.152,
+      "like_cnt": 0.678,
+      "comment_cnt": 0.405,
+      "follow_cnt": 0.587,
+      "share_cnt": 0.429,
+      "download_cnt": 0.292,
+      "collect_cnt": 0.598
+    },
+    "play_progress": {
+      "show_cnt": 0.173,
+      "show_user_num": 0.181,
+      "play_cnt": 0.23,
+      "play_user_num": 0.232,
+      "play_duration": 0.095,
+      "complete_play_cnt": 0.324,
+      "valid_play_cnt": 0.265,
+      "long_time_play_cnt": 0.273,
+      "short_time_play_cnt": 0.152,
+      "play_progress": 1.0,
+      "like_cnt": 0.203,
+      "comment_cnt": 0.093,
+      "follow_cnt": 0.133,
+      "share_cnt": 0.059,
+      "download_cnt": -0.02,
+      "collect_cnt": 0.087
+    },
+    "like_cnt": {
+      "show_cnt": 0.731,
+      "show_user_num": 0.732,
+      "play_cnt": 0.716,
+      "play_user_num": 0.712,
+      "play_duration": 0.516,
+      "complete_play_cnt": 0.549,
+      "valid_play_cnt": 0.701,
+      "long_time_play_cnt": 0.674,
+      "short_time_play_cnt": 0.678,
+      "play_progress": 0.203,
+      "like_cnt": 1.0,
+      "comment_cnt": 0.576,
+      "follow_cnt": 0.685,
+      "share_cnt": 0.536,
+      "download_cnt": 0.346,
+      "collect_cnt": 0.752
+    },
+    "comment_cnt": {
+      "show_cnt": 0.418,
+      "show_user_num": 0.427,
+      "play_cnt": 0.413,
+      "play_user_num": 0.416,
+      "play_duration": 0.24,
+      "complete_play_cnt": 0.33,
+      "valid_play_cnt": 0.399,
+      "long_time_play_cnt": 0.378,
+      "short_time_play_cnt": 0.405,
+      "play_progress": 0.093,
+      "like_cnt": 0.576,
+      "comment_cnt": 1.0,
+      "follow_cnt": 0.302,
+      "share_cnt": 0.554,
+      "download_cnt": 0.276,
+      "collect_cnt": 0.418
+    },
+    "follow_cnt": {
+      "show_cnt": 0.623,
+      "show_user_num": 0.61,
+      "play_cnt": 0.619,
+      "play_user_num": 0.603,
+      "play_duration": 0.562,
+      "complete_play_cnt": 0.421,
+      "valid_play_cnt": 0.598,
+      "long_time_play_cnt": 0.577,
+      "short_time_play_cnt": 0.587,
+      "play_progress": 0.133,
+      "like_cnt": 0.685,
+      "comment_cnt": 0.302,
+      "follow_cnt": 1.0,
+      "share_cnt": 0.339,
+      "download_cnt": 0.21,
+      "collect_cnt": 0.556
+    },
+    "share_cnt": {
+      "show_cnt": 0.405,
+      "show_user_num": 0.416,
+      "play_cnt": 0.403,
+      "play_user_num": 0.407,
+      "play_duration": 0.23,
+      "complete_play_cnt": 0.3,
+      "valid_play_cnt": 0.366,
+      "long_time_play_cnt": 0.345,
+      "short_time_play_cnt": 0.429,
+      "play_progress": 0.059,
+      "like_cnt": 0.536,
+      "comment_cnt": 0.554,
+      "follow_cnt": 0.339,
+      "share_cnt": 1.0,
+      "download_cnt": 0.456,
+      "collect_cnt": 0.517
+    },
+    "download_cnt": {
+      "show_cnt": 0.228,
+      "show_user_num": 0.232,
+      "play_cnt": 0.228,
+      "play_user_num": 0.228,
+      "play_duration": 0.104,
+      "complete_play_cnt": 0.143,
+      "valid_play_cnt": 0.181,
+      "long_time_play_cnt": 0.162,
+      "short_time_play_cnt": 0.292,
+      "play_progress": -0.02,
+      "like_cnt": 0.346,
+      "comment_cnt": 0.276,
+      "follow_cnt": 0.21,
+      "share_cnt": 0.456,
+      "download_cnt": 1.0,
+      "collect_cnt": 0.42
+    },
+    "collect_cnt": {
+      "show_cnt": 0.565,
+      "show_user_num": 0.558,
+      "play_cnt": 0.554,
+      "play_user_num": 0.544,
+      "play_duration": 0.42,
+      "complete_play_cnt": 0.337,
+      "valid_play_cnt": 0.494,
+      "long_time_play_cnt": 0.456,
+      "short_time_play_cnt": 0.598,
+      "play_progress": 0.087,
+      "like_cnt": 0.752,
+      "comment_cnt": 0.418,
+      "follow_cnt": 0.556,
+      "share_cnt": 0.517,
+      "download_cnt": 0.42,
+      "collect_cnt": 1.0
+    }
+  },
+  "aggregation_window_inference": {
+    "pct_videos_where_show_cnt_times_counts_is_near_integer": 100.0,
+    "counts_field_summary": {
+      "min": 45.0,
+      "median": 147.0,
+      "max": 181.0
+    },
+    "n_videos_compared": 7545,
+    "ratio_recon_over_observed_median": 11464.754716981131,
+    "ratio_recon_over_observed_p10": 5248.117482517483,
+    "ratio_recon_over_observed_p90": 38198.98409090909,
+    "pct_videos_recon_less_than_observed": 0.0,
+    "interpretation_note": "If ratio >> 1 broadly, the statistic file aggregation window covers substantially more traffic/time than train+valid standard logs alone (e.g. also includes random-log traffic and/or the evaluation period and/or a longer external window). If ratio ~ 1 the window may correspond closely to train+valid standard logs. This is inferred, not documented."
+  },
+  "ratio_feature_association_valid": {
+    "long_view_ratio": {
+      "pearson_r_with_long_view_valid": 0.3016106880986222,
+      "long_view_rate_by_quintile": {
+        "(-0.000833, 0.2]": 0.10541686669867179,
+        "(0.2, 0.331]": 0.23776776539404,
+        "(0.331, 0.432]": 0.32350316404348534,
+        "(0.432, 0.521]": 0.39636145541783285,
+        "(0.521, 0.798]": 0.5047496893663073
+      }
+    },
+    "play_ratio": {
+      "pearson_r_with_long_view_valid": 0.18457877675991605,
+      "long_view_rate_by_quintile": {
+        "(0.0535, 0.628]": 0.180103668261563,
+        "(0.628, 0.798]": 0.27045920212124863,
+        "(0.798, 0.908]": 0.3351475904811092,
+        "(0.908, 0.977]": 0.38502479738720213,
+        "(0.977, 2.479]": 0.3964591844909076
+      }
+    },
+    "like_ratio": {
+      "pearson_r_with_long_view_valid": 0.03989987246368991,
+      "long_view_rate_by_quintile": {
+        "(-0.00043100000000000007, 0.00782]": 0.24865145642705877,
+        "(0.00782, 0.0127]": 0.27968168912704444,
+        "(0.0127, 0.0198]": 0.32831830154042624,
+        "(0.0198, 0.0359]": 0.3568351117374673,
+        "(0.0359, 0.244]": 0.35329437194780244
+      }
+    },
+    "complete_ratio": {
+      "pearson_r_with_long_view_valid": 0.18082897714862436,
+      "long_view_rate_by_quintile": {
+        "(-1.7000000000000088e-05, 0.0598]": 0.19017179384738314,
+        "(0.0598, 0.112]": 0.2748556767158435,
+        "(0.112, 0.182]": 0.30563077413188916,
+        "(0.182, 0.307]": 0.3600981062281372,
+        "(0.307, 1.581]": 0.4362375761462007
+      }
+    }
+  },
+  "video_stat_coverage": {
+    "pct_valid_videos_missing_from_stat_file": 0.0
+  }
+}

@@ -1,0 +1,72 @@
+C:\Users\nicho\OneDrive\Documents\Research\gemini\research\scripts\BEF_analysis.py:147: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_valid_raw['bucket'] = df_valid_raw['user_id'].map(buckets).fillna('Cold')
+C:\Users\nicho\OneDrive\Documents\Research\gemini\research\scripts\BEF_analysis.py:157: RuntimeWarning: invalid value encountered in scalar divide
+  gt1 = (train_counts >= 1).sum() / len(users)
+C:\Users\nicho\OneDrive\Documents\Research\gemini\research\scripts\BEF_analysis.py:158: RuntimeWarning: invalid value encountered in scalar divide
+  gt5 = (train_counts >= 5).sum() / len(users)
+C:\Users\nicho\OneDrive\Documents\Research\gemini\research\scripts\BEF_analysis.py:159: RuntimeWarning: invalid value encountered in scalar divide
+  gt10 = (train_counts >= 10).sum() / len(users)
+Loading standard logs...
+
+================== B Metric Structure ==================
+
+List length distribution in validation:
+1        3917
+11-20    2346
+2-3      6218
+21+       552
+4-5      4119
+6-10     5225
+Name: count, dtype: int64
+
+All-negative users: 6785 (30.32%)
+All-positive users: 2663 (11.90%)
+Mixed users: 12929 (57.78%)
+Single-impression users: 3917 (17.50%)
+
+Training FM to get predictions for buckets...
+Done. To get predictions per row, I will use popularity.
+
+Eval per activity bucket:
+Bucket Cold       | Users:   422 | Rows:   1990 | GAUC: 0.6741 | nDCG@5: 0.5262 | Fixed: 57.11% | Positives (GAUC wgt): 718
+Bucket T1 (<10)   | Users:  2897 | Rows:   8721 | GAUC: 0.6475 | nDCG@5: 0.5344 | Fixed: 62.82% | Positives (GAUC wgt): 3311
+Bucket T2 (10-49) | Users: 11138 | Rows:  49716 | GAUC: 0.6590 | nDCG@5: 0.5444 | Fixed: 45.97% | Positives (GAUC wgt): 17477
+Bucket T3 (50-149) | Users:  7119 | Rows:  53802 | GAUC: 0.6620 | nDCG@5: 0.5282 | Fixed: 28.99% | Positives (GAUC wgt): 15715
+Bucket T4 (150+)  | Users:   801 | Rows:  10680 | GAUC: 0.6856 | nDCG@5: 0.4069 | Fixed: 25.34% | Positives (GAUC wgt): 1911
+
+Eval per list-length bucket:
+Len 1     | Users:  3917 | Rows:   3917 | GAUC: 0.5000 | nDCG@5: 0.4054 | Oracle nDCG@5: 0.4054 | Positives: 1588
+Len 2-3   | Users:  6218 | Rows:  15323 | GAUC: 0.6465 | nDCG@5: 0.5413 | Oracle nDCG@5: 0.6086 | Positives: 5595
+Len 4-5   | Users:  4119 | Rows:  18326 | GAUC: 0.6570 | nDCG@5: 0.6140 | Oracle nDCG@5: 0.7492 | Positives: 6309
+Len 6-10  | Users:  5225 | Rows:  39587 | GAUC: 0.6733 | nDCG@5: 0.5880 | Oracle nDCG@5: 0.8536 | Positives: 12847
+Len 11-20 | Users:  2346 | Rows:  32609 | GAUC: 0.6564 | nDCG@5: 0.4875 | Oracle nDCG@5: 0.9182 | Positives: 9368
+Len 21+   | Users:   552 | Rows:  15147 | GAUC: 0.6527 | nDCG@5: 0.4008 | Oracle nDCG@5: 0.9420 | Positives: 3425
+
+================== E Feedback Profile ==================
+
+Prevalence/Mean in Train & Valid:
+is_click             | Train: 0.4634 | Valid: 0.4438 | Corr with long_view: 0.7515
+is_like              | Train: 0.0187 | Valid: 0.0180 | Corr with long_view: 0.0949
+is_follow            | Train: 0.0010 | Valid: 0.0013 | Corr with long_view: 0.0253
+is_comment           | Train: 0.0026 | Valid: 0.0023 | Corr with long_view: 0.0587
+is_forward           | Train: 0.0010 | Valid: 0.0008 | Corr with long_view: 0.0245
+is_hate              | Train: 0.0004 | Valid: 0.0006 | Corr with long_view: -0.0038
+play_time_ms         | Train: 23260.5470 | Valid: 21486.8494 | Corr with long_view: 0.6319
+profile_stay_time    | Train: 3.3060 | Valid: 1.8762 | Corr with long_view: -0.0005
+comment_stay_time    | Train: 552.9442 | Valid: 460.2861 | Corr with long_view: 0.1692
+is_profile_enter     | Train: 0.0254 | Valid: 0.0195 | Corr with long_view: 0.1271
+
+================== F Historical Availability ==================
+Cold       | Med Prior:    0 | >=1: 0.00% | >=5: 0.00% | >=10: 0.00% | Rep Video: 1.58% | Rep Author: 0.00%
+Traceback (most recent call last):
+  File "C:\Users\nicho\OneDrive\Documents\Research\gemini\research\scripts\BEF_analysis.py", line 178, in <module>
+    analyze()
+    ~~~~~~~^^
+  File "C:\Users\nicho\OneDrive\Documents\Research\gemini\research\scripts\BEF_analysis.py", line 167, in analyze
+    rep_v = len(valid_uv.merge(train_uv, on=['user_id', 'video_id'])) / len(d)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~
+ZeroDivisionError: division by zero

@@ -1,0 +1,47 @@
+loading ./KuaiRand-Pure/data ...
+{'train': 1141112, 'valid': 124909, 'test': 170588}
+
+training pipeline/ FM on train, selecting on valid (test untouched) ...
+  epoch  1 | loss 0.6391 | valid GAUC 0.6467 nDCG@5 0.5272 primary 0.5869 | 5.7s
+  epoch  2 | loss 0.5479 | valid GAUC 0.6589 nDCG@5 0.5323 primary 0.5956 | 8.8s
+  epoch  3 | loss 0.5129 | valid GAUC 0.6642 nDCG@5 0.5344 primary 0.5993 | 8.1s
+  epoch  4 | loss 0.5004 | valid GAUC 0.6642 nDCG@5 0.5346 primary 0.5994 | 12.8s
+  epoch  5 | loss 0.4941 | valid GAUC 0.6661 nDCG@5 0.5360 primary 0.6010 | 6.3s
+  epoch  6 | loss 0.4897 | valid GAUC 0.6658 nDCG@5 0.5354 primary 0.6006 | 6.4s
+  epoch  7 | loss 0.4859 | valid GAUC 0.6671 nDCG@5 0.5358 primary 0.6015 | 5.8s
+  epoch  8 | loss 0.4821 | valid GAUC 0.6665 nDCG@5 0.5359 primary 0.6012 | 5.9s
+  epoch  9 | loss 0.4784 | valid GAUC 0.6666 nDCG@5 0.5348 primary 0.6007 | 5.8s
+  epoch 10 | loss 0.4744 | valid GAUC 0.6650 nDCG@5 0.5342 primary 0.5996 | 6.0s
+  epoch 11 | loss 0.4705 | valid GAUC 0.6640 nDCG@5 0.5341 primary 0.5990 | 5.6s
+  early stop at epoch 11
+
+=== GAUC / nDCG@5 by user-activity tier (tier = quartile of TRAIN impressions) ===
+tier                              n_users   n_rows    GAUC      nDCG@5    primary 
+--------------------------------  --------  --------  --------  --------  --------
+cold-start (0 train impr.)        422       1990      0.6877    0.5305    0.6091  
+T1 [1-17 train impr.]             5713      18419     0.6515    0.5352    0.5933  
+T2 [17-36 train impr.]            5480      24752     0.6723    0.5450    0.6087  
+T3 [36-65 train impr.]            5373      31501     0.6633    0.5521    0.6077  
+T4 [65-809 train impr.]           5389      48247     0.6725    0.5112    0.5919  
+ALL                               22377     124909    0.6671    0.5358    0.6015  
+
+=== users whose valid score is fixed regardless of model (uniform label) ===
+  9448/22377 users (42.2%) have a uniform label across their valid impressions
+    all-negative (nDCG@5 pinned to 0.0, excluded from GAUC): 6785
+    all-positive (nDCG@5 pinned to 1.0, excluded from GAUC): 2663
+    of which single-impression users: 3917
+  those users account for 26347/124909 valid rows (21.1%)
+
+  by tier:
+tier                              n_users   fixed_users   fixed_users_pct
+--------------------------------  --------  ------------  ------------
+cold-start (0 train impr.)        422       241           0.5711      
+T1 [1-17 train impr.]             5713      3360          0.5881      
+T2 [17-36 train impr.]            5480      2516          0.4591      
+T3 [36-65 train impr.]            5373      1913          0.3560      
+T4 [65-809 train impr.]           5389      1418          0.2631      
+
+=== impressions-per-user distribution, valid split ===
+  n_users=22377 min=1 median=4 mean=5.58 p90=12 p99=26 max=74
+  saved plot -> ./analysis_output\valid_impressions_per_user.png
+  saved summary -> ./analysis_output\bucket_analysis_summary.json

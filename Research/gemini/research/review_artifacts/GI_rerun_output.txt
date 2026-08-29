@@ -1,0 +1,27 @@
+
+================== G Video Statistics ==================
+Columns: ['video_id', 'counts', 'show_cnt', 'show_user_num', 'play_cnt', 'play_user_num', 'play_duration', 'complete_play_cnt', 'complete_play_user_num', 'valid_play_cnt', 'valid_play_user_num', 'long_time_play_cnt', 'long_time_play_user_num', 'short_time_play_cnt', 'short_time_play_user_num', 'play_progress', 'comment_stay_duration', 'like_cnt', 'like_user_num', 'click_like_cnt', 'double_click_cnt', 'cancel_like_cnt', 'cancel_like_user_num', 'comment_cnt', 'comment_user_num', 'direct_comment_cnt', 'reply_comment_cnt', 'delete_comment_cnt', 'delete_comment_user_num', 'comment_like_cnt', 'comment_like_user_num', 'follow_cnt', 'follow_user_num', 'cancel_follow_cnt', 'cancel_follow_user_num', 'share_cnt', 'share_user_num', 'download_cnt', 'download_user_num', 'report_cnt', 'report_user_num', 'reduce_similar_cnt', 'reduce_similar_user_num', 'collect_cnt', 'collect_user_num', 'cancel_collect_cnt', 'cancel_collect_user_num', 'direct_comment_user_num', 'reply_comment_user_num', 'share_all_cnt', 'share_all_user_num', 'outsite_share_all_cnt']
+
+Missingness in video statistics:
+Series([], dtype: float64)
+
+Distribution of some key metrics:
+            show_cnt       play_cnt  ...   follow_cnt    share_cnt
+count    7583.000000    7583.000000  ...  7583.000000  7583.000000
+mean    10552.440952    7747.172326  ...    17.408571     4.914521
+std     20993.784893   18629.468949  ...    55.441385    26.228833
+min        65.250000      33.310811  ...     0.000000     0.000000
+50%      4518.577236    2559.600000  ...     3.797619     0.734940
+90%     24219.151696   18428.684117  ...    37.120837     8.866667
+99%     97487.506663   80667.975242  ...   239.121899    67.926388
+max    535130.091954  538563.747126  ...  1829.872222  1354.125000
+
+[8 rows x 7 columns]
+
+================== I Random Exposure ==================
+Total rows: 1186059
+Dates covered: 20220422 to 20220508
+Unique users: 27285
+Unique videos: 7583
+Rows in eval period (test leakage risk): 897721
+Random UV pairs also in standard logs: 759 (0.06%)

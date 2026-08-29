@@ -1,0 +1,141 @@
+{
+  "overall": {
+    "n_valid_users": 22377,
+    "pct_ge_1_prior_train_interaction": 98.11413504938106,
+    "pct_ge_5_prior_train_interactions": 92.85427000938463,
+    "pct_ge_10_prior_train_interactions": 85.16780622961076,
+    "median_prior_interactions": 35.0,
+    "mean_prior_interactions": 47.41506904410779,
+    "p90_prior_interactions": 103.0
+  },
+  "per_feedback_signal_prior": {
+    "is_click": {
+      "pct_ge_1_prior": 96.15676811011306,
+      "pct_ge_5_prior": 82.5311703981767,
+      "pct_ge_10_prior": 66.30915672342137,
+      "median_prior": 16.0,
+      "mean_prior": 21.778343835187915
+    },
+    "is_like": {
+      "pct_ge_1_prior": 23.22920856236314,
+      "pct_ge_5_prior": 4.683380256513384,
+      "pct_ge_10_prior": 2.2389060195736694,
+      "median_prior": 0.0,
+      "mean_prior": 0.8782678643249765
+    },
+    "is_follow": {
+      "pct_ge_1_prior": 3.4231577065737144,
+      "pct_ge_5_prior": 0.05362649148679448,
+      "pct_ge_10_prior": 0.02234437145283103,
+      "median_prior": 0.0,
+      "mean_prior": 0.04585065022120928
+    },
+    "is_comment": {
+      "pct_ge_1_prior": 7.7847790141663324,
+      "pct_ge_5_prior": 0.24131921169057513,
+      "pct_ge_10_prior": 0.017875497162264827,
+      "median_prior": 0.0,
+      "mean_prior": 0.12034678464494794
+    },
+    "is_forward": {
+      "pct_ge_1_prior": 3.3650623407963534,
+      "pct_ge_5_prior": 0.04915761719622827,
+      "pct_ge_10_prior": 0.01340662287169862,
+      "median_prior": 0.0,
+      "mean_prior": 0.045403762792152656
+    },
+    "is_hate": {
+      "pct_ge_1_prior": 1.0278410868302275,
+      "pct_ge_5_prior": 0.0625642400679269,
+      "pct_ge_10_prior": 0.03128212003396345,
+      "median_prior": 0.0,
+      "mean_prior": 0.01970773562139697
+    },
+    "play_time_ms_nonzero_rows": {
+      "pct_ge_1_prior": 97.64043437458105,
+      "pct_ge_5_prior": 91.05331367028646,
+      "pct_ge_10_prior": 82.11109621486348,
+      "median_prior": 30.0,
+      "mean_prior": 40.73673861554275
+    }
+  },
+  "by_activity_tier": {
+    "Cold": {
+      "n_users": 422,
+      "median_prior_rows": 0.0,
+      "pct_ge_1": 0.0,
+      "pct_ge_5": 0.0,
+      "pct_ge_10": 0.0
+    },
+    "T1": {
+      "n_users": 5713,
+      "median_prior_rows": 9.0,
+      "pct_ge_1": 100.0,
+      "pct_ge_5": 79.39786451951689,
+      "pct_ge_10": 49.29109049536146
+    },
+    "T2": {
+      "n_users": 5480,
+      "median_prior_rows": 26.0,
+      "pct_ge_1": 100.0,
+      "pct_ge_5": 100.0,
+      "pct_ge_10": 100.0
+    },
+    "T3": {
+      "n_users": 5373,
+      "median_prior_rows": 49.0,
+      "pct_ge_1": 100.0,
+      "pct_ge_5": 100.0,
+      "pct_ge_10": 100.0
+    },
+    "T4": {
+      "n_users": 5389,
+      "median_prior_rows": 95.0,
+      "pct_ge_1": 100.0,
+      "pct_ge_5": 100.0,
+      "pct_ge_10": 100.0
+    }
+  },
+  "row_level_repeat_coverage_valid": {
+    "pct_rows_prior_same_video": 1.6235819676724654,
+    "pct_rows_prior_same_author": 3.3808612670023774,
+    "pct_rows_prior_same_tag": 73.19008237997262
+  },
+  "row_level_repeat_coverage_by_tier": {
+    "Cold": {
+      "pct_rows_prior_same_video": 0.0,
+      "pct_rows_prior_same_author": 0.0,
+      "pct_rows_prior_same_tag": 0.0
+    },
+    "T1": {
+      "pct_rows_prior_same_video": 0.7275096367880992,
+      "pct_rows_prior_same_author": 1.5690319778489603,
+      "pct_rows_prior_same_tag": 45.795102882892664
+    },
+    "T2": {
+      "pct_rows_prior_same_video": 1.0948610213316095,
+      "pct_rows_prior_same_author": 2.4442469295410474,
+      "pct_rows_prior_same_tag": 67.96622495151907
+    },
+    "T3": {
+      "pct_rows_prior_same_video": 1.3650360306022031,
+      "pct_rows_prior_same_author": 2.901495190628869,
+      "pct_rows_prior_same_tag": 77.59118758134662
+    },
+    "T4": {
+      "pct_rows_prior_same_video": 2.4726926026488694,
+      "pct_rows_prior_same_author": 5.005492569486186,
+      "pct_rows_prior_same_tag": 86.4737703898688
+    }
+  },
+  "within_validation_sequential_note": {
+    "pct_valid_rows_with_ge1_strictly_earlier_valid_row_same_user": 81.56978280187977,
+    "pct_rows_in_nonunique_user_timestamp_groups": 5.601678021599724,
+    "explanation": "Strictly earlier means an earlier (date, hourmin, time_ms) tuple; rows tied at the same timestamp do not count one another as history. This is only an availability diagnostic, not a validated feature protocol."
+  },
+  "activity_tier_edges": [
+    17.0,
+    36.0,
+    65.0
+  ]
+}

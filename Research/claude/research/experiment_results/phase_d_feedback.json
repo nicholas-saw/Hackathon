@@ -1,0 +1,588 @@
+{
+  "train": {
+    "prevalence": {
+      "is_click": {
+        "mean": 0.46344705865857166,
+        "pct_positive": 46.344705865857165
+      },
+      "is_like": {
+        "mean": 0.018676519044581074,
+        "pct_positive": 1.8676519044581075
+      },
+      "is_follow": {
+        "mean": 0.001006912555472206,
+        "pct_positive": 0.1006912555472206
+      },
+      "is_comment": {
+        "mean": 0.0025676708333625445,
+        "pct_positive": 0.2567670833362545
+      },
+      "is_forward": {
+        "mean": 0.0009955201592832255,
+        "pct_positive": 0.09955201592832255
+      },
+      "is_hate": {
+        "mean": 0.0004206423208238981,
+        "pct_positive": 0.04206423208238981
+      },
+      "is_profile_enter": {
+        "mean": 0.02539102209073255,
+        "pct_positive": 2.539102209073255
+      },
+      "play_time_ms": {
+        "mean": 23260.54700239766,
+        "median": 4970.0,
+        "p90": 69776.90000000002,
+        "p99": 213231.0,
+        "max": 964774.0,
+        "pct_zero": 13.886279348565258
+      },
+      "profile_stay_time": {
+        "mean": 3.306024299104733,
+        "median": 0.0,
+        "p90": 0.0,
+        "p99": 0.0,
+        "max": 300000.0,
+        "pct_zero": 99.98939630816255
+      },
+      "comment_stay_time": {
+        "mean": 552.9441693716304,
+        "median": 0.0,
+        "p90": 0.0,
+        "p99": 14656.0,
+        "max": 300000.0,
+        "pct_zero": 94.56442487678686
+      }
+    },
+    "long_view_association": {
+      "is_click": {
+        "long_view_rate_given_0": 0.0026279384647547557,
+        "long_view_rate_given_1": 0.7232969962843555,
+        "pearson_r": 0.7604858188163095
+      },
+      "is_like": {
+        "long_view_rate_given_0": 0.33015538489015894,
+        "long_view_rate_given_1": 0.6762856606606606,
+        "pearson_r": 0.09916137501207165
+      },
+      "is_follow": {
+        "long_view_rate_given_0": 0.33624512374524435,
+        "long_view_rate_given_1": 0.7084421235857267,
+        "pearson_r": 0.02498037057944292
+      },
+      "is_comment": {
+        "long_view_rate_given_0": 0.3352064959734032,
+        "long_view_rate_given_1": 0.8856655290102389,
+        "pearson_r": 0.05895020044592455
+      },
+      "is_forward": {
+        "long_view_rate_given_0": 0.336283395439904,
+        "long_view_rate_given_1": 0.6742957746478874,
+        "pearson_r": 0.02255746240780816
+      },
+      "is_hate": {
+        "long_view_rate_given_0": 0.33665809831742405,
+        "long_view_rate_given_1": 0.24583333333333332,
+        "pearson_r": -0.0039411076141245005
+      },
+      "is_profile_enter": {
+        "long_view_rate_given_0": 0.32547399693203544,
+        "long_view_rate_given_1": 0.7644439842617519,
+        "pearson_r": 0.1461298749872328
+      },
+      "play_time_ms": {
+        "pearson_r": 0.6351440173001178,
+        "long_view_rate_when_zero": 0.0,
+        "long_view_rate_by_nonzero_quintile": {
+          "(0.999, 1850.0]": 0.0,
+          "(1850.0, 4493.0]": 0.0,
+          "(4493.0, 13687.0]": 0.11439548137594138,
+          "(13687.0, 41343.0]": 0.8401227281053467,
+          "(41343.0, 964774.0]": 1.0
+        }
+      },
+      "profile_stay_time": {
+        "pearson_r": 0.0046401547426540195,
+        "long_view_rate_when_zero": 0.33658197128636425,
+        "long_view_rate_by_nonzero_quintile": {
+          "(38.999, 1815.0]": 0.6,
+          "(1815.0, 3249.0]": 0.75,
+          "(3249.0, 5703.0]": 0.75,
+          "(5703.0, 22426.0]": 0.5833333333333334,
+          "(22426.0, 300000.0]": 0.7916666666666666
+        }
+      },
+      "comment_stay_time": {
+        "pearson_r": 0.1679847308635587,
+        "long_view_rate_when_zero": 0.30629440100232974,
+        "long_view_rate_by_nonzero_quintile": {
+          "(1.999, 2743.0]": 0.7351921992102506,
+          "(2743.0, 4677.0]": 0.8297048863086599,
+          "(4677.0, 7665.0]": 0.8752216669353539,
+          "(7665.0, 13848.0]": 0.9257497581425347,
+          "(13848.0, 300000.0]": 0.9551793631600162
+        }
+      }
+    },
+    "inter_feedback_correlation": {
+      "is_click": {
+        "is_click": 1.0,
+        "is_like": 0.1073,
+        "is_follow": 0.0276,
+        "is_comment": 0.0516,
+        "is_forward": 0.0263,
+        "is_hate": -0.0008,
+        "is_profile_enter": 0.1559,
+        "play_time_ms": 0.5216,
+        "profile_stay_time": 0.0044,
+        "comment_stay_time": 0.14
+      },
+      "is_like": {
+        "is_click": 0.1073,
+        "is_like": 1.0,
+        "is_follow": 0.0944,
+        "is_comment": 0.0508,
+        "is_forward": 0.0322,
+        "is_hate": -0.0003,
+        "is_profile_enter": 0.0598,
+        "play_time_ms": 0.0753,
+        "profile_stay_time": -0.0004,
+        "comment_stay_time": 0.0624
+      },
+      "is_follow": {
+        "is_click": 0.0276,
+        "is_like": 0.0944,
+        "is_follow": 1.0,
+        "is_comment": 0.0049,
+        "is_forward": 0.0104,
+        "is_hate": 0.0007,
+        "is_profile_enter": 0.047,
+        "play_time_ms": 0.0327,
+        "profile_stay_time": 0.0163,
+        "comment_stay_time": 0.0115
+      },
+      "is_comment": {
+        "is_click": 0.0516,
+        "is_like": 0.0508,
+        "is_follow": 0.0049,
+        "is_comment": 1.0,
+        "is_forward": 0.0083,
+        "is_hate": 0.0006,
+        "is_profile_enter": 0.0263,
+        "play_time_ms": 0.0544,
+        "profile_stay_time": 0.0024,
+        "comment_stay_time": 0.2826
+      },
+      "is_forward": {
+        "is_click": 0.0263,
+        "is_like": 0.0322,
+        "is_follow": 0.0104,
+        "is_comment": 0.0083,
+        "is_forward": 1.0,
+        "is_hate": 0.0075,
+        "is_profile_enter": 0.0108,
+        "play_time_ms": 0.0242,
+        "profile_stay_time": 0.0003,
+        "comment_stay_time": 0.0132
+      },
+      "is_hate": {
+        "is_click": -0.0008,
+        "is_like": -0.0003,
+        "is_follow": 0.0007,
+        "is_comment": 0.0006,
+        "is_forward": 0.0075,
+        "is_hate": 1.0,
+        "is_profile_enter": -0.002,
+        "play_time_ms": -0.0039,
+        "profile_stay_time": -0.0001,
+        "comment_stay_time": 0.0009
+      },
+      "is_profile_enter": {
+        "is_click": 0.1559,
+        "is_like": 0.0598,
+        "is_follow": 0.047,
+        "is_comment": 0.0263,
+        "is_forward": 0.0108,
+        "is_hate": -0.002,
+        "is_profile_enter": 1.0,
+        "play_time_ms": 0.1923,
+        "profile_stay_time": 0.0264,
+        "comment_stay_time": 0.0742
+      },
+      "play_time_ms": {
+        "is_click": 0.5216,
+        "is_like": 0.0753,
+        "is_follow": 0.0327,
+        "is_comment": 0.0544,
+        "is_forward": 0.0242,
+        "is_hate": -0.0039,
+        "is_profile_enter": 0.1923,
+        "play_time_ms": 1.0,
+        "profile_stay_time": 0.0041,
+        "comment_stay_time": 0.1939
+      },
+      "profile_stay_time": {
+        "is_click": 0.0044,
+        "is_like": -0.0004,
+        "is_follow": 0.0163,
+        "is_comment": 0.0024,
+        "is_forward": 0.0003,
+        "is_hate": -0.0001,
+        "is_profile_enter": 0.0264,
+        "play_time_ms": 0.0041,
+        "profile_stay_time": 1.0,
+        "comment_stay_time": 0.0031
+      },
+      "comment_stay_time": {
+        "is_click": 0.14,
+        "is_like": 0.0624,
+        "is_follow": 0.0115,
+        "is_comment": 0.2826,
+        "is_forward": 0.0132,
+        "is_hate": 0.0009,
+        "is_profile_enter": 0.0742,
+        "play_time_ms": 0.1939,
+        "profile_stay_time": 0.0031,
+        "comment_stay_time": 1.0
+      }
+    }
+  },
+  "valid": {
+    "prevalence": {
+      "is_click": {
+        "mean": 0.44382710613326504,
+        "pct_positive": 44.3827106133265
+      },
+      "is_like": {
+        "mean": 0.017973084405447166,
+        "pct_positive": 1.7973084405447166
+      },
+      "is_follow": {
+        "mean": 0.0013049500036026228,
+        "pct_positive": 0.1304950003602623
+      },
+      "is_comment": {
+        "mean": 0.002329696018701615,
+        "pct_positive": 0.2329696018701615
+      },
+      "is_forward": {
+        "mean": 0.000776565339567205,
+        "pct_positive": 0.0776565339567205
+      },
+      "is_hate": {
+        "mean": 0.0006244546029509483,
+        "pct_positive": 0.062445460295094825
+      },
+      "is_profile_enter": {
+        "mean": 0.019454162630394928,
+        "pct_positive": 1.9454162630394927
+      },
+      "play_time_ms": {
+        "mean": 21486.84941037075,
+        "median": 4607.0,
+        "p90": 62825.79999999999,
+        "p99": 206270.19999999995,
+        "max": 778707.0,
+        "pct_zero": 11.695714480141543
+      },
+      "profile_stay_time": {
+        "mean": 1.8761738545661242,
+        "median": 0.0,
+        "p90": 0.0,
+        "p99": 0.0,
+        "max": 140404.0,
+        "pct_zero": 99.99439592022993
+      },
+      "comment_stay_time": {
+        "mean": 460.28612830140344,
+        "median": 0.0,
+        "p90": 0.0,
+        "p99": 13056.799999999974,
+        "max": 253595.0,
+        "pct_zero": 95.54235483431938
+      }
+    },
+    "long_view_association": {
+      "is_click": {
+        "long_view_rate_given_0": 0.0019144679074721827,
+        "long_view_rate_given_1": 0.7034705436704066,
+        "pearson_r": 0.7514783852175932
+      },
+      "is_like": {
+        "long_view_rate_given_0": 0.30732733320289574,
+        "long_view_rate_given_1": 0.6387527839643653,
+        "pearson_r": 0.0949294884789223
+      },
+      "is_follow": {
+        "long_view_rate_given_0": 0.3128597309733378,
+        "long_view_rate_given_1": 0.6380368098159509,
+        "pearson_r": 0.025309035386784483
+      },
+      "is_comment": {
+        "long_view_rate_given_0": 0.3119693784204529,
+        "long_view_rate_given_1": 0.8762886597938144,
+        "pearson_r": 0.05865571367982557
+      },
+      "is_forward": {
+        "long_view_rate_given_0": 0.31296670191968723,
+        "long_view_rate_given_1": 0.7216494845360825,
+        "pearson_r": 0.024544202825164146
+      },
+      "is_hate": {
+        "long_view_rate_given_0": 0.31332761894080796,
+        "long_view_rate_given_1": 0.24358974358974358,
+        "pearson_r": -0.0037560017778166355
+      },
+      "is_profile_enter": {
+        "long_view_rate_given_0": 0.30498289502690257,
+        "long_view_rate_given_1": 0.731687242798354,
+        "pearson_r": 0.12706021088032585
+      },
+      "play_time_ms": {
+        "pearson_r": 0.6319213582914938,
+        "long_view_rate_when_zero": 0.0,
+        "long_view_rate_by_nonzero_quintile": {
+          "(0.999, 1766.0]": 0.0,
+          "(1766.0, 3914.0]": 0.0,
+          "(3914.0, 11329.8]": 0.05712472231037766,
+          "(11329.8, 35601.0]": 0.7167852771859843,
+          "(35601.0, 778707.0]": 1.0
+        }
+      },
+      "profile_stay_time": {
+        "pearson_r": -0.0004572548304648158,
+        "long_view_rate_when_zero": 0.3132615970921202
+      },
+      "comment_stay_time": {
+        "pearson_r": 0.1691629680201239,
+        "long_view_rate_when_zero": 0.28853453549073665,
+        "long_view_rate_by_nonzero_quintile": {
+          "(8.999, 2877.0]": 0.7040358744394619,
+          "(2877.0, 4938.4]": 0.7886690647482014,
+          "(4938.4, 8041.4]": 0.8491921005385996,
+          "(8041.4, 14254.4]": 0.9272237196765498,
+          "(14254.4, 253595.0]": 0.9497307001795332
+        }
+      }
+    },
+    "inter_feedback_correlation": {
+      "is_click": {
+        "is_click": 1.0,
+        "is_like": 0.0994,
+        "is_follow": 0.0311,
+        "is_comment": 0.0531,
+        "is_forward": 0.0266,
+        "is_hate": 0.0028,
+        "is_profile_enter": 0.1395,
+        "play_time_ms": 0.5167,
+        "profile_stay_time": 0.0038,
+        "comment_stay_time": 0.1422
+      },
+      "is_like": {
+        "is_click": 0.0994,
+        "is_like": 1.0,
+        "is_follow": 0.1203,
+        "is_comment": 0.056,
+        "is_forward": 0.0244,
+        "is_hate": 0.0014,
+        "is_profile_enter": 0.046,
+        "play_time_ms": 0.0676,
+        "profile_stay_time": 0.0242,
+        "comment_stay_time": 0.0677
+      },
+      "is_follow": {
+        "is_click": 0.0311,
+        "is_like": 0.1203,
+        "is_follow": 1.0,
+        "is_comment": 0.0351,
+        "is_forward": 0.007,
+        "is_hate": -0.0009,
+        "is_profile_enter": 0.0575,
+        "play_time_ms": 0.0282,
+        "profile_stay_time": 0.0166,
+        "comment_stay_time": 0.0256
+      },
+      "is_comment": {
+        "is_click": 0.0531,
+        "is_like": 0.056,
+        "is_follow": 0.0351,
+        "is_comment": 1.0,
+        "is_forward": -0.0013,
+        "is_hate": -0.0012,
+        "is_profile_enter": 0.0305,
+        "play_time_ms": 0.0562,
+        "profile_stay_time": -0.0002,
+        "comment_stay_time": 0.3029
+      },
+      "is_forward": {
+        "is_click": 0.0266,
+        "is_like": 0.0244,
+        "is_follow": 0.007,
+        "is_comment": -0.0013,
+        "is_forward": 1.0,
+        "is_hate": 0.0223,
+        "is_profile_enter": 0.0044,
+        "play_time_ms": 0.0209,
+        "profile_stay_time": -0.0001,
+        "comment_stay_time": 0.0033
+      },
+      "is_hate": {
+        "is_click": 0.0028,
+        "is_like": 0.0014,
+        "is_follow": -0.0009,
+        "is_comment": -0.0012,
+        "is_forward": 0.0223,
+        "is_hate": 1.0,
+        "is_profile_enter": -0.0035,
+        "play_time_ms": -0.0011,
+        "profile_stay_time": -0.0001,
+        "comment_stay_time": -0.0016
+      },
+      "is_profile_enter": {
+        "is_click": 0.1395,
+        "is_like": 0.046,
+        "is_follow": 0.0575,
+        "is_comment": 0.0305,
+        "is_forward": 0.0044,
+        "is_hate": -0.0035,
+        "is_profile_enter": 1.0,
+        "play_time_ms": 0.1618,
+        "profile_stay_time": 0.0319,
+        "comment_stay_time": 0.0624
+      },
+      "play_time_ms": {
+        "is_click": 0.5167,
+        "is_like": 0.0676,
+        "is_follow": 0.0282,
+        "is_comment": 0.0562,
+        "is_forward": 0.0209,
+        "is_hate": -0.0011,
+        "is_profile_enter": 0.1618,
+        "play_time_ms": 1.0,
+        "profile_stay_time": 0.0,
+        "comment_stay_time": 0.1844
+      },
+      "profile_stay_time": {
+        "is_click": 0.0038,
+        "is_like": 0.0242,
+        "is_follow": 0.0166,
+        "is_comment": -0.0002,
+        "is_forward": -0.0001,
+        "is_hate": -0.0001,
+        "is_profile_enter": 0.0319,
+        "play_time_ms": 0.0,
+        "profile_stay_time": 1.0,
+        "comment_stay_time": -0.0
+      },
+      "comment_stay_time": {
+        "is_click": 0.1422,
+        "is_like": 0.0677,
+        "is_follow": 0.0256,
+        "is_comment": 0.3029,
+        "is_forward": 0.0033,
+        "is_hate": -0.0016,
+        "is_profile_enter": 0.0624,
+        "play_time_ms": 0.1844,
+        "profile_stay_time": -0.0,
+        "comment_stay_time": 1.0
+      }
+    }
+  },
+  "feedback_by_activity_tier_valid": {
+    "Cold": {
+      "n_rows": 1990,
+      "n_users": 422,
+      "is_click_mean": 0.48592964824120605,
+      "is_like_mean": 0.020603015075376884,
+      "is_follow_mean": 0.004522613065326633,
+      "is_comment_mean": 0.0035175879396984926,
+      "is_forward_mean": 0.001507537688442211,
+      "is_hate_mean": 0.0,
+      "is_profile_enter_mean": 0.021608040201005024,
+      "play_time_ms_mean": 25583.466834170853,
+      "play_time_ms_pct_zero": 13.06532663316583,
+      "profile_stay_time_mean": 15.882412060301508,
+      "profile_stay_time_pct_zero": 99.94974874371859,
+      "comment_stay_time_mean": 507.95929648241207,
+      "comment_stay_time_pct_zero": 96.23115577889448,
+      "long_view_rate": 0.3608040201005025
+    },
+    "T1": {
+      "n_rows": 18419,
+      "n_users": 5713,
+      "is_click_mean": 0.5008958141050003,
+      "is_like_mean": 0.023128291438188828,
+      "is_follow_mean": 0.0020087952657581844,
+      "is_comment_mean": 0.0021716705575764157,
+      "is_forward_mean": 0.0011401270427276182,
+      "is_hate_mean": 0.0004886258754546936,
+      "is_profile_enter_mean": 0.019816493837884794,
+      "play_time_ms_mean": 28367.241489766002,
+      "play_time_ms_pct_zero": 9.946251153699984,
+      "profile_stay_time_mean": 0.0,
+      "profile_stay_time_pct_zero": 100.0,
+      "comment_stay_time_mean": 455.4593626146914,
+      "comment_stay_time_pct_zero": 95.99869699766546,
+      "long_view_rate": 0.374124545306477
+    },
+    "T2": {
+      "n_rows": 24752,
+      "n_users": 5480,
+      "is_click_mean": 0.48266806722689076,
+      "is_like_mean": 0.020119586296056886,
+      "is_follow_mean": 0.0013736263736263737,
+      "is_comment_mean": 0.0018180349062702004,
+      "is_forward_mean": 0.0010100193923723336,
+      "is_hate_mean": 0.0004040077569489334,
+      "is_profile_enter_mean": 0.021614414996767937,
+      "play_time_ms_mean": 24302.15719941823,
+      "play_time_ms_pct_zero": 9.962831286360698,
+      "profile_stay_time_mean": 6.5461376858435685,
+      "profile_stay_time_pct_zero": 99.98787976729153,
+      "comment_stay_time_mean": 443.7041047188106,
+      "comment_stay_time_pct_zero": 95.90336134453781,
+      "long_view_rate": 0.35027472527472525
+    },
+    "T3": {
+      "n_rows": 31501,
+      "n_users": 5373,
+      "is_click_mean": 0.4656677565791562,
+      "is_like_mean": 0.019967620075553156,
+      "is_follow_mean": 0.0011745658867972446,
+      "is_comment_mean": 0.002349131773594489,
+      "is_forward_mean": 0.0006983905272848481,
+      "is_hate_mean": 0.0008571156471223136,
+      "is_profile_enter_mean": 0.021269166058220376,
+      "play_time_ms_mean": 22353.50944414463,
+      "play_time_ms_pct_zero": 10.475857909272722,
+      "profile_stay_time_mean": 0.8045458874321451,
+      "profile_stay_time_pct_zero": 99.99682549760325,
+      "comment_stay_time_mean": 491.22758007682296,
+      "comment_stay_time_pct_zero": 95.32713247198502,
+      "long_view_rate": 0.3305609345735056
+    },
+    "T4": {
+      "n_rows": 48247,
+      "n_users": 5389,
+      "is_click_mean": 0.38611727154019937,
+      "is_like_mean": 0.013493066926441023,
+      "is_follow_mean": 0.0009534271560926068,
+      "is_comment_mean": 0.0025908346632951273,
+      "is_forward_mean": 0.0005388936099653865,
+      "is_hate_mean": 0.0006632536738035526,
+      "is_profile_enter_mean": 0.016933695359296952,
+      "play_time_ms_mean": 16681.009327004787,
+      "play_time_ms_pct_zero": 13.992579849524322,
+      "profile_stay_time_mean": 0.3185897568760752,
+      "profile_stay_time_pct_zero": 99.99585466453873,
+      "comment_stay_time_mean": 448.467490206645,
+      "comment_stay_time_pct_zero": 95.29504425145605,
+      "long_view_rate": 0.25783986569113104
+    }
+  },
+  "activity_tier_edges_train_impr_count": [
+    17.0,
+    36.0,
+    65.0
+  ]
+}

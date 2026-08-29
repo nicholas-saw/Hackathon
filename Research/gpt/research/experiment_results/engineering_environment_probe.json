@@ -1,0 +1,110 @@
+{
+  "test_labels_accessed": false,
+  "subprocess_execution": {
+    "timed_out": false,
+    "returncode": 0,
+    "stdout": "subprocess-ok\n",
+    "stderr": "",
+    "seconds": 0.045378499999060296
+  },
+  "timeout": {
+    "timed_out": true,
+    "returncode": null,
+    "stdout": "",
+    "stderr": "",
+    "seconds": 0.3275383000000147
+  },
+  "process_tree_termination": {
+    "timeout_triggered": true,
+    "parent_pid": 36692,
+    "child_pid": 35004,
+    "descendants_seen_before_termination": [
+      35004
+    ],
+    "parent_alive_after_tree_termination": false,
+    "child_alive_after_tree_termination": false,
+    "tree_termination_success": true,
+    "method": "psutil recursive descendants then terminate/kill"
+  },
+  "syntax_error": {
+    "timed_out": false,
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "  File \"<string>\", line 1\n    def broken(:\n               ^\nSyntaxError: invalid syntax\n",
+    "seconds": 0.06575169999996433
+  },
+  "syntax_error_recovery": {
+    "timed_out": false,
+    "returncode": 0,
+    "stdout": "recovered-after-syntax-error\n",
+    "stderr": "",
+    "seconds": 0.04265719999966677
+  },
+  "nan_inf_detection": {
+    "input": [
+      "0.1",
+      "NaN",
+      "+Inf",
+      "-Inf"
+    ],
+    "finite_mask": [
+      true,
+      false,
+      false,
+      false
+    ],
+    "invalid_count": 3,
+    "detected_all_invalid": true,
+    "official_submit_checker_has_explicit_nan_inf_guard": true
+  },
+  "memory": {
+    "physical_total_bytes": 16756445184,
+    "available_bytes_at_probe": 1468706816,
+    "percent_used_at_probe": 91.2
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+    "python_executable": "C:\\Users\\nicho\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+    "architecture": "AMD64",
+    "processor": "ARMv8 (64-bit) Family 8 Model 1 Revision 201, Qualcomm Technologies Inc",
+    "cpu_count": 8
+  },
+  "existing_pipeline_implementation_status": {
+    "harness/executor.py": {
+      "bytes": 112,
+      "executable_noncomment_lines": 0,
+      "implementation_present": false
+    },
+    "harness/guards.py": {
+      "bytes": 101,
+      "executable_noncomment_lines": 0,
+      "implementation_present": false
+    },
+    "harness/cache.py": {
+      "bytes": 86,
+      "executable_noncomment_lines": 0,
+      "implementation_present": false
+    },
+    "harness/diagnostics.py": {
+      "bytes": 85,
+      "executable_noncomment_lines": 0,
+      "implementation_present": false
+    },
+    "pipeline/data_adapter.py": {
+      "bytes": 82,
+      "executable_noncomment_lines": 0,
+      "implementation_present": false
+    },
+    "pipeline/features.py": {
+      "bytes": 73,
+      "executable_noncomment_lines": 0,
+      "implementation_present": false
+    },
+    "pipeline/train.py": {
+      "bytes": 54,
+      "executable_noncomment_lines": 0,
+      "implementation_present": false
+    }
+  }
+}

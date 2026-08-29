@@ -1,0 +1,21 @@
+C:\Users\nicho\OneDrive\Documents\Research\gemini\research\scripts\F_history.py:16: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_valid['author_id'] = df_valid['video_id'].map(vid2author)
+C:\Users\nicho\OneDrive\Documents\Research\gemini\research\scripts\F_history.py:27: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_valid['bucket'] = df_valid['user_id'].map(user_train_counts).apply(get_bucket)
+Loading data...
+
+================== F Historical Availability ==================
+Cold       | Users:  422 | Med Prior:    0 | >=1: 0.00% | >=5: 0.00% | >=10: 0.00% | Rep Video: 0.00% | Rep Author: 0.00%
+T1 (<10)   | Users: 2897 | Med Prior:    5 | >=1: 100.00% | >=5: 59.37% | >=10: 0.00% | Rep Video: 0.63% | Rep Author: 1.16%
+T2 (10-49) | Users: 11138 | Med Prior:   27 | >=1: 100.00% | >=5: 100.00% | >=10: 100.00% | Rep Video: 1.04% | Rep Author: 2.31%
+T3 (50-149) | Users: 7119 | Med Prior:   75 | >=1: 100.00% | >=5: 100.00% | >=10: 100.00% | Rep Video: 1.77% | Rep Author: 3.78%
+T4 (150+)  | Users:  801 | Med Prior:  184 | >=1: 100.00% | >=5: 100.00% | >=10: 100.00% | Rep Video: 4.21% | Rep Author: 7.43%
+ALL        | Users: 22377 | Med Prior:   35 | >=1: 98.11% | >=5: 92.85% | >=10: 85.17% | Rep Video: 1.58% | Rep Author: 3.27%

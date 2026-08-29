@@ -1,0 +1,213 @@
+{
+  "row_counts": {
+    "train": 1141112,
+    "validation": 124909,
+    "evaluation_date_rows_date_only": 170588,
+    "random_validation": 288338,
+    "random_evaluation_date_rows_date_only": 897721
+  },
+  "cardinality": {
+    "train_users": 26210,
+    "valid_users": 22377,
+    "train_videos": 7538,
+    "valid_videos": 5951,
+    "train_authors": 6482,
+    "valid_authors": 5315,
+    "all_video_basic_authors": 6510,
+    "all_video_basic_videos": 7583,
+    "all_user_feature_users": 27285
+  },
+  "overlap_pct": {
+    "users": 98.11413504938106,
+    "videos": 99.88237271046883,
+    "authors": 99.90592662276576,
+    "user_video_pairs": 1.6268739131509762,
+    "user_author_pairs": 3.375935806758489,
+    "user_tag_pairs": 68.13617247922238
+  },
+  "author_video": {
+    "authors": 6510,
+    "one_video_authors": 5661,
+    "one_video_authors_pct": 86.95852534562212,
+    "mean": 1.1648233486943165,
+    "median": 1.0,
+    "p90": 2.0,
+    "max": 26
+  },
+  "repeat": {
+    "train": {
+      "user_video": {
+        "unique_pairs": 1092750,
+        "pct_pairs_repeated": 4.13049645390071,
+        "pct_rows_in_repeated_pairs": 8.193586606748505,
+        "max_repeat": 22
+      },
+      "user_author": {
+        "unique_pairs": 1070326,
+        "pct_pairs_repeated": 5.9131516939698745,
+        "pct_rows_in_repeated_pairs": 11.749591626413533,
+        "max_repeat": 22
+      },
+      "user_tag": {
+        "unique_pairs": 355242,
+        "pct_pairs_repeated": 51.767808986550016,
+        "pct_rows_in_repeated_pairs": 84.98473418910677,
+        "max_repeat": 115
+      }
+    },
+    "valid": {
+      "user_video": {
+        "unique_pairs": 121337,
+        "pct_pairs_repeated": 2.8952421767474057,
+        "pct_rows_in_repeated_pairs": 5.67212931013778,
+        "max_repeat": 7
+      },
+      "user_author": {
+        "unique_pairs": 120885,
+        "pct_pairs_repeated": 3.2518509327046363,
+        "pct_rows_in_repeated_pairs": 6.368636367275377,
+        "max_repeat": 7
+      },
+      "user_tag": {
+        "unique_pairs": 90121,
+        "pct_pairs_repeated": 24.450461046814837,
+        "pct_rows_in_repeated_pairs": 45.49151782497658,
+        "max_repeat": 21
+      }
+    }
+  },
+  "uniform_users": {
+    "all_negative": {
+      "count": 6785,
+      "pct": 30.32131206149171
+    },
+    "all_positive": {
+      "count": 2663,
+      "pct": 11.900612235777807
+    },
+    "mixed": {
+      "count": 12929,
+      "pct": 57.77807570273048
+    }
+  },
+  "list_length": {
+    "min": 1,
+    "median": 4.0,
+    "mean": 5.582026187603343,
+    "p90": 12.0,
+    "p99": 26.0,
+    "max": 74
+  },
+  "official_gauc_weight_share_pct": {
+    "activity_tier": {
+      "Cold": 1.6911424606845513,
+      "T1": 14.668131359851987,
+      "T2": 21.345975948196113,
+      "T3": 27.503469010175763,
+      "T4": 34.79128122109158
+    },
+    "list_length": {
+      "1": 0.0,
+      "2-3": 10.265379278445884,
+      "4-5": 16.35927382053654,
+      "6-10": 36.39280758556892,
+      "11-20": 27.081406105457912,
+      "21+": 9.90113320999075
+    },
+    "denominator_positive_rows_from_mixed_users": 34592
+  },
+  "cached_baseline": {
+    "users_exactly_aligned": true,
+    "labels_exactly_aligned": true,
+    "metrics": {
+      "GAUC": "0.6671334",
+      "nDCG@5": "0.5358057",
+      "primary": "0.6014695",
+      "users": 22377,
+      "rows": 124909
+    },
+    "oracle": {
+      "GAUC": 1.0,
+      "nDCG@5": 0.6967868793850829,
+      "primary": 0.8483934396925414,
+      "users": 22377,
+      "rows": 124909
+    }
+  },
+  "temporal": {
+    "train_daily_rows": {
+      "20220409": 52736,
+      "20220410": 227808,
+      "20220411": 278835,
+      "20220412": 166076,
+      "20220413": 94711,
+      "20220414": 71252,
+      "20220415": 58892,
+      "20220416": 60904,
+      "20220417": 44023,
+      "20220418": 24560,
+      "20220419": 20443,
+      "20220420": 20851,
+      "20220421": 20021
+    },
+    "valid_daily_rows": {
+      "20220422": 22283,
+      "20220423": 26645,
+      "20220424": 18240,
+      "20220425": 14911,
+      "20220426": 14530,
+      "20220427": 14328,
+      "20220428": 13972
+    },
+    "train_dates": [
+      20220409,
+      20220410,
+      20220411,
+      20220412,
+      20220413,
+      20220414,
+      20220415,
+      20220416,
+      20220417,
+      20220418,
+      20220419,
+      20220420,
+      20220421
+    ]
+  },
+  "feedback_prevalence_valid_pct": {
+    "is_click": 44.3827106133265,
+    "is_like": 1.7973084405447166,
+    "is_follow": 0.1304950003602623,
+    "is_comment": 0.2329696018701615,
+    "is_forward": 0.0776565339567205,
+    "is_hate": 0.062445460295094825,
+    "is_profile_enter": 1.9454162630394927
+  },
+  "history": {
+    "valid_users_ge1": 98.11413504938106,
+    "valid_users_ge5": 92.85427000938463,
+    "valid_users_ge10": 85.16780622961076,
+    "median": 35.0,
+    "mean": 47.41506904410779,
+    "p90": 103.0
+  },
+  "random_validation_only": {
+    "rows": 288338,
+    "users": 19091,
+    "videos": 7546,
+    "is_rand_one_pct": 100.0,
+    "long_view_rate": 0.08055823373956954,
+    "unique_user_video_pairs": 288328,
+    "shared_pairs_with_standard_valid": 17,
+    "shared_pair_pct": 0.00589606281734691
+  },
+  "source_hashes_sha256": {
+    "evaluate.py": "ecfde28392eb14fec4f488083251df50624e1af2b86278b962daecfb42d195de",
+    "data.py": "1bf54f5f3a9f590eab2f87f09a3c27422031867a20a5328d56cbd8c7db36e541",
+    "baseline.py": "36c00735c2ac0272c96d71612573ab16e85633518ae8a5f6438e443d27529467",
+    "baseline_scores.json": "950f98181770c030a68bdddab7be3c0abbf060531f54455a6a6f81a4cb003324",
+    "ablation_features.py": "da68b28de477b77993978a0ca84e08ee10d65bd3cd55932db137fa240aaaebb1",
+    "README.md": "b8f7d27def390d798ef84edbf42d2f5c13cbdfc4d6ad0622f7fb748ead03bcf1"
+  }
+}

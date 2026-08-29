@@ -1,0 +1,25 @@
+{
+  "purpose": "deterministic cache equivalence and invalidation probe",
+  "test_labels_accessed": false,
+  "cache_version": "train-valid-raw-v1",
+  "included_source_sha256": "534366e40044981a424530ea7e88a350deeca8035e80d6b24ee07cef03a31cd3",
+  "included_rows": 1266021,
+  "row_feature_hashes_original": {
+    "train": "b2f6d43dd9336f51146ffa753cd25ef710cbbe6c7922c98e6b22fec2a3a62ac3",
+    "valid": "057769a4b3d80b57fcd74a1618b718ef722161d50eaa3230adea90ff5a3fbab2"
+  },
+  "row_feature_hashes_cached": {
+    "train": "b2f6d43dd9336f51146ffa753cd25ef710cbbe6c7922c98e6b22fec2a3a62ac3",
+    "valid": "057769a4b3d80b57fcd74a1618b718ef722161d50eaa3230adea90ff5a3fbab2"
+  },
+  "identical_rows_and_features": true,
+  "current_cache_valid": true,
+  "changed_fingerprint_rejected": true,
+  "timings_seconds": {
+    "source_content_fingerprint": 1.34110239999427,
+    "raw_csv_load": 3.139173600000504,
+    "cache_write": 0.054567300001508556,
+    "cache_read": 0.043097799993120134
+  },
+  "cache_bytes": 81028199
+}

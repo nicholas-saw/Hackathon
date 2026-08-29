@@ -1,0 +1,296 @@
+{
+  "train_date_coverage": {
+    "official_train_range": [
+      20220408,
+      20220421
+    ],
+    "dates_actually_present_in_file": [
+      20220409,
+      20220410,
+      20220411,
+      20220412,
+      20220413,
+      20220414,
+      20220415,
+      20220416,
+      20220417,
+      20220418,
+      20220419,
+      20220420,
+      20220421
+    ],
+    "n_dates_present": 13,
+    "n_dates_expected": 14,
+    "missing_dates": [
+      20220408
+    ],
+    "note": "log_standard_4_08_to_4_21_pure.csv contains zero rows for date 2022-04-08 despite it being the official train start date; the file has 13 distinct dates, not 14."
+  },
+  "daily_rowcount_decay": {
+    "20220409": 52736,
+    "20220410": 227808,
+    "20220411": 278835,
+    "20220412": 166076,
+    "20220413": 94711,
+    "20220414": 71252,
+    "20220415": 58892,
+    "20220416": 60904,
+    "20220417": 44023,
+    "20220418": 24560,
+    "20220419": 20443,
+    "20220420": 20851,
+    "20220421": 20021
+  },
+  "date_ranges": {
+    "early_train": [
+      20220409,
+      20220414
+    ],
+    "late_train": [
+      20220415,
+      20220421
+    ],
+    "validation": [
+      20220422,
+      20220428
+    ]
+  },
+  "early_train": {
+    "rows": 891418,
+    "long_view_rate": 0.33228182513702886,
+    "unique_users": 25151,
+    "unique_videos": 7521,
+    "mean_duration_ms": 98553.04518755511,
+    "mean_play_time_ms": 23364.8831165626,
+    "click_rate": 0.4570818628297836,
+    "tab_top3_share_pct": {
+      "1": 72.48,
+      "0": 13.73,
+      "4": 6.58
+    }
+  },
+  "late_train": {
+    "rows": 249694,
+    "long_view_rate": 0.35210697894222526,
+    "unique_users": 24262,
+    "unique_videos": 6571,
+    "mean_duration_ms": 95476.72181950707,
+    "mean_play_time_ms": 22888.062720770224,
+    "click_rate": 0.48617107339383403,
+    "tab_top3_share_pct": {
+      "1": 75.61,
+      "0": 11.07,
+      "4": 6.74
+    }
+  },
+  "validation": {
+    "rows": 124909,
+    "long_view_rate": 0.313284070803545,
+    "unique_users": 22377,
+    "unique_videos": 5951,
+    "mean_duration_ms": 102819.66793425614,
+    "mean_play_time_ms": 21486.84941037075,
+    "click_rate": 0.44382710613326504,
+    "tab_top3_share_pct": {
+      "1": 74.19,
+      "0": 10.99,
+      "4": 6.31
+    }
+  },
+  "video_set_jaccard": {
+    "early_vs_late_train": 0.8694613955956487,
+    "early_vs_valid": 0.7874485869709433,
+    "late_vs_valid": 0.8184722625617195
+  },
+  "user_set_jaccard": {
+    "early_vs_late_train": 0.8852727966425029,
+    "early_vs_valid": 0.8079732197200243,
+    "late_vs_valid": 0.8087647857281365
+  },
+  "long_view_rate_gap": {
+    "early_train_vs_valid": 0.018997754333483885,
+    "late_train_vs_valid": 0.03882290813868028
+  },
+  "daily_full": [
+    {
+      "split": "train",
+      "date": 20220409,
+      "rows": 52736,
+      "long_view_rate": 0.33616504854368934,
+      "uniq_users": 13561,
+      "uniq_videos": 1933,
+      "click_rate": 0.44715185072815533
+    },
+    {
+      "split": "train",
+      "date": 20220410,
+      "rows": 227808,
+      "long_view_rate": 0.34090110970641946,
+      "uniq_users": 21011,
+      "uniq_videos": 5258,
+      "click_rate": 0.4674243222362691
+    },
+    {
+      "split": "train",
+      "date": 20220411,
+      "rows": 278835,
+      "long_view_rate": 0.33295318019617337,
+      "uniq_users": 21110,
+      "uniq_videos": 7090,
+      "click_rate": 0.4578012086000681
+    },
+    {
+      "split": "train",
+      "date": 20220412,
+      "rows": 166076,
+      "long_view_rate": 0.3322274139550567,
+      "uniq_users": 20073,
+      "uniq_videos": 6380,
+      "click_rate": 0.455899708567162
+    },
+    {
+      "split": "train",
+      "date": 20220413,
+      "rows": 94711,
+      "long_view_rate": 0.31714373198466916,
+      "uniq_users": 18163,
+      "uniq_videos": 5691,
+      "click_rate": 0.44499582941791344
+    },
+    {
+      "split": "train",
+      "date": 20220414,
+      "rows": 71252,
+      "long_view_rate": 0.31947173412676133,
+      "uniq_users": 16910,
+      "uniq_videos": 5189,
+      "click_rate": 0.44736989838881713
+    },
+    {
+      "split": "train",
+      "date": 20220415,
+      "rows": 58892,
+      "long_view_rate": 0.3634279698431026,
+      "uniq_users": 16035,
+      "uniq_videos": 5019,
+      "click_rate": 0.5022583712558581
+    },
+    {
+      "split": "train",
+      "date": 20220416,
+      "rows": 60904,
+      "long_view_rate": 0.3770031525022987,
+      "uniq_users": 15520,
+      "uniq_videos": 4906,
+      "click_rate": 0.5159102850387495
+    },
+    {
+      "split": "train",
+      "date": 20220417,
+      "rows": 44023,
+      "long_view_rate": 0.3643549962519592,
+      "uniq_users": 14545,
+      "uniq_videos": 4603,
+      "click_rate": 0.49689934806805536
+    },
+    {
+      "split": "train",
+      "date": 20220418,
+      "rows": 24560,
+      "long_view_rate": 0.3307817589576547,
+      "uniq_users": 11025,
+      "uniq_videos": 3953,
+      "click_rate": 0.4612785016286645
+    },
+    {
+      "split": "train",
+      "date": 20220419,
+      "rows": 20443,
+      "long_view_rate": 0.32289781343247076,
+      "uniq_users": 9909,
+      "uniq_videos": 3670,
+      "click_rate": 0.4503252947219097
+    },
+    {
+      "split": "train",
+      "date": 20220420,
+      "rows": 20851,
+      "long_view_rate": 0.31135197352644955,
+      "uniq_users": 10076,
+      "uniq_videos": 3632,
+      "click_rate": 0.4352309241762985
+    },
+    {
+      "split": "train",
+      "date": 20220421,
+      "rows": 20021,
+      "long_view_rate": 0.31456970181309624,
+      "uniq_users": 9858,
+      "uniq_videos": 3669,
+      "click_rate": 0.44498276809350185
+    },
+    {
+      "split": "valid",
+      "date": 20220422,
+      "rows": 22283,
+      "long_view_rate": 0.31858367365256024,
+      "uniq_users": 10747,
+      "uniq_videos": 3762,
+      "click_rate": 0.4504779428263699
+    },
+    {
+      "split": "valid",
+      "date": 20220423,
+      "rows": 26645,
+      "long_view_rate": 0.3382248076562207,
+      "uniq_users": 11612,
+      "uniq_videos": 3954,
+      "click_rate": 0.4714955901670107
+    },
+    {
+      "split": "valid",
+      "date": 20220424,
+      "rows": 18240,
+      "long_view_rate": 0.303125,
+      "uniq_users": 9336,
+      "uniq_videos": 3611,
+      "click_rate": 0.43837719298245614
+    },
+    {
+      "split": "valid",
+      "date": 20220425,
+      "rows": 14911,
+      "long_view_rate": 0.31231976393266714,
+      "uniq_users": 8297,
+      "uniq_videos": 3398,
+      "click_rate": 0.4387365032526323
+    },
+    {
+      "split": "valid",
+      "date": 20220426,
+      "rows": 14530,
+      "long_view_rate": 0.311424638678596,
+      "uniq_users": 8121,
+      "uniq_videos": 3082,
+      "click_rate": 0.440467997247075
+    },
+    {
+      "split": "valid",
+      "date": 20220427,
+      "rows": 14328,
+      "long_view_rate": 0.29731993299832493,
+      "uniq_users": 8062,
+      "uniq_videos": 3058,
+      "click_rate": 0.42141261864879953
+    },
+    {
+      "split": "valid",
+      "date": 20220428,
+      "rows": 13972,
+      "long_view_rate": 0.28986544517606644,
+      "uniq_users": 7807,
+      "uniq_videos": 3136,
+      "click_rate": 0.419481820784426
+    }
+  ]
+}

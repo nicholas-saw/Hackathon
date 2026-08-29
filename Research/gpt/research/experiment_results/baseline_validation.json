@@ -1,0 +1,220 @@
+{
+  "purpose": "official FM reproduction using train and validation only",
+  "test_labels_accessed": false,
+  "official_source_modified": false,
+  "split_ranges": {
+    "train": [
+      20220408,
+      20220421
+    ],
+    "valid": [
+      20220422,
+      20220428
+    ]
+  },
+  "split_rows": {
+    "train": 1141112,
+    "valid": 124909
+  },
+  "fields": [
+    "user_id",
+    "video_id",
+    "author_id",
+    "tab",
+    "dur_bucket"
+  ],
+  "field_dims_including_unk": {
+    "user_id": 26211,
+    "video_id": 7539,
+    "author_id": 6483,
+    "tab": 16,
+    "dur_bucket": 11
+  },
+  "duration_quantile_edges_ms": [
+    11633.0,
+    19633.0,
+    32083.0,
+    49420.0,
+    70233.0,
+    91466.0,
+    116958.0,
+    161516.0,
+    235766.0
+  ],
+  "config": {
+    "k": 16,
+    "lr": 0.001,
+    "batch_size": 8192,
+    "max_epochs": 40,
+    "patience": 4,
+    "seed": 0,
+    "l2": 1e-06,
+    "optimizer": "Adam (official numpy implementation)",
+    "objective": "pointwise binary cross-entropy/logistic loss"
+  },
+  "timings_seconds": {
+    "load": 2.877682399994228,
+    "encode": 8.466760700001032,
+    "train_including_epoch_evaluations": 66.60381370000687,
+    "final_evaluation": 0.5219566000014311,
+    "cold_total": 78.5235698999968
+  },
+  "best_validation": {
+    "GAUC": 0.6671333909034729,
+    "nDCG@5": 0.5358057022094727,
+    "primary": 0.6014695167541504,
+    "users": 22377,
+    "rows": 124909
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "loss": 0.6390894102198738,
+      "metrics": {
+        "GAUC": 0.6466761231422424,
+        "nDCG@5": 0.5271856784820557,
+        "primary": 0.5869308710098267,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.5593236999993678,
+      "epoch_seconds": 4.750124199999846
+    },
+    {
+      "epoch": 2,
+      "loss": 0.5478637912443706,
+      "metrics": {
+        "GAUC": 0.6588523983955383,
+        "nDCG@5": 0.5322887301445007,
+        "primary": 0.5955705642700195,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.5161517999949865,
+      "epoch_seconds": 5.461443100000906
+    },
+    {
+      "epoch": 3,
+      "loss": 0.5129100088562284,
+      "metrics": {
+        "GAUC": 0.6641952395439148,
+        "nDCG@5": 0.5344268083572388,
+        "primary": 0.5993109941482544,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.9390359000026365,
+      "epoch_seconds": 7.2293032000015955
+    },
+    {
+      "epoch": 4,
+      "loss": 0.5003835703645434,
+      "metrics": {
+        "GAUC": 0.6642213463783264,
+        "nDCG@5": 0.5346313714981079,
+        "primary": 0.5994263887405396,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.6850388000020757,
+      "epoch_seconds": 8.837788900003943
+    },
+    {
+      "epoch": 5,
+      "loss": 0.4941232014979635,
+      "metrics": {
+        "GAUC": 0.6661275029182434,
+        "nDCG@5": 0.5359647274017334,
+        "primary": 0.601046085357666,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.5143135000034817,
+      "epoch_seconds": 5.91029559999879
+    },
+    {
+      "epoch": 6,
+      "loss": 0.4896847467337336,
+      "metrics": {
+        "GAUC": 0.6657977104187012,
+        "nDCG@5": 0.535427987575531,
+        "primary": 0.6006128787994385,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.6242673999950057,
+      "epoch_seconds": 6.165458499999659
+    },
+    {
+      "epoch": 7,
+      "loss": 0.4859333538583347,
+      "metrics": {
+        "GAUC": 0.6671333909034729,
+        "nDCG@5": 0.5358057022094727,
+        "primary": 0.6014695167541504,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.4984461999993073,
+      "epoch_seconds": 6.327861000005214
+    },
+    {
+      "epoch": 8,
+      "loss": 0.4820883546556745,
+      "metrics": {
+        "GAUC": 0.6664974689483643,
+        "nDCG@5": 0.5359296798706055,
+        "primary": 0.6012135744094849,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.6573301999960677,
+      "epoch_seconds": 6.514869299993734
+    },
+    {
+      "epoch": 9,
+      "loss": 0.4783631669623511,
+      "metrics": {
+        "GAUC": 0.6665961146354675,
+        "nDCG@5": 0.5347902178764343,
+        "primary": 0.6006931662559509,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.5090226999964216,
+      "epoch_seconds": 5.270001899996714
+    },
+    {
+      "epoch": 10,
+      "loss": 0.47438121352876933,
+      "metrics": {
+        "GAUC": 0.6650436520576477,
+        "nDCG@5": 0.5342304110527039,
+        "primary": 0.5996370315551758,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.5166672999985167,
+      "epoch_seconds": 5.084795299997495
+    },
+    {
+      "epoch": 11,
+      "loss": 0.47045187694685797,
+      "metrics": {
+        "GAUC": 0.6640194654464722,
+        "nDCG@5": 0.5340627431869507,
+        "primary": 0.5990411043167114,
+        "users": 22377,
+        "rows": 124909
+      },
+      "evaluation_seconds": 0.5083687000005739,
+      "epoch_seconds": 5.0437881000034395
+    }
+  ],
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+    "numpy": "2.3.2",
+    "cpu_count": 8
+  }
+}

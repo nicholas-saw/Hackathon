@@ -1,0 +1,131 @@
+{
+  "bucket_metrics": [
+    {
+      "tier": "cold-start (0 train impr.)",
+      "n_users": 422,
+      "n_rows": 1990,
+      "GAUC": 0.6877021789550781,
+      "nDCG@5": 0.530527651309967,
+      "primary": 0.6091148853302002
+    },
+    {
+      "tier": "T1 [1-17 train impr.]",
+      "n_users": 5713,
+      "n_rows": 18419,
+      "GAUC": 0.6514714956283569,
+      "nDCG@5": 0.535167932510376,
+      "primary": 0.5933197140693665
+    },
+    {
+      "tier": "T2 [17-36 train impr.]",
+      "n_users": 5480,
+      "n_rows": 24752,
+      "GAUC": 0.6723355650901794,
+      "nDCG@5": 0.5450488328933716,
+      "primary": 0.6086921691894531
+    },
+    {
+      "tier": "T3 [36-65 train impr.]",
+      "n_users": 5373,
+      "n_rows": 31501,
+      "GAUC": 0.6633398532867432,
+      "nDCG@5": 0.5521388053894043,
+      "primary": 0.6077393293380737
+    },
+    {
+      "tier": "T4 [65-809 train impr.]",
+      "n_users": 5389,
+      "n_rows": 48247,
+      "GAUC": 0.6725407242774963,
+      "nDCG@5": 0.5112046599388123,
+      "primary": 0.5918726921081543
+    },
+    {
+      "tier": "ALL",
+      "n_users": 22377,
+      "n_rows": 124909,
+      "GAUC": 0.6671333909034729,
+      "nDCG@5": 0.5358057022094727,
+      "primary": 0.6014695167541504
+    }
+  ],
+  "fixed_score_audit": {
+    "overall": {
+      "n_users": 22377,
+      "n_rows": 124909,
+      "fixed_users": 9448,
+      "fixed_users_pct": 0.4222192429726952,
+      "all_negative_users": 6785,
+      "all_positive_users": 2663,
+      "single_impression_users": 3917,
+      "fixed_rows": 26347,
+      "fixed_rows_pct": 0.2109295567172902
+    },
+    "by_tier": {
+      "cold-start (0 train impr.)": {
+        "n_users": 422,
+        "n_rows": 1990,
+        "fixed_users": 241,
+        "fixed_users_pct": 0.5710900473933649,
+        "all_negative_users": 151,
+        "all_positive_users": 90,
+        "single_impression_users": 157,
+        "fixed_rows": 468,
+        "fixed_rows_pct": 0.23517587939698492
+      },
+      "T1 [1-17 train impr.]": {
+        "n_users": 5713,
+        "n_rows": 18419,
+        "fixed_users": 3360,
+        "fixed_users_pct": 0.5881323297741992,
+        "all_negative_users": 2157,
+        "all_positive_users": 1203,
+        "single_impression_users": 1910,
+        "fixed_rows": 6279,
+        "fixed_rows_pct": 0.34089798577555785
+      },
+      "T2 [17-36 train impr.]": {
+        "n_users": 5480,
+        "n_rows": 24752,
+        "fixed_users": 2516,
+        "fixed_users_pct": 0.4591240875912409,
+        "all_negative_users": 1797,
+        "all_positive_users": 719,
+        "single_impression_users": 1004,
+        "fixed_rows": 6318,
+        "fixed_rows_pct": 0.2552521008403361
+      },
+      "T3 [36-65 train impr.]": {
+        "n_users": 5373,
+        "n_rows": 31501,
+        "fixed_users": 1913,
+        "fixed_users_pct": 0.3560394565419691,
+        "all_negative_users": 1457,
+        "all_positive_users": 456,
+        "single_impression_users": 581,
+        "fixed_rows": 6105,
+        "fixed_rows_pct": 0.19380337132154535
+      },
+      "T4 [65-809 train impr.]": {
+        "n_users": 5389,
+        "n_rows": 48247,
+        "fixed_users": 1418,
+        "fixed_users_pct": 0.26312859528669513,
+        "all_negative_users": 1223,
+        "all_positive_users": 195,
+        "single_impression_users": 265,
+        "fixed_rows": 7177,
+        "fixed_rows_pct": 0.14875536302775302
+      }
+    }
+  },
+  "impressions_per_user_valid": {
+    "n_users": 22377,
+    "min": 1,
+    "median": 4.0,
+    "mean": 5.582026187603343,
+    "max": 74,
+    "p90": 12.0,
+    "p99": 26.0
+  }
+}

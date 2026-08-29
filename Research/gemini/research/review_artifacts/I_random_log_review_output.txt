@@ -1,0 +1,10 @@
+================== I01 (review) — Random log overlap, corrected ==================
+Random log unique (user,video) pairs: 1186006
+CORRECT overlap (train+valid only):    702 (0.06%)
+ORIGINAL computation (train+valid+test, rule violation): 759 (0.06%)
+Of which came only from touching test:  58 (0.00%)
+
+Random log rows in validation window (04-22..04-28): 288338
+Random log rows in test window (04-29..05-08):       897721
+Random log rows in train window (04-08..04-21):      0
+Total random log rows: 1186059

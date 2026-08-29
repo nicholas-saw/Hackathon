@@ -1,10 +1,11 @@
 """把 CWM 的 13 个特征域接进来，验证「用户侧特征在 FM 里是否有用」。"""
-import csv, os, collections, statistics
+import csv, os, collections, statistics, sys
 import numpy as np
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kit'))
 from evaluate import evaluate
 import baseline as B
 
-import sys
 D = sys.argv[1] if len(sys.argv) > 1 else './KuaiRand-Pure/data'
 SPLITS={'train':(20220408,20220421),'valid':(20220422,20220428),'test':(20220429,20220508)}
 

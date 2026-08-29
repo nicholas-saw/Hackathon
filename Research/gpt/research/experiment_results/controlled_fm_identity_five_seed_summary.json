@@ -1,0 +1,40 @@
+{
+  "test_labels_accessed": false,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "comparisons": {
+    "minus_author": {
+      "primary_mean": 0.6028886318206788,
+      "primary_population_std": 0.00045122665038151784,
+      "paired_primary_deltas": [
+        0.0018773078918457031,
+        0.001212477684020996,
+        0.0016112327575683594,
+        0.0006149411201477051,
+        0.0012663602828979492
+      ],
+      "paired_delta_mean": 0.0013164639472961425,
+      "paired_delta_population_std": 0.0004258855195457108,
+      "all_paired_deltas_positive": true
+    },
+    "minus_video": {
+      "primary_mean": 0.6026541471481324,
+      "primary_population_std": 0.0003069735507010042,
+      "paired_primary_deltas": [
+        0.0010838508605957031,
+        0.0008400678634643555,
+        0.002162933349609375,
+        0.0009185671806335449,
+        0.0004044771194458008
+      ],
+      "paired_delta_mean": 0.0010819792747497558,
+      "paired_delta_population_std": 0.0005852690028771792,
+      "all_paired_deltas_positive": true
+    }
+  }
+}

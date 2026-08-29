@@ -1,0 +1,29 @@
+================== H01 (review) — Temporal volume anomaly ==================
+Unique dates in train file: [np.int64(20220409), np.int64(20220410), np.int64(20220411), np.int64(20220412), np.int64(20220413), np.int64(20220414), np.int64(20220415), np.int64(20220416), np.int64(20220417), np.int64(20220418), np.int64(20220419), np.int64(20220420), np.int64(20220421)]
+Rows on 2022-04-08 (official train start date): 0
+Min date present: 20220409 | Max date present: 20220421
+
+Daily row counts, train window:
+date
+20220409     52736
+20220410    227808
+20220411    278835
+20220412    166076
+20220413     94711
+20220414     71252
+20220415     58892
+20220416     60904
+20220417     44023
+20220418     24560
+20220419     20443
+20220420     20851
+20220421     20021
+dtype: int64
+
+Peak day: 20220411 with 278835 rows
+Trough day (train window): 20220421 with 20021 rows
+Peak/trough ratio (train window): 13.9x
+
+Mean rows/day, train days 04-09..04-15 (first 7 days WITH data): 135759
+Mean rows/day, train days 04-16..04-21 (last 6 days): 31800
+Mean rows/day, validation 04-22..04-28: 17844

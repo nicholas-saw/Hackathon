@@ -1,0 +1,28 @@
+== C02 seed variance ==
+  seed 0: GAUC 0.6671 nDCG@5 0.5358 primary 0.6015 (57.9s, 11 epochs)
+  seed 1: GAUC 0.6674 nDCG@5 0.5361 primary 0.6018 (38.1s, 8 epochs)
+  seed 2: GAUC 0.6671 nDCG@5 0.5351 primary 0.6011 (49.2s, 11 epochs)
+  seed 3: GAUC 0.6675 nDCG@5 0.5355 primary 0.6015 (45.0s, 10 epochs)
+  seed 4: GAUC 0.6679 nDCG@5 0.5361 primary 0.6020 (50.1s, 11 epochs)
+== C01 field ablations ==
+  full_5field          primary 0.6014 +/- 0.0003
+  drop_user_id         primary 0.5933 +/- 0.0001
+  drop_video_id        primary 0.6028 +/- 0.0003
+  drop_author_id       primary 0.6030 +/- 0.0003
+  drop_tab             primary 0.5855 +/- 0.0004
+  drop_dur_bucket      primary 0.6008 +/- 0.0002
+== C03 lr sensitivity ==
+  lr=0.0003: primary 0.6018 +/- 0.0001
+  lr=0.001: primary 0.6014 +/- 0.0003
+  lr=0.003: primary 0.6001 +/- 0.0008
+  lr=0.01: primary 0.5971 +/- 0.0005
+== C05 embedding dimension ==
+  k=8: primary 0.6011 +/- 0.0008
+  k=16: primary 0.6014 +/- 0.0003
+  k=32: primary 0.6015 +/- 0.0007
+  k=64: primary 0.6010 +/- 0.0004
+== C04 static feature expansion (validation only) ==
+  base_5field: primary 0.6014 +/- 0.0003
+  item_8field: primary 0.6011 +/- 0.0005
+  cwm_13field: primary 0.5999 +/- 0.0005
+wrote C:\Users\nicho\OneDrive\Documents\Research\claude\research\experiment_results\phase_c_baseline.json

@@ -17,13 +17,16 @@ tar xzf KuaiRand-Pure.tar.gz
 ## 运行
 
 ```bash
-python3 baseline.py --model fm
+python3 train.py --model fm
 ```
 
 `--data_dir` 默认 `./KuaiRand-Pure/data`；数据放在别处时显式指定。
 
 `--model` 可选 `fm`（官方 baseline）/ `pop`（trivial baseline）/ `random`（下界，用于自检评测代码）。
 FM 全程约 40 秒（CPU，单核）。
+
+默认只算并打印 `valid`（开发迭代时不看 test，见 `AGENT_RULES.md`）；
+要拿 test 分数（比如最终汇报，或下面的自检）加 `--final`。
 
 ## 任务定义（口径已写死，不要改）
 
@@ -72,7 +75,7 @@ baseline 已经吃掉可用区间的三成，剩余 headroom 是 0.27 而不是 
 FM 在 5 个随机种子上的 std 均为 **0.0008**。据此收敛判据取 **ε = 0.002（≈2.5σ）, N = 3**：
 连续 3 轮迭代 validation 主分提升不超过 0.002 即判定收敛。
 
-> 自检：如果你的评测代码跑 `--model random` 得不到 primary ≈ 0.475（±0.001），说明 harness 有问题，先修它。
+> 自检：如果你的评测代码跑 `--model random --final` 得不到 test primary ≈ 0.475（±0.001），说明 harness 有问题，先修它。
 
 ## 提交格式
 
@@ -154,7 +157,7 @@ print(evaluate(user_ids, labels, scores))   # scores 可以来自任何模型
 - `labels`：该行的 `long_view`（0/1）
 - `scores`：你的模型给该行打的分（任意实数，只用相对大小）
 
-所以你可以完全不用 `baseline.py`，换成 PyTorch、LightGBM 或 [CWM](https://github.com/hyz20/CWM) 的 xDeepFM，
+所以你可以完全不用 `model.py`/`train.py`，换成 PyTorch、LightGBM 或 [CWM](https://github.com/hyz20/CWM) 的 xDeepFM，
 只要最后把 `scores` 交给 `evaluate()` 即可。**评分口径由 `evaluate.py` 唯一决定。**
 
 > 用 CWM 需注意：它依赖 `torch==1.6.0`（2020 年版本，新 GPU 上大概装不上），
@@ -166,8 +169,11 @@ print(evaluate(user_ids, labels, scores))   # scores 可以来自任何模型
 | | |
 |---|---|
 | `evaluate.py` | 指标实现 + 全部口径约定。**不要改。** |
-| `data.py` | 数据加载、官方划分、特征编码。加特征改这里。 |
-| `baseline.py` | 三个 baseline。FM 是要打败的那个。 |
+| `data.py` | 数据加载、官方划分、冻结的行 schema（`IDX`）。**不要改。** |
+| `features.py` | 特征工程。加特征改这里。 |
+| `model.py` | 模型/损失函数（FM）。换模型、换 loss 改这里。 |
+| `train.py` | 训练循环 + CLI。三个 baseline 都在这，FM 是要打败的那个。 |
 | `baseline_scores.json` | 官方发布的分数 + 种子方差 + 收敛参数。 |
 | `submit.py` | 生成 / 校验提交文件。 |
 | `ablation_features.py` | 特征消融实验，可复现「加特征没有收益」那组数字。 |
+| `AGENT_RULES.md` | 给自动化 agent 看的规则：只能改 `features.py`/`model.py`/`train.py`，以及为什么。 |

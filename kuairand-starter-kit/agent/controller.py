@@ -371,18 +371,55 @@ class Controller:
         assertion into something a judge can confirm.
         """
         import numpy as np
-        best = max(self.nodes, key=lambda n: n['primary'])
-        z = np.load(best['preds'])
-        sub = os.path.join(SUBMISSIONS, '%s_final.csv' % self.run_id)
+        from harness import selection
         from harness.submission import write, check
-        write(sub, 'test', z['test'])
+        from harness.score import rank_average
+
+        # Load every node's stored predictions. Selection is NOT an argmax over these:
+        # best-of-N on a metric with sigma ~ 0.0005 selects the luckiest draw, and that
+        # inflation is exactly what fails to reach the hidden test set.
+        cands = []
+        for n in self.nodes:
+            z = np.load(n['preds'])
+            cands.append({'iteration': n['iteration'], 'label': n['label'],
+                          'valid': z['valid'], 'test': z['test']})
+        base = next(c for c in cands if c['iteration'] == 0)
+
+        floor_valid = None
+        floor_path = os.path.join(SUBMISSIONS, 'floor_valid.csv')
+        if os.path.exists(floor_path):
+            ok_f, _, scores_f = check(floor_path, 'valid')
+            if ok_f:
+                floor_valid = np.asarray(scores_f, dtype=float)
+
+        print('designating (stability-tested, %d-fold):' % selection.N_FOLDS, flush=True)
+        choice, sel_report = selection.designate(
+            uv, yv, cands, base['valid'], floor_preds=floor_valid,
+            log=lambda s: print(s, flush=True))
+
+        # Build the test-side vector for whatever was chosen.
+        if choice['kind'] == 'ensemble':
+            _, _, ut = load_encoded()[0]['test']
+            test_vec = rank_average(np.asarray(ut), choice['test_members'])
+        elif choice['kind'] == 'floor':
+            fp = os.path.join(SUBMISSIONS, 'floor_test.csv')
+            ok_t, _, s_t = check(fp, 'test')
+            if not ok_t:
+                raise RuntimeError('floor tripwire fired but floor_test.csv is invalid')
+            test_vec = np.asarray(s_t, dtype=float)
+        else:
+            test_vec = choice['test']
+
+        sub = os.path.join(SUBMISSIONS, '%s_final.csv' % self.run_id)
+        write(sub, 'test', test_vec)
         ok, msg, _ = check(sub, 'test')
         payload = {
             'stop_reason': stop,
-            'chosen_iteration': best['iteration'],
-            'chosen_label': best['label'],
-            'validation_primary': best['primary'],
-            'validation_metrics': best['metrics'],
+            'chosen_kind': choice['kind'],
+            'chosen_iteration': choice['iteration'],
+            'chosen_label': choice['label'],
+            'validation_primary': choice['primary'],
+            'selection': sel_report,
             'candidates_considered': [
                 {'iteration': n['iteration'], 'primary': n['primary'], 'label': n['label']}
                 for n in self.nodes],

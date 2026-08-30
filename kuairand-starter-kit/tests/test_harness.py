@@ -239,6 +239,75 @@ def test_diagnostics_catalogue_is_documented():
     assert cat and all(isinstance(v, str) and v for v in cat.values())
 
 
+# ---------------- selection: no regression may ship ----------------
+
+def _toy(n_users=400, per_user=6, seed=0):
+    """A synthetic within-user ranking problem with a known signal."""
+    rng = np.random.default_rng(seed)
+    users = np.repeat([('u%04d' % i) for i in range(n_users)], per_user)
+    labels = rng.integers(0, 2, n_users * per_user).astype(float)
+    return users, labels, rng
+
+
+def test_selection_rejects_a_lucky_but_unstable_candidate():
+    """A candidate that wins overall on noise alone must not be designated."""
+    from harness import selection
+    users, labels, rng = _toy()
+    base = rng.normal(size=len(labels))
+    lucky = base + rng.normal(scale=0.01, size=len(labels))   # pure noise around base
+    cands = [{'iteration': 0, 'label': 'baseline', 'valid': base, 'test': base},
+             {'iteration': 1, 'label': 'lucky', 'valid': lucky, 'test': lucky}]
+    choice, rep = selection.designate(users, labels, cands, base)
+    assert choice['kind'] in ('baseline', 'single')
+    if choice['kind'] == 'single':
+        # if it did pass, it must have passed the fold test, not just the pooled score
+        ev = [e for e in rep['evaluated'] if e['iteration'] == 1][0]
+        assert ev['fold_wins'] >= selection.MIN_FOLD_WINS
+
+
+def test_selection_accepts_a_genuine_improvement():
+    """A candidate carrying real signal must win on the pooled score and the folds."""
+    from harness import selection
+    users, labels, rng = _toy(seed=3)
+    base = rng.normal(size=len(labels))
+    good = base + 3.0 * labels                    # strong, consistent, real signal
+    cands = [{'iteration': 0, 'label': 'baseline', 'valid': base, 'test': base},
+             {'iteration': 1, 'label': 'good', 'valid': good, 'test': good}]
+    choice, rep = selection.designate(users, labels, cands, base)
+    assert choice['kind'] in ('single', 'ensemble'), rep['decisions']
+    assert choice['iteration'] == 1 or choice['kind'] == 'ensemble'
+
+
+def test_floor_tripwire_blocks_a_regression():
+    """Nothing worse than the banked floor may be shipped, whatever the run decided."""
+    from harness import selection
+    users, labels, rng = _toy(seed=7)
+    base = rng.normal(size=len(labels))
+    floor = base + 3.0 * labels                   # the floor is genuinely better
+    cands = [{'iteration': 0, 'label': 'baseline', 'valid': base, 'test': base}]
+    choice, rep = selection.designate(users, labels, cands, base, floor_preds=floor)
+    assert choice['kind'] == 'floor', rep['decisions']
+
+
+def test_user_folds_never_split_a_user():
+    from harness import selection
+    users, _, _ = _toy(n_users=50, per_user=4)
+    f = selection.user_folds(users)
+    for u in np.unique(users):
+        assert len(set(f[users == u].tolist())) == 1, 'user %s spans folds' % u
+
+
+def test_guard_rejects_fitting_on_validation():
+    fs = guards.scan_source('pipeline/features.py',
+                            text="edges = _bucket_edges([x[5] for x in splits['valid']])")
+    assert fs and 'validation' in fs[0]['reason']
+
+
+def test_guard_allows_valid_for_early_stopping_in_train():
+    fs = guards.scan_source('pipeline/train.py', text="Xva, yva, uva = enc['valid']")
+    assert not fs, 'early stopping on validation was wrongly flagged'
+
+
 def _run_all():
     fns = [(n, f) for n, f in sorted(globals().items())
            if n.startswith('test_') and callable(f)]

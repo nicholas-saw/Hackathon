@@ -121,6 +121,37 @@ feeds the result back without consuming an iteration — `no_op_screen` proves a
 constant within users (and therefore useless) in about a second, versus a minute and one
 of roughly ten iterations to discover the same thing by training.
 
+## Why the run cannot ship a regression
+
+No mechanism makes every hypothesis improve the score — a hypothesis that cannot fail is
+not research. What `harness/selection.py` guarantees is the weaker, useful thing: the
+*submitted* result never goes backwards.
+
+The gap it closes is the winner's curse. `max(nodes, key=validation_primary)` does not
+select the best model, it selects the luckiest draw; on a metric with paired sigma ~
+0.0005, best-of-10 inflates the apparent score by roughly 1.5 sigma, and that inflation is
+precisely what fails to transfer. Measured on this dataset: the validation-argmax of 21
+statistically indistinguishable runs scored **below** the official baseline on test.
+
+So a candidate is designated only if it beats the incumbent on the pooled score **and** on
+4 of 5 independent user folds. Folds split by user, never by row, because the metric is
+computed within users. Preference order is ensemble-of-stable > best stable single >
+baseline, and a floor tripwire refuses to ship anything worse than the banked floor.
+
+On the real dry-run candidates this changes the outcome: iteration 3 had a positive pooled
+delta (+0.00069) but won only 3 of 5 folds, so it is rejected as a lucky draw, and the run
+ships the floor at 0.60274 instead of iteration 3 at 0.60219.
+
+Three other regression paths are closed upstream:
+
+- **Fitting on the split you select on.** Bucket edges, vocabularies or target encodings
+  computed from `splits['valid']` raise the validation score and lower the hidden-test
+  score. The guard rejects it in `features.py` while still allowing `train.py` to use
+  `enc['valid']` for early stopping, which is correct.
+- **Sub-floor proposals.** A candidate predicting under 0.0015 is unmeasurable here and is
+  rejected before it costs a node.
+- **Re-deriving a closed direction.** The registry carries the published dead ends.
+
 ## Why there is no vector database
 
 The corpus is a few dozen method cards plus at most fifty journal entries — under 10k

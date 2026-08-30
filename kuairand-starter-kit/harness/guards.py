@@ -46,6 +46,22 @@ FORBIDDEN = [
      'the pipeline has no reason to delete anything.'),
 ]
 
+# Fitting anything on validation and then SELECTING on validation is the quietest way to
+# make a run go backwards: the validation score rises, the hidden-test score does not.
+# Bucket edges, vocabularies, target encodings and item priors must come from train only.
+# Scoped to features.py — train.py legitimately reads enc['valid'] for early stopping.
+FIT_ON_VALID = [
+    (r'splits\[[\'"]valid[\'"]\]',
+     'fits a feature on validation rows',
+     'bucket edges, vocabularies and any aggregate must be computed from '
+     'splits["train"] only. Fitting on validation inflates the validation score and '
+     'the gain does not survive to the hidden test set.'),
+    (r'enc\[[\'"]valid[\'"]\]\s*\[\s*1\s*\]',
+     'reads validation labels in the feature builder',
+     'enc["valid"][1] is y for the split you select on. Using it to build features is '
+     'target leakage against your own gate.'),
+]
+
 LEAKY_SAME_ROW = ('is_click', 'is_like', 'is_follow', 'is_comment', 'is_forward',
                   'is_hate', 'play_time_ms', 'profile_stay_time', 'comment_stay_time',
                   'is_profile_enter', 'long_view', 'label')
@@ -76,6 +92,15 @@ def scan_source(path, text=None):
                 findings.append({'file': rel, 'line': i, 'rule': pat,
                                  'reason': reason, 'fix': fix,
                                  'snippet': line.strip()[:160]})
+        # Fitting on the split we select on. features.py only — train.py's use of
+        # enc['valid'] for early stopping is correct and must not be flagged.
+        if rel.endswith('features.py') or rel.endswith('<diff>'):
+            for pat, reason, fix in FIT_ON_VALID:
+                if re.search(pat, line):
+                    findings.append({'file': rel, 'line': i, 'rule': pat,
+                                     'reason': reason, 'fix': fix,
+                                     'snippet': line.strip()[:160]})
+
         # Same-row use of a post-impression column, by any spelling. finditer, not
         # search: one line can hold several same_row() calls and only a later one may
         # be leaky, e.g. [same_row(x,'user_id'), same_row(x,'is_click')].

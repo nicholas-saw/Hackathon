@@ -1,0 +1,87 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Run report — dryrun_v3</title>
+<style>
+:root{--bg:#eef1f4;--card:#fff;--ink:#101820;--ink2:#46525e;--ink3:#7c8894;
+--rule:#cdd5dd;--ok:#2d6a4f;--bad:#a31621;--warn:#b45309;--code:#2a6f97}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 24px 72px}
+h1{font-size:30px;letter-spacing:-.02em;margin:0 0 4px}
+h2{font-size:17px;margin:34px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.sub{color:var(--ink2);margin:0 0 20px}
+.panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;
+background:var(--rule);border:1px solid var(--rule);margin:18px 0}
+.panel div{background:var(--card);padding:11px 13px}
+.panel dt{font:11px ui-monospace,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+.panel dd{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.panel dd small{display:block;font-size:11px;font-weight:400;color:var(--ink3);margin-top:2px}
+table{border-collapse:collapse;width:100%;background:var(--card);border:1px solid var(--rule);font-size:13px}
+th{text-align:left;font:11px ui-monospace,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;
+color:var(--ink3);background:#e7ebef;padding:8px 10px;border-bottom:1px solid var(--rule)}
+td{padding:9px 10px;border-bottom:1px solid #e6eaee;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.n{text-align:right;font-family:ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:10px ui-monospace,Consolas,monospace;letter-spacing:.06em;
+text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid}
+.keep{color:var(--ok);background:#eaf3ee;border-color:var(--ok)}
+.revert{color:var(--bad);background:#fbeced;border-color:var(--bad)}
+.inconclusive{color:var(--warn);background:#fdf3e7;border-color:var(--warn)}
+.pos{color:var(--ok);font-weight:600}.neg{color:var(--bad);font-weight:600}
+.card{background:var(--card);border:1px solid var(--rule);padding:15px 17px;margin:12px 0}
+.card.good{border-top:3px solid var(--ok)}.card.bad{border-top:3px solid var(--bad)}
+details{margin-top:7px}summary{cursor:pointer;color:var(--code);font-size:12px}
+pre{font:12px/1.45 ui-monospace,Consolas,monospace;background:#f5f7f9;border:1px solid var(--rule);
+padding:9px 11px;overflow-x:auto;white-space:pre-wrap;margin:7px 0 0}
+.mono{font-family:ui-monospace,Consolas,monospace}
+.muted{color:var(--ink3)}
+</style></head><body><div class="wrap">
+<h1>Autonomous run report</h1>
+<p class="sub mono">dryrun_v3 &middot; KuaiRand-Pure &middot; stopped: <b>converged</b> &middot; <b>DRY RUN (no model in the loop)</b></p>
+<div class="panel">
+<div><dt>Validation primary</dt><dd>0.60274<small>designated checkpoint</small></dd></div>
+<div><dt>Iterations</dt><dd>3<small>of 3</small></dd></div>
+<div><dt>Wall-clock</dt><dd>376 s<small>of 21600 s ceiling</small></dd></div>
+<div><dt>LLM tokens</dt><dd>0<small>input + output</small></dd></div>
+<div><dt>Cost</dt><dd>$0.00<small>Anthropic API</small></dd></div>
+<div><dt>GPU-hours</dt><dd>0.0<small>CPU only by design</small></dd></div>
+<div><dt>Interventions</dt><dd>0<small>L2-L5, counted</small></dd></div>
+</div>
+<h2>Integrity</h2>
+<div class="card good">
+<div><span class="pill keep">pass</span> <b>Hash chain</b> — <span class="muted">7 events, chain intact</span></div>
+<div><span class="pill keep">pass</span> <b>Designation before test read</b> — <span class="muted">FINAL_DESIGNATION at seq 5; test never opened</span></div>
+<div style="margin-top:9px" class="mono muted">submission dryrun_v3_final.csv<br>sha256 bea3b359575910f0e0f0873ba83767c72319d12fb0102fc3<br>row_id contract OK: 170588 rows, split=test</div>
+<div style="margin-top:9px" class="muted">Reproduce: <span class="mono">python verify.py --chain --order runlogs\dryrun_v3\journal.jsonl</span></div>
+</div>
+<h2>Iterations</h2>
+<table><thead><tr><th>#</th><th>Hypothesis</th><th class="n">Primary</th><th class="n">&Delta; vs parent</th><th>Verdict</th><th class="n">Sec</th></tr></thead><tbody>
+<tr><td class="n">0</td><td>reproduce the official baseline<details><summary>detail</summary><div style="margin-top:6px"><span class="muted">none recorded</span></div></details></td><td class="n">0.60147</td><td class="n muted">+0.00000</td><td><span class="pill keep">KEEP</span></td><td class="n">65</td></tr>
+<tr><td class="n">1</td><td>A lower learning rate reaches a better validation optimum.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> Adam at lr=1e-3 may overshoot on sparse embedding updates.<br><b>Predicted:</b> +0.001 valid primary<br><b>Falsifier:</b> delta &lt;= 0<br><b>Verdict reason:</b> delta -0.00007 is inside the noise floor<br><b>Evidence:</b> baseline lr is 0.001</div></details></td><td class="n">0.60139</td><td class="n neg">-0.00007</td><td><span class="pill inconclusive">INCONCLUSIVE</span></td><td class="n">91</td></tr>
+<tr><td class="n">2</td><td>Higher embedding capacity helps.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> k=16 may underfit the user x video cross.<br><b>Predicted:</b> +0.001 valid primary<br><b>Falsifier:</b> delta &lt;= 0<br><b>Verdict reason:</b> delta -0.00056 is inside the noise floor<br><b>Evidence:</b> organizers swept k and saw nothing</div></details></td><td class="n">0.60091</td><td class="n neg">-0.00056</td><td><span class="pill inconclusive">INCONCLUSIVE</span></td><td class="n">80</td></tr>
+<tr><td class="n">3</td><td>A 3-seed rank-average beats any single seed.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> Seed variance is real; averaging ranks cancels it.<br><b>Predicted:</b> +0.001 valid primary<br><b>Falsifier:</b> delta &lt;= 0<br><b>Verdict reason:</b> delta +0.00072 is inside the noise floor<br><b>Evidence:</b> published 5-seed std 0.0008</div></details></td><td class="n">0.60219</td><td class="n pos">+0.00072</td><td><span class="pill inconclusive">INCONCLUSIVE</span></td><td class="n">139</td></tr>
+</tbody></table>
+<h2>Robustness</h2>
+<p class="muted">No failures or guard rejections in this run.</p>
+<h2>Manual interventions</h2>
+<p class="sub">Counted classes are L2 environment repair, L3 code edit, L4 steering and L5 human selection. L0 setup (before RUN_START) and L1 observation are logged but do not count against autonomy.</p>
+<div class="card good"><b>0 counted interventions.</b> No human touched the run between RUN_START and FINAL_DESIGNATION.</div>
+<h2>Why this checkpoint</h2>
+<p class="sub">Selection is not an argmax. Best-of-N on a metric whose paired noise is sigma ~ 0.0005 picks the luckiest draw, and that inflation is exactly what does not survive to the hidden test set. A candidate must beat the incumbent on the pooled score <b>and</b> on 4 of 5 independent user folds.</p>
+<table><thead><tr><th class="n">Iter</th><th>Candidate</th><th class="n">Pooled &Delta;</th><th class="n">Folds won</th><th>Stable?</th></tr></thead><tbody>
+<tr><td class="n">3</td><td>A 3-seed rank-average beats any single seed.</td><td class="n pos">+0.00069</td><td class="n">3/5</td><td><span class="pill revert">not stable</span></td></tr>
+<tr><td class="n">0</td><td>baseline</td><td class="n muted">+0.00000</td><td class="n">0/5</td><td><span class="pill revert">not stable</span></td></tr>
+<tr><td class="n">1</td><td>A lower learning rate reaches a better validation optimum.</td><td class="n neg">-0.00007</td><td class="n">2/5</td><td><span class="pill revert">not stable</span></td></tr>
+<tr><td class="n">2</td><td>Higher embedding capacity helps.</td><td class="n neg">-0.00056</td><td class="n">2/5</td><td><span class="pill revert">not stable</span></td></tr>
+</tbody></table>
+<div class="card bad">no candidate beat the baseline on both the pooled score and 4/5 folds; designating the baseline rather than a lucky draw</div>
+<div class="card bad">designated result scored -0.00127 against the banked floor; shipping the floor instead</div>
+<p class="sub mono">vs banked floor: pooled -0.00127, 1/5 folds</p>
+<h2>All candidates</h2>
+<p class="sub">Every scored node. The frozen list was written to the journal before any test label was read.</p>
+<table><thead><tr><th class="n">Iter</th><th>Candidate</th><th class="n">Validation primary</th><th></th></tr></thead><tbody>
+<tr><td class="n">3</td><td>A 3-seed rank-average beats any single seed.</td><td class="n">0.60219</td><td></td></tr>
+<tr><td class="n">0</td><td>baseline</td><td class="n">0.60147</td><td></td></tr>
+<tr><td class="n">1</td><td>A lower learning rate reaches a better validation optimum.</td><td class="n">0.60139</td><td></td></tr>
+<tr><td class="n">2</td><td>Higher embedding capacity helps.</td><td class="n">0.60091</td><td></td></tr>
+</tbody></table>
+</div></body></html>

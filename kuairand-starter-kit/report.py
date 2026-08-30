@@ -230,12 +230,49 @@ def build(journal_path):
                                            esc(p.get('note', ''))))
         o.append('</tbody></table>')
 
+    # ---- selection: why this checkpoint and not the argmax ----
+    sel = f.get('selection') or {}
+    if sel.get('evaluated'):
+        o.append('<h2>Why this checkpoint</h2>')
+        o.append('<p class="sub">Selection is not an argmax. Best-of-N on a metric whose '
+                 'paired noise is sigma ~ 0.0005 picks the luckiest draw, and that '
+                 'inflation is exactly what does not survive to the hidden test set. A '
+                 'candidate must beat the incumbent on the pooled score <b>and</b> on '
+                 '%s of %s independent user folds.</p>'
+                 % (sel.get('min_fold_wins'), sel.get('folds')))
+        o.append('<table><thead><tr><th class="n">Iter</th><th>Candidate</th>'
+                 '<th class="n">Pooled &Delta;</th><th class="n">Folds won</th>'
+                 '<th>Stable?</th></tr></thead><tbody>')
+        for e in sel['evaluated']:
+            d = e.get('pooled_delta', 0)
+            o.append('<tr><td class="n">%s</td><td>%s</td><td class="n %s">%+.5f</td>'
+                     '<td class="n">%s/%s</td><td><span class="pill %s">%s</span></td></tr>'
+                     % (e.get('iteration'), esc(e.get('label', '')),
+                        'pos' if d > 0 else ('neg' if d < 0 else 'muted'), d,
+                        e.get('fold_wins'), sel.get('folds'),
+                        'keep' if e.get('stable') else 'revert',
+                        'stable' if e.get('stable') else 'not stable'))
+        o.append('</tbody></table>')
+        if sel.get('ensemble'):
+            en = sel['ensemble']
+            o.append('<p class="sub">Ensemble of iterations %s vs the best single: '
+                     'pooled %+.5f, %s/%s folds — %s.</p>'
+                     % (esc(', '.join(map(str, en.get('members', [])))),
+                        en.get('pooled_delta', 0), en.get('fold_wins'), sel.get('folds'),
+                        'adopted' if en.get('stable') else 'rejected'))
+        for d in sel.get('decisions', []):
+            o.append('<div class="card %s">%s</div>'
+                     % ('bad' if 'floor' in d or 'no candidate' in d else 'good', esc(d)))
+        if sel.get('vs_floor'):
+            vf = sel['vs_floor']
+            o.append('<p class="sub mono">vs banked floor: pooled %+.5f, %s/%s folds</p>'
+                     % (vf.get('pooled_delta', 0), vf.get('fold_wins'), sel.get('folds')))
+
     # ---- candidates ----
     if f.get('candidates_considered'):
-        o.append('<h2>Final selection</h2>')
-        o.append('<p class="sub">The official rule is the validation-best checkpoint at '
-                 'convergence. The frozen candidate list was written to the journal '
-                 'before any test label was read.</p>')
+        o.append('<h2>All candidates</h2>')
+        o.append('<p class="sub">Every scored node. The frozen list was written to the '
+                 'journal before any test label was read.</p>')
         o.append('<table><thead><tr><th class="n">Iter</th><th>Candidate</th>'
                  '<th class="n">Validation primary</th><th></th></tr></thead><tbody>')
         best = f.get('chosen_iteration')

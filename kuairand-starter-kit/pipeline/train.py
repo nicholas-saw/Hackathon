@@ -75,6 +75,60 @@ def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbo
         out['test'] = evaluate(ute, yte, m.predict(Xte))
     return out
 
+# ---------------- harness contract ----------------
+def fit_predict(enc, dim, model='fm', k=16, lr=0.001, epochs=40, bs=8192, patience=4,
+                seed=0, verbose=False):
+    """Train on `train` and return raw scores for every split.
+
+    THE HARNESS CALLS THIS. `run_fm` above returns metrics only, which is enough for a
+    human reading stdout but not enough to build a submission — and a submission built
+    any other way (e.g. kit/submit.py --make) silently ships the untouched baseline
+    instead of whatever this pipeline learned.
+
+    Contract, preserve it when you change the model or the loss:
+        fit_predict(enc, dim, ...) -> {'train': ndarray, 'valid': ndarray, 'test': ndarray}
+    One float per row, higher = more relevant, aligned to enc[split] row order. Selection
+    and early stopping use `valid` only; `test` scores are produced but never read here.
+    """
+    Xtr, ytr, _ = enc['train']
+    Xva, yva, uva = enc['valid']
+
+    if model == 'pop':
+        pos, imp = collections.Counter(), collections.Counter()
+        for xrow, yrow in zip(Xtr[:, 1], ytr):          # column 1 == video_id slot
+            imp[int(xrow)] += 1; pos[int(xrow)] += yrow
+        gmean = sum(pos.values()) / max(sum(imp.values()), 1)
+        prior = 20.0
+        def sc(v):
+            v = int(v)
+            return (pos[v] + prior * gmean) / (imp[v] + prior) if imp[v] else gmean
+        return {sp: np.array([sc(v) for v in enc[sp][0][:, 1]], dtype=float) for sp in enc}
+
+    if model == 'random':
+        rng = np.random.default_rng(seed)
+        return {sp: rng.random(len(enc[sp][1])) for sp in enc}
+
+    m = FM(dim, k=k, lr=lr, seed=seed)
+    rng = np.random.default_rng(seed)
+    best, best_state, bad = -1, None, 0
+    for ep in range(1, epochs + 1):
+        idx = rng.permutation(len(ytr))
+        for i in range(0, len(idx), bs):
+            m.step(Xtr[idx[i:i + bs]], ytr[idx[i:i + bs]])
+        p = evaluate(uva, yva, m.predict(Xva))['primary']
+        if verbose:
+            print(f"  epoch {ep:2d} valid primary {p:.5f}", flush=True)
+        if p > best + 1e-5:
+            best, bad = p, 0
+            best_state = (m.V.copy(), m.W.copy(), np.float32(m.b))
+        else:
+            bad += 1
+            if bad >= patience:
+                break
+    m.V, m.W, m.b = best_state
+    return {sp: m.predict(enc[sp][0]) for sp in enc}
+
+
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--data_dir', default='./KuaiRand-Pure/data',

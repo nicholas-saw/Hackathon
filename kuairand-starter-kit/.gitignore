@@ -1,0 +1,15 @@
+# Regenerable in ~28s by `python -m harness.cache`. 116 MB, no reason to version it.
+.cache/
+
+# Per-node prediction vectors. Large, and reproducible from the journal + pipeline.
+runlogs/*/preds/
+
+# Fault-injection scratch runs. The dry run's journal is kept as evidence; these are not.
+runlogs/inject_*/
+
+# Throwaway submissions from dry runs. The banked floor IS committed, deliberately.
+submissions/dryrun_*.csv
+submissions/*_final.csv
+
+__pycache__/
+*.pyc

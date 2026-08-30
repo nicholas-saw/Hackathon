@@ -7,6 +7,64 @@ because an agent that can edit its own scoring code, its own data split, or its 
 submission format can "improve" the number without improving the model — that result
 is worthless to whoever reads the leaderboard. Follow the letter and the spirit.
 
+---
+
+## 0a. Reconciliation — these clauses supersede anything below that conflicts
+
+An audit found this document contradicting itself in four places. Where the text below
+disagrees with this section, **this section wins**.
+
+**R1 — raw CSV access.** Section 1 says "never open the raw CSVs directly"; section 5
+item 2 says reading them from `features.py` is "within your editable surface". Both
+cannot hold, because `log_standard_4_22_to_5_08_pure.csv` spans validation **and test**
+and carries `long_view` — so the permissive reading hands you every test label.
+
+Resolution: **never call `open()` on a dataset CSV.** Raw columns are available through
+
+```python
+from harness.adapter import raw_columns, auxiliary_targets, entity_table
+cols = raw_columns(('hourmin', 'time_ms'))        # {'train': {...}, 'valid': {...}}
+aux  = auxiliary_targets(('is_click',))           # multi-task targets, float32
+vids = entity_table('video_stat')                 # static side table, keyed by id
+```
+
+which drops test-period rows during parsing and aligns positionally with
+`kit.data.load()`. This keeps organizer directions 2, 3 and 4 reachable. The static guard
+rejects a direct CSV read before your code runs.
+
+**R2 — the join key is not a key.** Section 5 says to join raw columns on
+`(user_id, video_id)`. `kit/submit.py` documents that pair as non-unique: 3.06% of
+evaluation rows repeat it, up to 12 times. Joining on it fans out and mis-attributes
+another impression's outcome onto the current row — a leak wearing a feature's clothes.
+`harness.adapter` aligns by position instead. Do not hand-roll a join.
+
+**R3 — the contract is wider than section 2 states.** `train.py` also imports `IDX` and
+`FIELDS` from `features.py`, and the harness calls `fit_predict`. Preserve all of it:
+
+```python
+features.py:  encode(splits) -> (enc, dim);  enc[split] = (X, y, users)
+              IDX     — the field order of kit.data.load()'s row tuple
+              FIELDS  — NOT documentation. len(FIELDS) sizes vocabs and X's second axis.
+                        Add a column to raw() and you MUST append its name here.
+model.py:     FM(dim, k, lr, l2, seed).step(X, y) -> loss; .predict(X) -> ndarray; .V/.W/.b
+train.py:     fit_predict(enc, dim, model=, seed=, **cfg)
+                -> {'train': ndarray, 'valid': ndarray, 'test': ndarray}
+```
+
+`fit_predict` is how the harness builds a submission. `kit/submit.py --make` does **not**
+use your pipeline — it rebuilds the untouched official baseline from `kit/`, so a
+submission made that way contains none of your work.
+
+**R4 — never run `kit/baseline.py`.** It has no `report_test` flag and prints test
+metrics unconditionally. `kit/submit.py --score` is equally unsafe: its `--split`
+defaults to `test`. Neither is needed; the harness scores validation for you.
+
+`kit/` is now genuinely read-only at the filesystem level — a write raises
+`PermissionError`. If you hit one, that is your signal to stop and report, not to work
+around it.
+
+---
+
 ## 0. Layout
 
 ```

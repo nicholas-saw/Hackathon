@@ -10,6 +10,12 @@ agent and an executor:
      structure of the hidden split. The agent reasons with the validation equivalents
      (30.32%, oracle 0.6968), which are materially different numbers.
 
+  3. Single source of truth. `constraints.md` and `references.md` are no longer inlined
+     here — they are the human-reviewed files on disk, authored from the consolidated
+     pre-audit and its review. This script reads them; it must never rewrite them, or a
+     rebuild would silently discard the reviewed evidence. See
+     `context/CONTEXT_UPDATE_REPORT.md` for what the review changed and why.
+
 Run: python context/build_packet.py
 """
 import json
@@ -84,13 +90,16 @@ def build_baseline():
             'oracle_ceiling': v['oracle_ceiling']['valid'],
         },
         'noise': {
-            'published_seed_std_test': v['fm_official']['std_over_5_seeds']['test_primary'],
+            'reference_seed_std': v['fm_official']['std_over_5_seeds']['test_primary'],
             'measured_seed_std_valid_population': 0.00032,
-            'measured_paired_delta_sigma_valid': 0.0005,
-            'note': ('The widely-quoted 0.0008 is the TEST seed std. On validation, five '
-                     'identity seeds give a population std of 0.00032 and paired deltas '
-                     'run about 0.0005. So eps = 0.002 is roughly 4 sigma: a null '
-                     'iteration essentially never clears it.'),
+            'note': ("Use the published 0.0008 as the noise reference: it is the "
+                     "organizer-reported TEST seed std. The locally measured validation "
+                     "population std of 0.00032 is narrower, and the pre-audit review "
+                     "ruled that treating the narrower figure as the reference is "
+                     "over-confident. Against 0.0008, eps = 0.002 is about 2.5 sigma, "
+                     "which is the derivation the organizers give. Read a delta under "
+                     "roughly 0.0008 as indistinguishable from a seed, and one under "
+                     "0.002 as below the practical threshold set by the competition."),
         },
         'convergence': s['convergence_rule'],
         'run_limits': {'max_iterations': 50, 'wall_clock_hours': 6},
@@ -99,132 +108,97 @@ def build_baseline():
     }
 
 
-CONSTRAINTS = """# Constraints — measured facts only
+def _read(name, base=None):
+    """Read a human-reviewed context file. These are inputs to the packet, not outputs."""
+    with open(os.path.join(base or HERE, name), encoding='utf-8') as fh:
+        return fh.read()
 
-Everything here was measured, by the organizers or by this team, on train or validation.
-None of it tells you what to try next; that is your call.
 
-## Structural, provable
+PROFILE_JSON_HEADER = """# Repo representation and column access
 
-C1. Ranking is WITHIN user. Any score term that is constant across one user's impressions
-cannot change that user's ordering. A pure user-side first-order feature therefore
-contributes exactly zero. User information can only act through a cross with the item
-side. (Mathematical consequence of the metric, confirmed by the organizers: `item_pop x
-user_bias` scores bit-identically to plain `item_pop`.)
+Only the fields that are unique to this repo. The tier, invariance, split-size and
+baseline-by-tier figures that `data_profile.json` also carries are omitted here because
+the reviewed profile above already states them, cell for cell, and duplicating ~9,000
+characters of agreeing numbers costs tokens and invites the model to treat two copies as
+two sources. The full generated file remains at `context/data_profile.json`.
 
-C2. Any per-user monotone transform of the scores at inference is a no-op for both GAUC
-and nDCG@5. So is any global calibration.
-
-C3. 42.2% of validation users are metric-invariant: their labels are all-0 or all-1, so
-nDCG@5 is pinned and GAUC excludes them. 17.5% have a single impression. No model change
-reaches these users.
-
-## Measured negative results — do not re-derive these
-
-C4. Static feature stuffing does not help. The organizers extended the FM from 5 fields
-to the 13 CWM fields: primary 0.5940 versus 0.5950 for 5 fields. Within noise, slightly
-worse. Reproducible via `ablation_features.py` (do not run it — it scores test).
-
-C5. Embedding capacity is not the bottleneck. k = 8 / 16 / 32 gives 0.5895 / 0.5902 /
-0.5887.
-
-C6. Removing fields measured slightly POSITIVE on validation: dropping `author_id` gives
-+0.00157 and dropping `video_id` +0.00136, each 5/5 positive across paired seeds. The
-organizers' stated reason for C4 and C5 is that the `user_id x video_id` cross already
-absorbs most of the learnable signal.
-
-C7. There are 6,510 authors for 7,583 videos and 87% of authors have exactly one video,
-so `author_id` is close to a duplicate of `video_id`.
-
-C8. Only 1.63% of validation rows have their (user, video) pair present in train, and
-3.38% their (user, author) pair. 98.1% of validation users have some train history.
-
-## Rules that are enforced in code, not by discipline
-
-C9. Post-impression signals (is_click, is_like, is_follow, is_comment, is_forward,
-is_hate, play_time_ms, profile_stay_time, comment_stay_time, is_profile_enter, long_view)
-are never same-row inputs. They are legal as auxiliary targets and as history aggregated
-from strictly earlier rows. `harness/guards.py` rejects violations statically, before the
-code runs.
-
-C10. The three editable files are `pipeline/features.py`, `pipeline/model.py`,
-`pipeline/train.py`. `kit/` is read-only at the filesystem level.
-
-C11. Raw log columns are reachable only through `harness.adapter`, which date-filters to
-train+valid before returning anything and aligns positionally with `kit.data.load()`.
-Joining on (user_id, video_id) is wrong: that pair is not unique — 3.06% of evaluation
-rows repeat it, up to 12 times.
+```json
 """
 
-REFERENCES = """# Method index
+# The keys worth sending: everything else in `prof` duplicates the reviewed profile.
+PACKET_PROFILE_KEYS = ('current_representation', 'available_but_unloaded')
 
-Short cards. What a method is, what it assumes, what it costs. Deliberately unranked and
-without recommendations: choosing among these is the research decision you are here to
-make, and a pre-ranked list would make you an executor.
+FENCE_END = """
+```"""
 
-**Pairwise ranking (BPR)** — optimise P(positive ranked above negative) within a user
-instead of a pointwise probability. Assumes usable positive/negative pairs per user;
-degenerate users contribute nothing. Cost: a sampler plus a change to the gradient; same
-order of wall-clock as the baseline. Rendle et al., UAI 2009.
 
-**Listwise softmax / ListNet** — a softmax over each user's impression list, cross-entropy
-against the normalised label vector. Assumes lists are meaningful units. Note the
-validation median list length is 4. Cao et al., ICML 2007.
+def _slim_constraints(text):
+    """Drop what only a human maintainer needs, keep every fact.
 
-**LambdaRank / LambdaMART** — weight pairwise gradients by the nDCG change from swapping
-the pair. Directly targets a truncated metric. Needs grouped data and a working
-delta-nDCG. Burges, 2010.
-
-**Multi-task / ESMM-style** — auxiliary heads on other feedback signals sharing a
-representation with the scored task. Assumes the auxiliary signal correlates with the
-target and that shared capacity is not the binding constraint. Ma et al., SIGIR 2018.
-
-**Censored watch-time regression (CWM)** — a completed play truncates the true watch time,
-so a one-sided loss rather than squared error. Requires play_time_ms and duration_ms.
-Zhao et al., KDD 2024.
-
-**Target attention (DIN)** — score a candidate by attending over the user's history.
-Assumes the candidate or its attributes recur in that history.
-
-**Field-aware and deep factorisation (FFM, DeepFM, DCN)** — richer interaction structure
-over the same sparse fields.
-
-**Inverse propensity weighting** — reweight by exposure probability to debias a logged
-policy. Requires propensities; note `is_rand` is 0 on every standard-log row, and the
-random-exposure log has no rows before 20220422.
-
-**Seed ensembling / rank averaging** — combine several models' within-user ranks. Reduces
-variance rather than bias.
-"""
+    Two things go: the per-entry Provenance blocks (PRE_AUDIT / REVIEW_REPORT citations
+    -- an audit trail the agent cannot act on), and the trailing "What Must NOT Appear
+    In This File" section, which instructs whoever edits the file, not whoever reads it.
+    The file on disk keeps both and stays frozen; only this packet copy is slimmed.
+    """
+    out, skip = [], False
+    for line in text.split(chr(10)):
+        if line.startswith('**Provenance:**'):
+            skip = True
+            continue
+        if skip:
+            if line.startswith('---') or line.startswith('#'):
+                skip = False
+            else:
+                continue
+        if line.startswith('## 9. What Must NOT Appear'):
+            break
+        out.append(line)
+    body = chr(10).join(out).rstrip() + chr(10)
+    return body + (
+        chr(10) + '> Provenance citations (PRE_AUDIT / REVIEW_REPORT per entry) and the '
+        'file-maintenance' + chr(10) + '> section are omitted from this packet copy. '
+        'They are intact in `context/constraints.md`.' + chr(10))
 
 
 def main():
     prof = build_data_profile()
     base = build_baseline()
+    constraints = _slim_constraints(_read('constraints.md'))
+    references = _read('references.md')
+    # The reviewed measurement profile. The proposer has no file-read tool, so anything
+    # not in the packet is invisible to it -- including measurements deliberately demoted
+    # out of constraints.md to stop them reading as directives.
+    profile_md = _read('data_profile.md', os.path.join(ROOT, 'research'))
     with open(os.path.join(HERE, 'data_profile.json'), 'w', encoding='utf-8') as fh:
         json.dump(prof, fh, indent=1, ensure_ascii=False)
     with open(os.path.join(HERE, 'baseline.json'), 'w', encoding='utf-8') as fh:
         json.dump(base, fh, indent=1, ensure_ascii=False)
-    for name, body in (('constraints.md', CONSTRAINTS), ('references.md', REFERENCES)):
-        with open(os.path.join(HERE, name), 'w', encoding='utf-8') as fh:
-            fh.write(body)
-
     spec = open(os.path.join(HERE, 'problem_spec.md'), encoding='utf-8').read()
     rules = open(os.path.join(ROOT, 'AGENT_RULES.md'), encoding='utf-8').read()
     packet = '\n\n'.join([
         spec,
         '# Agent rules\n\n' + rules,
-        CONSTRAINTS,
-        REFERENCES,
-        '# Data profile (validation)\n\n```json\n' + json.dumps(prof, indent=1, ensure_ascii=False) + '\n```',
+        constraints,
+        references,
+        profile_md,
+        PROFILE_JSON_HEADER + json.dumps(
+            {k: prof[k] for k in PACKET_PROFILE_KEYS if k in prof},
+            indent=1, ensure_ascii=False) + FENCE_END,
         '# Baseline and noise\n\n```json\n' + json.dumps(base, indent=1, ensure_ascii=False) + '\n```',
     ])
     with open(os.path.join(HERE, 'packet.md'), 'w', encoding='utf-8') as fh:
         fh.write(packet)
-    print('packet.md: %d chars (~%d tokens, cached as one system block)'
-          % (len(packet), len(packet) // 4))
-    for n in ('data_profile.json', 'baseline.json', 'constraints.md', 'references.md'):
-        print('  %s: %d bytes' % (n, os.path.getsize(os.path.join(HERE, n))))
+    # chars//4 understated this content by ~60%; 2.5 is calibrated against the API's
+    # own count for this packet. Still an estimate -- count_tokens is authoritative.
+    print('packet.md: %d chars (~%d tokens est., cached as one system block)'
+          % (len(packet), int(len(packet) / 2.5)))
+    for n in ('data_profile.json', 'baseline.json'):
+        print('  wrote  %s: %d bytes' % (n, os.path.getsize(os.path.join(HERE, n))))
+    print('  read   ../research/data_profile.md: %d bytes (human-reviewed)'
+          % os.path.getsize(os.path.join(ROOT, 'research', 'data_profile.md')))
+    for n in ('constraints.md', 'references.md'):
+        print('  read   %s: %d bytes (human-reviewed, not regenerated)'
+              % (n, os.path.getsize(os.path.join(HERE, n))))
 
 
 if __name__ == '__main__':

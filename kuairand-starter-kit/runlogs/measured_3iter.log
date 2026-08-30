@@ -1,0 +1,59 @@
+key set: yes | workspace: wrkspc_01B1ri56yfTa9r6U2Qr2akSY
+iter 000  baseline  valid primary 0.60147
+iter 001  GUARD REJECT: reads IDX["label"] in the feature builder, outside the target assignment
+iter 002  GUARD REJECT: reads IDX["label"] in the feature builder, outside the target assignment
+iter 003  GUARD REJECT: reads IDX["label"] in the feature builder, outside the target assignment
+{
+  "stop_reason": "iteration_cap",
+  "chosen_iteration": 0,
+  "chosen_label": "baseline",
+  "validation_primary": 0.6014695167541504,
+  "validation_metrics": {
+    "GAUC": 0.6671333909034729,
+    "nDCG@5": 0.5358057022094727,
+    "primary": 0.6014695167541504,
+    "users": 22377.0,
+    "rows": 124909.0
+  },
+  "candidates_considered": [
+    {
+      "iteration": 0,
+      "primary": 0.6014695167541504,
+      "label": "baseline"
+    }
+  ],
+  "submission": "C:\\Users\\nicho\\OneDrive\\Documents\\Hackathon\\kuairand-starter-kit\\submissions\\run_20260830T151005Z_final.csv",
+  "submission_sha256": "5791bb6de104587d22d8393ebcd21bd32ff3134b3b6efdc8af37704c8d4fe642",
+  "submission_check_ok": true,
+  "submission_check_msg": "row_id contract OK: 170588 rows, split=test",
+  "iterations_used": 0,
+  "iteration_cap": 3,
+  "wall_clock_s": 617.9,
+  "resources": {
+    "calls": 7,
+    "input": 27301,
+    "output": 44030,
+    "cache_write": 65580,
+    "cache_read": 163950,
+    "usd": 1.7291,
+    "by_role": {
+      "proposer": {
+        "calls": 4,
+        "input": 134507,
+        "output": 15934,
+        "usd": 0.669208
+      },
+      "coder": {
+        "calls": 3,
+        "input": 122324,
+        "output": 28096,
+        "usd": 1.059898
+      }
+    },
+    "tokens_total": 300861
+  },
+  "gpu_hours": 0.0,
+  "cache_working": true
+}
+
+journal: C:\Users\nicho\OneDrive\Documents\Hackathon\kuairand-starter-kit\runlogs\run_20260830T151005Z\journal.jsonl

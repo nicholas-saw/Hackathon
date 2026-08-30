@@ -32,12 +32,8 @@ KuaiRand-1k and KuaiRand-27k are optional bonus benchmarks. They are not require
 - Train rows: **1,141,112**
 - Validation rows: **124,909**
 - Evaluation/test rows: **170,588**
-- User catalogue: **27,285** rows in `user_features_pure.csv`
-- Video catalogue: **7,583** rows in `video_features_basic_pure.csv` /
-  `video_features_statistic_pure.csv`
-
-Row counts are the number of log rows falling in each official date window; they are
-obtained from the `date` column alone and do not require reading any label.
+- Roughly **27K users**
+- Roughly **7.6K videos**
 
 ---
 
@@ -87,11 +83,6 @@ EVALUATION / TEST
 
 The split boundaries must never be changed.
 
-> Boundary clarification: the official train window opens on 2022-04-08, but the raw
-> train file contains **no rows on that date**. Train rows span 13 dates,
-> 2022-04-09 through 2022-04-21. The window is still the official one; only the data
-> starts a day later. Do not "fix" this by shifting a boundary.
-
 Development must use **train + validation only**.
 
 Do not inspect or use evaluation/test labels for research, feature construction, model selection, hyperparameter tuning, hypothesis selection, or pre-audit conclusions.
@@ -118,24 +109,25 @@ embedding dimension k: 16
 learning rate: 0.001
 ```
 
-Full published configuration (`baseline_scores.json`): `batch = 8192`,
-`max_epochs = 40`, `patience = 4`, early stopping on validation primary.
+### Published validation result
 
-### Published reference ladder
+```text
+GAUC      ≈ 0.6674
+nDCG@5    ≈ 0.5357
+primary   ≈ 0.6016
+```
 
-From `source/starter-kit/baseline_scores.json`. The FM row is the one to beat.
+### Published hidden-test result
 
-| Reference | valid GAUC | valid nDCG@5 | valid primary | test primary |
-|---|---:|---:|---:|---:|
-| random (sanity lower bound) | 0.4993 | 0.4675 | 0.4834 | 0.4753 |
-| item popularity (trivial) | 0.6387 | 0.5227 | 0.5807 | 0.5715 |
-| **FM (official baseline)** | **0.6674** | **0.5357** | **0.6016** | **0.5946** |
+```text
+GAUC      ≈ 0.6610
+nDCG@5    ≈ 0.5282
+primary   ≈ 0.5946
+```
 
-Published baseline seed standard deviation is approximately **0.0008** — reported by
-the organizer as the standard deviation of the **test** GAUC / nDCG@5 / primary across
-5 seeds. It is the reference noise scale behind the convergence rule in section 7.
+Published baseline seed standard deviation is approximately **0.0008**.
 
-The hidden-test numbers are reference information only. Do not use local hidden-test labels to compare development experiments.
+The hidden-test baseline number is reference information only. Do not use local hidden-test labels to compare development experiments.
 
 ---
 
@@ -156,24 +148,9 @@ The hidden-test numbers are reference information only. Do not use local hidden-
 
 ### Oracle note
 
-The metrics do not span the full [0,1] interval for this dataset, because all-negative
-users score nDCG = 0 under any model and all-positive users are ranking-invariant.
+The metrics do not span the full [0,1] interval for this dataset.
 
-The organizer publishes a **split-specific** oracle (true labels used as scores):
-
-| Split | oracle GAUC | oracle nDCG@5 | oracle primary |
-|---|---:|---:|---:|
-| validation | 1.0000 | 0.6968 | **0.8484** |
-| test | 1.0000 | 0.7289 | **0.8645** |
-
-Use the **validation** oracle (0.8484) as the denominator when judging development
-progress; 0.8645 is the test-split figure and is reference information only.
-
-### Evaluation-split composition (official, published)
-
-The organizer reports that of the 23,875 test users, 27.1% are all-negative, 9.2% are
-all-positive, and 63.7% are label-discriminative. This is published reference material,
-not something to be re-derived from local evaluation labels.
+The organizer reports an oracle primary near **0.8645**, not 1.0.
 
 ---
 
@@ -187,9 +164,6 @@ N = 3
 ```
 
 A run is converged when validation primary has not improved by more than `0.002` over the last **3 consecutive iterations**.
-
-The organizer derives `epsilon = 0.002` as approximately 2.5 x the published 0.0008
-seed standard deviation. Convergence is judged on **validation** primary only.
 
 ### Hard limits
 
@@ -246,26 +220,6 @@ The project should ultimately provide:
 - Resource-consumption summary
 - Detailed written report
 - Optional ~3-minute video
-
----
-
-### Official submission contract
-
-`source/starter-kit/submit.py` defines the accepted format:
-
-```text
-row_id,user_id,video_id,score
-```
-
-- `row_id` starts at 0 and increases contiguously, following the row order of
-  `data.load()[split]` (train file read first, then the 04-22..05-08 file, filtered by
-  date, original file order preserved).
-- `user_id` / `video_id` are redundant alignment-check columns.
-- `score` is any finite real number; only relative order within a user matters.
-  `NaN` / `Inf` are rejected.
-- `row_id` is required as the key because `(user_id, video_id)` is **not unique** in
-  the evaluation split: the organizer reports 3.06% duplicated pairs, repeating up to
-  12 times.
 
 ---
 

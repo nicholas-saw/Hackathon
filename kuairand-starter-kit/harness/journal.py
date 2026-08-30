@@ -21,6 +21,7 @@ GENESIS = '0' * 64
 # verify.py and report.py understand.
 RUN_START = 'RUN_START'
 ITERATION = 'iteration'
+ANALYSIS = 'analysis'
 GUARD_REJECT = 'guard_reject'
 ERROR_RECOVERY = 'error_recovery'
 HUMAN_INTERVENTION = 'human_intervention'

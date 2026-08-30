@@ -153,6 +153,92 @@ def test_rank_average_ignores_cross_user_scale():
     assert np.allclose(rank_average(users, [small]), rank_average(users, [huge]))
 
 
+# ---------------- proposal quality gate ----------------
+
+def _cand(**kw):
+    base = {'direction_id': 'objective', 'hypothesis': 'h', 'evidence': ['e'],
+            'mechanism': 'm', 'proposed_change': 'c', 'invalid_if': 'i',
+            'expected_delta_primary': 0.003, 'files_to_modify': ['pipeline/model.py']}
+    base.update(kw)
+    return {'action': 'EXPERIMENT', 'chosen': 0, 'candidates': [base]}
+
+
+def test_proposer_rejects_refuted_direction():
+    from agent.proposer import validate
+    ok, why = validate(_cand(direction_id='capacity'), {'capacity'})
+    assert not ok and 'refuted' in why
+
+
+def test_proposer_rejects_subfloor_expectation():
+    from agent.proposer import validate
+    ok, why = validate(_cand(expected_delta_primary=0.0004), set())
+    assert not ok and 'resolution floor' in why
+
+
+def test_proposer_allows_extends_refuted_with_reason():
+    from agent.proposer import validate
+    ok, _ = validate(_cand(direction_id='capacity',
+                           extends_refuted='sweep was under a different objective'),
+                     {'capacity'})
+    assert ok
+
+
+def test_proposer_requires_evidence_and_falsifier():
+    from agent.proposer import validate
+    assert not validate(_cand(evidence=[]), set())[0]
+    assert not validate(_cand(invalid_if=''), set())[0]
+
+
+def test_proposer_accepts_open_direction():
+    from agent.proposer import validate
+    ok, why = validate(_cand(), {'capacity'})
+    assert ok, why
+
+
+def test_request_analysis_needs_a_reason():
+    from agent.proposer import validate
+    assert not validate({'action': 'REQUEST_ANALYSIS', 'analysis': 'no_op_screen'}, set())[0]
+    ok, _ = validate({'action': 'REQUEST_ANALYSIS', 'analysis': 'no_op_screen',
+                      'why_needed': 'decides candidate 2'}, set())
+    assert ok
+
+
+# ---------------- knowledge registry ----------------
+
+def test_registry_seeds_published_dead_ends():
+    from harness import knowledge as K
+    closed = set(K.closed_ids())
+    for d in ('capacity', 'static_features', 'user_side_first_order', 'score_transform'):
+        assert d in closed, '%s should be closed' % d
+    assert 'objective' in set(K.open_ids())
+
+
+def test_registry_records_and_closes_after_two_misses():
+    import tempfile
+    from harness import knowledge as K
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, 'directions.json')
+        K.save(K.load(p), p)
+        K.record('newidea', 1, 0.0002, 'INCONCLUSIVE', 'noise', path=p)
+        assert K.load(p)['directions']['newidea']['status'] == K.LIVE
+        K.record('newidea', 2, -0.0009, 'REVERT', 'worse', path=p)
+        assert K.load(p)['directions']['newidea']['status'] == K.REFUTED
+
+
+# ---------------- diagnostics ----------------
+
+def test_diagnostics_refuses_unknown_analysis():
+    from harness import diagnostics as D
+    r = D.run('rm_minus_rf')
+    assert 'error' in r and 'available' in r
+
+
+def test_diagnostics_catalogue_is_documented():
+    from harness import diagnostics as D
+    cat = D.catalogue()
+    assert cat and all(isinstance(v, str) and v for v in cat.values())
+
+
 def _run_all():
     fns = [(n, f) for n, f in sorted(globals().items())
            if n.startswith('test_') and callable(f)]

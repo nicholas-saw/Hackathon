@@ -119,9 +119,13 @@ def build(journal_path):
                  % (esc(os.path.basename(f['submission'])),
                     esc((f.get('submission_sha256') or '')[:48]),
                     esc(f.get('submission_check_msg', ''))))
+    try:
+        shown = os.path.relpath(journal_path)
+    except ValueError:
+        shown = journal_path        # different drive on Windows; relpath refuses
     o.append('<div style="margin-top:9px" class="muted">Reproduce: '
              '<span class="mono">python verify.py --chain --order %s</span></div>'
-             % esc(os.path.relpath(journal_path)))
+             % esc(shown))
     o.append('</div>')
 
     # ---- iterations ----
@@ -158,6 +162,30 @@ def build(journal_path):
                     v if v in ('keep', 'revert') else 'inconclusive',
                     esc(p.get('verdict', '?')), fmt(p.get('seconds'), '%.0f')))
     o.append('</tbody></table>')
+
+    # ---- evidence the agent asked for ----
+    analyses = [e for e in evs if e['type'] == 'analysis' and e['payload'].get('analysis')]
+    if analyses:
+        o.append('<h2>Evidence the agent requested</h2>')
+        o.append('<p class="sub">Diagnostics run on train and validation before spending '
+                 'an iteration. Asking costs seconds; finding out by training costs a '
+                 'minute and one of roughly ten iterations.</p>')
+        o.append('<table><thead><tr><th class="n">Iter</th><th>Analysis</th>'
+                 '<th>Question</th><th>Result</th></tr></thead><tbody>')
+        for e in analyses:
+            p = e['payload']
+            # NOT `res` — that name holds the run's resource totals, and rebinding it
+            # here silently deleted the cost panel further down.
+            ares = p.get('result') or {}
+            key = ares.get('verdict') or ares.get('primary') or ares.get('coverage_pct')
+            o.append('<tr><td class="n">%s</td><td class="mono">%s(%s)</td><td>%s</td>'
+                     '<td>%s<details><summary>full</summary><pre>%s</pre></details></td></tr>'
+                     % (p.get('iteration', '?'), esc(p.get('analysis')),
+                        esc(json.dumps(p.get('params') or {})[1:-1]),
+                        esc(p.get('question', '')),
+                        esc(key if key is not None else ''),
+                        esc(json.dumps(ares, indent=1)[:1800])))
+        o.append('</tbody></table>')
 
     # ---- robustness ----
     o.append('<h2>Robustness</h2>')

@@ -21,7 +21,8 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from harness import PIPELINE, ROOT, RUNLOGS, SUBMISSIONS          # noqa: E402
-from harness import executor, guards, journal as J                # noqa: E402
+from harness import diagnostics, executor, guards, journal as J   # noqa: E402
+from harness import knowledge                                     # noqa: E402
 from harness.cache import load_encoded                            # noqa: E402
 from harness.score import evaluate_raw, score_split               # noqa: E402
 from agent import coder as coder_mod                              # noqa: E402
@@ -187,6 +188,9 @@ class Controller:
                 break
 
             hyp, cfg, seeds, after_files, diff, note = self._plan(it, parent)
+            if hyp == 'SKIP':
+                print('iter %03d  skipped (analysis budget exhausted)' % it, flush=True)
+                continue
             if hyp is None:
                 stop = 'ideas_exhausted'
                 break
@@ -249,6 +253,11 @@ class Controller:
                 'provenance': 'harness' if self.dry_run else 'agent',
                 'cost_so_far_usd': self.meter.totals()['usd']})
 
+            if not self.dry_run:
+                knowledge.record(hyp.get('direction_id') or 'unlabelled', it, delta,
+                                 verdict['verdict'], verdict.get('reason', ''),
+                                 hyp.get('hypothesis', ''))
+
             keep = verdict['verdict'] == 'KEEP' and delta > ACCEPT
             print('iter %03d  primary %.5f  delta %+.5f  %s%s'
                   % (it, m['primary'], delta, verdict['verdict'],
@@ -278,22 +287,65 @@ class Controller:
             return False
         return (h[-1] - h[-1 - N_CONV]) <= EPS
 
-    def _plan(self, it, parent):
-        """Returns (hypothesis, config, seeds, after_files, diff, note)."""
+    def _plan(self, it, parent, max_analyses=3):
+        """Returns (hypothesis, config, seeds, after_files, diff, note).
+
+        The proposer may ask for a diagnostic instead of an experiment. That does NOT
+        consume an iteration — answering "does this column vary within a user?" costs
+        three seconds, and finding out by training costs a minute and one of the ~10
+        iterations the convergence rule allows.
+        """
         if self.dry_run:
             if it - 1 >= len(DRY_IDEAS):
                 return None, None, None, None, '', ''
             idea = dict(DRY_IDEAS[it - 1])
             return idea, idea.get('config', {}), idea.get('seeds', [0]), None, '', 'fixed idea'
-        entries = [e for e in self.jr.events(J.ITERATION)]
+
+        entries = list(self.jr.events(J.ITERATION))
         digest = proposer_mod.digest(entries)
         budget = 'Budget: $%.2f of $%.2f spent.' % (
             self.meter.totals()['usd'], self.meter.ceiling)
-        prop, _ = proposer_mod.propose(self.llm, digest, parent, it, budget)
+        catalogue = diagnostics.catalogue()
+        answered = []
+
+        for attempt in range(max_analyses + 1):
+            last = attempt == max_analyses
+            note_budget = budget if not last else (
+                budget + '\n\nYou have used this iteration\'s analysis budget. Return '
+                'action EXPERIMENT now, using what you already know.')
+            prop, _ = proposer_mod.propose(
+                self.llm, digest, parent, it, note_budget,
+                directions=knowledge.summary(), catalogue=catalogue,
+                closed_ids=set(knowledge.closed_ids()),
+                analysis_results=answered or None)
+
+            if prop.get('action') != 'REQUEST_ANALYSIS':
+                break
+            if last:
+                # It asked again after being told it could not. Skip this iteration
+                # rather than ending the run — an over-curious proposer is not a reason
+                # to throw away the remaining budget.
+                self.jr.append(J.ANALYSIS, {
+                    'iteration': it, 'analysis': None,
+                    'note': 'analysis budget exhausted; iteration skipped'})
+                return 'SKIP', None, None, None, '', ''
+
+            name = prop.get('analysis')
+            params = prop.get('params') or {}
+            result = diagnostics.run(name, **params)
+            answered.append({'analysis': name, 'params': params,
+                             'question': prop.get('question', ''), 'result': result})
+            self.jr.append(J.ANALYSIS, {
+                'iteration': it, 'analysis': name, 'params': params,
+                'question': prop.get('question', ''),
+                'why_needed': prop.get('why_needed', ''), 'result': result})
+            print('iter %03d  ANALYSIS %s(%s)' % (it, name, params), flush=True)
+
         hyp = prop['candidates'][prop['chosen']]
         hyp['_alternatives'] = [c.get('hypothesis') for i, c in
                                 enumerate(prop['candidates']) if i != prop['chosen']]
         hyp['_rationale'] = prop.get('rationale', '')
+        hyp['_analyses_used'] = [a['analysis'] for a in answered]
         after, note, _ = coder_mod.code(self.llm, hyp, ROOT)
         before = coder_mod.current_files(ROOT)
         diff = coder_mod.make_diff(before, after)

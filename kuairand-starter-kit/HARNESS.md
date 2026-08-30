@@ -17,6 +17,8 @@ harness/      deterministic infrastructure. No LLM calls, no tokens.
   journal.py     hash-chained append-only JSONL
   submission.py  builds submissions THROUGH pipeline/, validates via the frozen checker
   run_node.py    one experiment, in its own process
+  diagnostics.py whitelisted analyses the proposer can request before spending a node
+  knowledge.py   persistent registry of directions: tried, refuted, provably no-op
 agent/        three LLM roles, three deterministic ones
   llm.py         Anthropic client, prompt caching, token + cost meter, budget ceiling
   proposer.py    3 hypotheses, ranked, one chosen — a single call
@@ -96,6 +98,45 @@ refuses a new node past the budget ceiling.
 **Prompt caching is load-bearing.** The packet is ~6,300 tokens sent on every call. Cached
 it is ~$9 for a 20-iteration run plus rehearsals; uncached the same run is ~$26, over
 budget. `Meter.cache_working()` reports whether cache reads are actually happening.
+
+## How the proposer is kept honest
+
+Three gates, all enforced in `agent/proposer.py:validate()` before a node is spent:
+
+**It cannot re-derive a closed direction.** `harness/knowledge.py` carries every
+direction with a status, seeded with the organizers' two published dead ends (static
+features 0.5940 vs 0.5950; capacity k=8/16/32 → 0.5895/0.5902/0.5887) and the two classes
+that are provably zero under within-user ranking (pure user-side first-order terms, and
+per-user monotone transforms). Proposing one is rejected unless the candidate sets
+`extends_refuted` explaining what is different — so it is a speed bump, not a wall.
+
+**It must predict above the resolution floor.** Paired validation noise is sigma ~ 0.0005,
+so `expected_delta_primary` below 0.0015 is rejected: unmeasurable here even if real.
+This kills hyperparameter tinkering, which is what a naive proposer reaches for first.
+
+**It must cite evidence and a falsifier.** No `evidence` list or no `invalid_if`, no node.
+
+And it can decline to experiment. `REQUEST_ANALYSIS` runs one whitelisted diagnostic and
+feeds the result back without consuming an iteration — `no_op_screen` proves a column is
+constant within users (and therefore useless) in about a second, versus a minute and one
+of roughly ten iterations to discover the same thing by training.
+
+## Why there is no vector database
+
+The corpus is a few dozen method cards plus at most fifty journal entries — under 10k
+tokens, already riding in the cached system prompt at about $0.0005 a call. Embedding and
+retrieving it would add a dependency, a build step and per-call latency to solve a recall
+problem that does not exist at this scale.
+
+It would also answer the wrong question. What the proposer needs is not "which directions
+are *similar* to this one" but "is this one already closed" — that is set membership, and
+similarity search returns near-misses precisely where an exact answer matters. So
+`knowledge.py` is a structured registry with exact status lookup, not RAG. If the corpus
+ever grew past a few hundred entries the trade would flip.
+
+One cache detail worth preserving: the registry is passed in the **user message**, not the
+cached system packet. It changes every iteration, and putting it in the prefix would
+invalidate the prompt cache on every call and roughly triple the run's cost.
 
 ## Status
 

@@ -1,0 +1,139 @@
+{
+ "directions": {
+  "objective": {
+   "id": "objective",
+   "name": "Change the training objective",
+   "summary": "Pointwise BCE optimises a different thing from a within-user ranking metric. Pairwise (BPR) or listwise (softmax over the user's list) targets the metric directly.",
+   "status": "untried",
+   "source": "organizer_ranked_1",
+   "notes": [
+    "The organizers rank this their most likely direction. Untested here."
+   ]
+  },
+  "sequence": {
+   "id": "sequence",
+   "name": "User behaviour sequences / target attention",
+   "summary": "No behaviour sequence is used at all. DIN/SIM-style interest modelling over the user history is unexplored.",
+   "status": "untried",
+   "source": "organizer_ranked_2",
+   "notes": [
+    "Check history_coverage first: attention needs the candidate or its author to actually appear in the user history."
+   ]
+  },
+  "multitask": {
+   "id": "multitask",
+   "name": "Multi-task auxiliary heads",
+   "summary": "is_click, is_like, play_time_ms and others are available as auxiliary targets while long_view stays the scored task.",
+   "status": "untried",
+   "source": "organizer_ranked_3",
+   "notes": [
+    "Reach them with harness.adapter.auxiliary_targets(). Never same-row inputs."
+   ]
+  },
+  "watchtime": {
+   "id": "watchtime",
+   "name": "Censored watch-time regression",
+   "summary": "A completed play truncates true watch time, so a one-sided loss rather than squared error.",
+   "status": "untried",
+   "source": "organizer_ranked_4",
+   "notes": [
+    "Needs play_time_ms and duration_ms via the adapter."
+   ]
+  },
+  "model_family": {
+   "id": "model_family",
+   "name": "Different model family",
+   "summary": "DeepFM / DCN / xDeepFM / GBDT over engineered features.",
+   "status": "untried",
+   "source": "organizer_ranked_5",
+   "notes": [
+    "The organizers deprioritise this because capacity measurably is not the bottleneck — see the capacity dead end."
+   ]
+  },
+  "temporal": {
+   "id": "temporal",
+   "name": "Time features and drift",
+   "summary": "hourmin, date, and the train-to-validation regime change.",
+   "status": "untried",
+   "source": "organizer_ranked_6",
+   "notes": [
+    "Daily volume collapses 13.6x INSIDE the training window (4/11 peak, 4/19 trough), not at the train/validation boundary."
+   ]
+  },
+  "debias": {
+   "id": "debias",
+   "name": "Exposure debiasing / unbiased validation",
+   "summary": "The random-exposure log as an unbiased check on a model fitted to biased traffic.",
+   "status": "untried",
+   "source": "organizer_ranked_7",
+   "notes": [
+    "is_rand is 0 on every standard-log row, so it carries no propensity signal there. The random log has no rows before 20220422."
+   ]
+  },
+  "ensembling": {
+   "id": "ensembling",
+   "name": "Variance reduction / ensembling",
+   "summary": "Combine several models' within-user ranks to cancel seed variance.",
+   "status": "untried",
+   "source": "inferable_from_seed_variance",
+   "notes": [
+    "Five identity seeds give a validation population std of 0.00032."
+   ]
+  },
+  "static_features": {
+   "id": "static_features",
+   "name": "Add more static categorical fields",
+   "summary": "Extending the FM from 5 fields to the 13 CWM fields.",
+   "status": "refuted",
+   "source": "organizer_published",
+   "measured": [
+    {
+     "what": "13 fields vs 5 fields",
+     "primary": 0.594,
+     "baseline": 0.595,
+     "delta": -0.001
+    }
+   ],
+   "notes": [
+    "Organizer-published. Within noise and slightly worse. Reproducible via ablation_features.py — do not run it, it scores test."
+   ]
+  },
+  "capacity": {
+   "id": "capacity",
+   "name": "Increase embedding dimension",
+   "summary": "Larger k for the factorization machine.",
+   "status": "refuted",
+   "source": "organizer_published",
+   "measured": [
+    {
+     "what": "k=8/16/32",
+     "primary": "0.5895 / 0.5902 / 0.5887"
+    }
+   ],
+   "notes": [
+    "Organizer-published. Capacity is not the bottleneck; 1.14M rows do not support more of it."
+   ]
+  },
+  "user_side_first_order": {
+   "id": "user_side_first_order",
+   "name": "Pure user-side first-order features",
+   "summary": "A user-level feature added as an additive term.",
+   "status": "no_op",
+   "source": "mathematical",
+   "notes": [
+    "Ranking is within-user, so any term constant across a user's impressions cannot change that user's order. Contributes exactly zero. User information can only act through a cross with the item side."
+   ]
+  },
+  "score_transform": {
+   "id": "score_transform",
+   "name": "Per-user monotone score transforms",
+   "summary": "Calibration, sigmoid, per-user normalisation at inference.",
+   "status": "no_op",
+   "source": "mathematical",
+   "notes": [
+    "Both GAUC and nDCG@5 depend only on within-user order, which a monotone transform preserves. Exactly zero effect."
+   ]
+  }
+ },
+ "updated": "2026-08-30T18:55:50Z"
+}

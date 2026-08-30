@@ -1,0 +1,146 @@
+{
+ "_note": "Validation-split observations. Test-split structure is deliberately absent: it describes the hidden set and is not a development input.",
+ "split_sizes": {
+  "train": 1141112,
+  "valid": 124909,
+  "test": 170588
+ },
+ "tier_definition": "Validation users binned by their TRAIN impression count. Cold = 0 train impressions; the remaining 21,955 warm users are quartiled at edges 17 / 36 / 65. Two other tier schemes exist in this repo under the same names T1-T4 — this is the one these numbers come from.",
+ "impressions_per_user_valid": {
+  "n_users": 22377,
+  "min": 1,
+  "median": 4.0,
+  "mean": 5.582026187603343,
+  "max": 74,
+  "p90": 12.0,
+  "p99": 26.0
+ },
+ "metric_invariance_valid": {
+  "note": "A user whose validation labels are all 0 or all 1 has an nDCG@5 pinned at 0 or 1 and is excluded from GAUC entirely. No model can move them.",
+  "invariant_users_pct": 0.4222,
+  "invariant_rows_pct": 0.2109,
+  "all_negative_users": 6785,
+  "all_positive_users": 2663,
+  "single_impression_users": 3917,
+  "by_tier": {
+   "cold-start (0 train impr.)": {
+    "n_users": 422,
+    "n_rows": 1990,
+    "invariant_users_pct": 0.5711
+   },
+   "T1 [1-17 train impr.]": {
+    "n_users": 5713,
+    "n_rows": 18419,
+    "invariant_users_pct": 0.5881
+   },
+   "T2 [17-36 train impr.]": {
+    "n_users": 5480,
+    "n_rows": 24752,
+    "invariant_users_pct": 0.4591
+   },
+   "T3 [36-65 train impr.]": {
+    "n_users": 5373,
+    "n_rows": 31501,
+    "invariant_users_pct": 0.356
+   },
+   "T4 [65-809 train impr.]": {
+    "n_users": 5389,
+    "n_rows": 48247,
+    "invariant_users_pct": 0.2631
+   }
+  }
+ },
+ "baseline_metrics_by_tier_valid": [
+  {
+   "tier": "cold-start (0 train impr.)",
+   "n_users": 422,
+   "n_rows": 1990,
+   "GAUC": 0.6877021789550781,
+   "nDCG@5": 0.530527651309967,
+   "primary": 0.6091148853302002
+  },
+  {
+   "tier": "T1 [1-17 train impr.]",
+   "n_users": 5713,
+   "n_rows": 18419,
+   "GAUC": 0.6514714956283569,
+   "nDCG@5": 0.535167932510376,
+   "primary": 0.5933197140693665
+  },
+  {
+   "tier": "T2 [17-36 train impr.]",
+   "n_users": 5480,
+   "n_rows": 24752,
+   "GAUC": 0.6723355650901794,
+   "nDCG@5": 0.5450488328933716,
+   "primary": 0.6086921691894531
+  },
+  {
+   "tier": "T3 [36-65 train impr.]",
+   "n_users": 5373,
+   "n_rows": 31501,
+   "GAUC": 0.6633398532867432,
+   "nDCG@5": 0.5521388053894043,
+   "primary": 0.6077393293380737
+  },
+  {
+   "tier": "T4 [65-809 train impr.]",
+   "n_users": 5389,
+   "n_rows": 48247,
+   "GAUC": 0.6725407242774963,
+   "nDCG@5": 0.5112046599388123,
+   "primary": 0.5918726921081543
+  },
+  {
+   "tier": "ALL",
+   "n_users": 22377,
+   "n_rows": 124909,
+   "GAUC": 0.6671333909034729,
+   "nDCG@5": 0.5358057022094727,
+   "primary": 0.6014695167541504
+  }
+ ],
+ "current_representation": {
+  "fields": [
+   "user_id",
+   "video_id",
+   "author_id",
+   "tab",
+   "dur_bucket"
+  ],
+  "encoded_dim": 40260,
+  "row_tuple_from_kit_data_load": [
+   "date",
+   "user_id",
+   "video_id",
+   "author_id",
+   "tab",
+   "duration_ms",
+   "label"
+  ],
+  "note": "kit/data.py exposes only these seven fields. The other 12 log columns and all user/video side tables are reachable only through harness.adapter, which date-filters to train+valid."
+ },
+ "available_but_unloaded": {
+  "log_columns": [
+   "hourmin",
+   "time_ms",
+   "is_click",
+   "is_like",
+   "is_follow",
+   "is_comment",
+   "is_forward",
+   "is_hate",
+   "play_time_ms",
+   "profile_stay_time",
+   "comment_stay_time",
+   "is_profile_enter",
+   "is_rand"
+  ],
+  "side_tables": {
+   "user_features_pure.csv": 30,
+   "video_features_basic_pure.csv": 12,
+   "video_features_statistic_pure.csv": 52
+  },
+  "access": "harness.adapter.raw_columns() / entity_table()"
+ }
+}

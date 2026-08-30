@@ -1,0 +1,60 @@
+{
+ "_note": "Validation reference rungs. The published hidden-test numbers exist in kit/baseline_scores.json and are the competition target, but they are not a development signal and are not repeated here.",
+ "target_to_beat_hidden_test_primary": 0.5946,
+ "validation": {
+  "random": {
+   "GAUC": 0.4993,
+   "nDCG@5": 0.4675,
+   "primary": 0.4834
+  },
+  "item_popularity": {
+   "GAUC": 0.6387,
+   "nDCG@5": 0.5227,
+   "primary": 0.5807
+  },
+  "fm_official": {
+   "GAUC": 0.6674,
+   "nDCG@5": 0.5357,
+   "primary": 0.6016
+  },
+  "oracle_ceiling": {
+   "GAUC": 1.0,
+   "nDCG@5": 0.6968,
+   "primary": 0.8484
+  }
+ },
+ "noise": {
+  "published_seed_std_test": 0.0008,
+  "measured_seed_std_valid_population": 0.00032,
+  "measured_paired_delta_sigma_valid": 0.0005,
+  "note": "The widely-quoted 0.0008 is the TEST seed std. On validation, five identity seeds give a population std of 0.00032 and paired deltas run about 0.0005. So eps = 0.002 is roughly 4 sigma: a null iteration essentially never clears it."
+ },
+ "convergence": {
+  "epsilon": 0.002,
+  "N": 3
+ },
+ "run_limits": {
+  "max_iterations": 50,
+  "wall_clock_hours": 6
+ },
+ "baseline_config": {
+  "model": "FM",
+  "k": 16,
+  "lr": 0.001,
+  "batch": 8192,
+  "max_epochs": 40,
+  "patience": 4,
+  "fields": [
+   "user_id",
+   "video_id",
+   "author_id",
+   "tab",
+   "dur_bucket"
+  ]
+ },
+ "reproduced_here": {
+  "valid_primary": 0.60147,
+  "best_epoch": 7,
+  "early_stop_epoch": 11
+ }
+}

@@ -3,8 +3,8 @@
 kit/data.py 是冻结的 Starter Kit 代码，不能改，这个文件也不从它 import 任何东西 ——
 只能读 kit/data.load(splits) 返回的 splits（每行 schema 见下面的 IDX，这是对
 kit/data.py 那个定长 tuple 的复述，不是另一份定义，改 kit/data.py 的人如果动了
-行 schema，这里也要跟着改）。不允许读 test 的 label 以外的任何东西来构造特征
-（比如不能用 test 集统计量做分桶边界）。
+行 schema，这里也要跟着改）。不允许用 test 的任何东西（包括 label 和统计量）来构造特征
+（比如不能用 test 集统计量做分桶边界）。Do not use ANY test-split data to build features.
 
 同一行的输入特征一律走 same_row(x, name)，它会拒绝 LEAKY_COLUMNS 里的曝光后结果列
 （is_click/is_like/.../play_time_ms/label 等）—— 这些列只能当同一行的多任务目标，
@@ -16,7 +16,9 @@ kit/data.py 那个定长 tuple 的复述，不是另一份定义，改 kit/data.
     encode(splits) -> (enc, dim)
     enc[name] = (X, y, users)   # X: int32 (N, len(FIELDS)); y: float32 (N,); users: list
     dim                          # 所有 field 的 vocab 总大小，喂给 model.FM(dim, ...)
-FIELDS 只是文档用途（当前实现里字段顺序由 raw() 决定），改 raw() 时保持同步。
+FIELDS 不只是文档用途：len(FIELDS) 决定 vocabs 和 X 的第二维（见下面 65/76 行）。
+往 raw() 加一列，就必须同时在 FIELDS 登记名字，否则形状不匹配。
+FIELDS is NOT documentation: len(FIELDS) sizes vocabs and X. Keep them in sync.
 """
 import numpy as np
 

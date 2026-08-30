@@ -1,0 +1,181 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Run report — live_smoke</title>
+<style>
+:root{--bg:#eef1f4;--card:#fff;--ink:#101820;--ink2:#46525e;--ink3:#7c8894;
+--rule:#cdd5dd;--ok:#2d6a4f;--bad:#a31621;--warn:#b45309;--code:#2a6f97}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 24px 72px}
+h1{font-size:30px;letter-spacing:-.02em;margin:0 0 4px}
+h2{font-size:17px;margin:34px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.sub{color:var(--ink2);margin:0 0 20px}
+.panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;
+background:var(--rule);border:1px solid var(--rule);margin:18px 0}
+.panel div{background:var(--card);padding:11px 13px}
+.panel dt{font:11px ui-monospace,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+.panel dd{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.panel dd small{display:block;font-size:11px;font-weight:400;color:var(--ink3);margin-top:2px}
+table{border-collapse:collapse;width:100%;background:var(--card);border:1px solid var(--rule);font-size:13px}
+th{text-align:left;font:11px ui-monospace,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;
+color:var(--ink3);background:#e7ebef;padding:8px 10px;border-bottom:1px solid var(--rule)}
+td{padding:9px 10px;border-bottom:1px solid #e6eaee;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.n{text-align:right;font-family:ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:10px ui-monospace,Consolas,monospace;letter-spacing:.06em;
+text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid}
+.keep{color:var(--ok);background:#eaf3ee;border-color:var(--ok)}
+.revert{color:var(--bad);background:#fbeced;border-color:var(--bad)}
+.inconclusive{color:var(--warn);background:#fdf3e7;border-color:var(--warn)}
+.pos{color:var(--ok);font-weight:600}.neg{color:var(--bad);font-weight:600}
+.card{background:var(--card);border:1px solid var(--rule);padding:15px 17px;margin:12px 0}
+.card.good{border-top:3px solid var(--ok)}.card.bad{border-top:3px solid var(--bad)}
+details{margin-top:7px}summary{cursor:pointer;color:var(--code);font-size:12px}
+pre{font:12px/1.45 ui-monospace,Consolas,monospace;background:#f5f7f9;border:1px solid var(--rule);
+padding:9px 11px;overflow-x:auto;white-space:pre-wrap;margin:7px 0 0}
+.mono{font-family:ui-monospace,Consolas,monospace}
+.muted{color:var(--ink3)}
+</style></head><body><div class="wrap">
+<h1>Autonomous run report</h1>
+<p class="sub mono">live_smoke &middot; KuaiRand-Pure &middot; stopped: <b>iteration_cap</b></p>
+<div class="panel">
+<div><dt>Validation primary</dt><dd>0.60274<small>designated checkpoint</small></dd></div>
+<div><dt>Iterations</dt><dd>1<small>of 1</small></dd></div>
+<div><dt>Wall-clock</dt><dd>651 s<small>of 21600 s ceiling</small></dd></div>
+<div><dt>LLM tokens</dt><dd>77,422<small>input + output</small></dd></div>
+<div><dt>Cost</dt><dd>$0.69<small>Anthropic API</small></dd></div>
+<div><dt>GPU-hours</dt><dd>0.0<small>CPU only by design</small></dd></div>
+<div><dt>Interventions</dt><dd>0<small>L2-L5, counted</small></dd></div>
+</div>
+<h2>Integrity</h2>
+<div class="card good">
+<div><span class="pill keep">pass</span> <b>Hash chain</b> — <span class="muted">4 events, chain intact</span></div>
+<div><span class="pill keep">pass</span> <b>Designation before test read</b> — <span class="muted">FINAL_DESIGNATION at seq 3; test never opened</span></div>
+<div style="margin-top:9px" class="mono muted">submission live_smoke_final.csv<br>sha256 bea3b359575910f0e0f0873ba83767c72319d12fb0102fc3<br>row_id contract OK: 170588 rows, split=test</div>
+<div style="margin-top:9px" class="muted">Reproduce: <span class="mono">python verify.py --chain --order runlogs\live_smoke\journal.jsonl</span></div>
+</div>
+<h2>Iterations</h2>
+<table><thead><tr><th>#</th><th>Hypothesis</th><th class="n">Primary</th><th class="n">&Delta; vs parent</th><th>Verdict</th><th class="n">Sec</th></tr></thead><tbody>
+<tr><td class="n">0</td><td>reproduce the official baseline<details><summary>detail</summary><div style="margin-top:6px"><span class="muted">none recorded</span></div></details></td><td class="n">0.60219</td><td class="n muted">+0.00000</td><td><span class="pill keep">KEEP</span></td><td class="n">243</td></tr>
+<tr><td class="n">1</td><td>Pairwise BPR sampling (one positive vs one negative drawn from the SAME user's impressions, in-batch) raises validation primary by more than 0.002 over pointwise BCE at identical features and capacity.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> BPR maximises P(s_pos &gt; s_neg) for pairs inside a user's list. The user bias and any user-only term subtract out, so 100% of the gradient goes into terms that change order. GAUC is the fraction of correctly ordered within-user pairs, so BPR is a direct differentiable surrogate for half the primary metric — the tightest objective/metric alignment available without delta-nDCG weighting.<br><b>Falsifier:</b> Validation GAUC does not improve by more than 0.002 while train pairwise accuracy climbs, or coverage loss causes nDCG@5 to fall enough to cancel the GAUC gain.<br><b>Verdict reason:</b> The claimed mechanism (all gradient mass moved onto order-changing terms) was implemented correctly, but the effect it predicted did not appear: primary moved -0.00085, i.e. within ~1.7 sigma of the paired noise floor and an order of magnitude short of the predicted +0.002. GAUC (0.66688) is statistically indistinguishable from the pointwise parent's, and nDCG@5 (0.53580) likewise — so the invalid_if clause fires cleanly: GAUC did not improve by &gt;0.002. The result is not 'BPR is worse'; it is 'BPR is the same', which refutes the hypothesis that objective/metric misalignment is what was capping the FM. The change adds a sampler, a second gradient path and coverage loss (users with no positive or no negative contribute zero pairs) for no measurable return, so it should not become the parent.<br><b>Mechanism update:</b> Pointwise BCE and pairwise BPR induce essentially the same within-user ordering from this feature set at this capacity. The calibration/user-bias component that BPR removes was already order-irrelevant (C1/C2 say any within-user-constant term is a no-op), so removing it from the gradient buys nothing the metric can see. Combined with C4 (static fields don't help) and C5 (k doesn't help), the picture is that the binding constraint is neither capacity, nor field count, nor loss shape — it is the information content of the 5-field representation. The FM appears to be near the ceiling of what any function of (user_id, video_id, author_id, tab, dur_bucket) can express for within-user ordering, and the remaining headroom to the 0.8484 oracle sits in signal that is simply absent from the current inputs (behavioural history, time, item side statistics), plus the 42.2% metric-invariant users who are unreachable by construction.<br><b>Evidence:</b> Registry: objective is UNTRIED, ranked most likely by the organizers.; C1: only within-user contrasts move the metric, and BPR's loss is a function purely of (score_pos - score_neg) inside one user, so the user-side additive term cancels analytically.; GAUC is literally the per-user AUC, and BPR is a smooth surrogate for exactly AUC — the objective and the metric are the same functional.</div><pre>--- a/pipeline/model.py
++++ b/pipeline/model.py
+@@ -1,49 +1,70 @@
+-"""模型架构 —— 唯一允许改模型/损失函数的地方。见 AGENT_RULES.md。
+-
+-对外契约（train.py 依赖这些）：
+-    FM(dim, k=16, lr=0.001, l2=1e-6, seed=0)
+-        .step(X, y) -&gt; loss:float      # 一个 mini-batch 的梯度更新
+-        .predict(X, bs=200_000) -&gt; np.ndarray[float]   # 打分，越大越相关
+-        .V, .W, .b                     # 供 train.py 做 best-checkpoint 保存/恢复
+-"""
+-import numpy as np
+-
+-def sigmoid(x):
+-    return 1.0 / (1.0 + np.exp(-np.clip(x, -30, 30)))
+-
+-class FM:
+-    def __init__(self, dim, k=16, lr=0.001, l2=1e-6, seed=0):
+-        rng = np.random.default_rng(seed)
+-        self.V = rng.normal(0, 0.01, (dim, k)).astype(np.float32)
+-        self.W = np.zeros(dim, dtype=np.float32)
+-        self.b = np.float32(0.0)
+-        self.lr, self.l2 = lr, l2
+-        self.mV = np.zeros_like(self.V); self.vV = np.zeros_like(self.V)
+-        self.mW = np.zeros_like(self.W); self.vW = np.zeros_like(self.W)
+-        self.t = 0
+-
+-    def logits(self, X):
+-        E = self.V[X]                                   # (B,F,k)
+-        S = E.sum(1)                                    # (B,k)
+-        inter = 0.5 * ((S ** 2).sum(1) - (E ** 2).sum((1, 2)))
+-        return self.b + self.W[X].sum(1) + inter, E, S
+-
+-    def step(self, X, y):
+-        B = len(y)
+-        z, E, S = self.logits(X)
+-        g = ((sigmoid(z) - y) / B).astype(np.float32)    # (B,)
+-        gV = np.zeros_like(self.V); gW = np.zeros_like(self.W)
+-        np.add.at(gW, X, g[:, None])
+-        np.add.at(gV, X, g[:, None, None] * (S[:, None, :] - E))
+-        gV += self.l2 * self.V; gW += self.l2 * self.W
+-        self.t += 1
+-        b1, b2, eps = 0.9, 0.999, 1e-8
+-        for P, G, M, Vv in ((self.V, gV, self.mV, self.vV), (self.W, gW, self.mW, self.vW)):
+-            M *= b1; M += (1 - b1) * G
+-            Vv *= b2; Vv += (1 - b2) * (G * G)
+-            P -= self.lr * (M / (1 - b1 ** self.t)) / (np.sqrt(Vv / (1 - b2 ** self.t)) + eps)
+-        self.b -= self.lr * g.sum()
+-        return float(-np.mean(y * np.log(sigmoid(z) + 1e-9) + (1 - y) * np.log(1 - sigmoid(z) + 1e-9)))
+-
+-    def predict(self, X, bs=200_000):
+-        return np.concatenate([self.logits(X[i:i + bs])[0] for i in range(0, len(X), bs)])
++"""模型架构 —— 唯一允许改模型/损失函数的地方。见 AGENT_RULES.md。
++
++对外契约（train.py 依赖这些）：
++    FM(dim, k=16, lr=0.001, l2=1e-6, seed=0)
++        .step(X, y) -&gt; loss:float            # 一个 mini-batch 的 pointwise 梯度更新
++        .step_pair(Xp, Xn) -&gt; loss:float     # 一个 mini-batch 的 pairwise(BPR) 梯度更新
++        .predict(X, bs=200_000) -&gt; np.ndarray[float]   # 打分，越大越相关
++        .V, .W, .b                           # 供 train.py 做 best-checkpoint 保存/恢复
++"""
++import numpy as np
++
++def sigmoid(x):
++    return 1.0 / (1.0 + np.exp(-np.clip(x, -30, 30)))
++
++class FM:
++    def __init__(self, dim, k=16, lr=0.001, l2=1e-6, seed=0):
++        rng = np.random.default_rng(seed)
++        self.V = rng.normal(0, 0.01, (dim, k)).astype(np.float32)
++        self.W = np.zeros(dim, dtype=np.float32)
++        self.b = np.float32(0.0)
++        self.lr, self.l2 = lr, l2
++        self.mV = np.zeros_like(self.V); self.vV = np.zeros_like(self.V)
++        self.mW = np.zeros_like(self.W); self.vW = np.zeros_like(self.W)
++        self.t = 0
++
++    def logits(self, X):
++        E = self.V[X]                                   # (B,F,k)
++        S = E.sum(1)                                    # (B,k)
++        inter = 0.5 * ((S ** 2).sum(1) - (E ** 2).sum((1, 2)))
++        return self.b + self.W[X].sum(1) + inter, E, S
++
++    def _adam(self, gV, gW):
++        self.t += 1
++        b1, b2, eps = 0.9, 0.999, 1e-8
++        for P, G, M, Vv in ((self.V, gV, self.mV, self.vV), (self.W, gW, self.mW, self.vW)):
++            M *= b1; M += (1 - b1) * G
++            Vv *= b2; Vv += (1 - b2) * (G * G)
++            P -= self.lr * (M / (1 - b1 ** self.t)) / (np.sqrt(Vv / (1 - b2 ** self.t)) + eps)
++
++    def step(self, X, y):
++        B = len(y)
++        z, E, S = self.l</pre></details></td><td class="n">0.60134</td><td class="n neg">-0.00085</td><td><span class="pill revert">REVERT</span></td><td class="n">169</td></tr>
+</tbody></table>
+<h2>Robustness</h2>
+<p class="muted">No failures or guard rejections in this run.</p>
+<h2>Manual interventions</h2>
+<p class="sub">Counted classes are L2 environment repair, L3 code edit, L4 steering and L5 human selection. L0 setup (before RUN_START) and L1 observation are logged but do not count against autonomy.</p>
+<div class="card good"><b>0 counted interventions.</b> No human touched the run between RUN_START and FINAL_DESIGNATION.</div>
+<h2>Why this checkpoint</h2>
+<p class="sub">Selection is not an argmax. Best-of-N on a metric whose paired noise is sigma ~ 0.0005 picks the luckiest draw, and that inflation is exactly what does not survive to the hidden test set. A candidate must beat the incumbent on the pooled score <b>and</b> on 4 of 5 independent user folds.</p>
+<table><thead><tr><th class="n">Iter</th><th>Candidate</th><th class="n">Pooled &Delta;</th><th class="n">Folds won</th><th>Stable?</th></tr></thead><tbody>
+<tr><td class="n">0</td><td>baseline</td><td class="n muted">+0.00000</td><td class="n">0/5</td><td><span class="pill revert">not stable</span></td></tr>
+<tr><td class="n">1</td><td>Pairwise BPR sampling (one positive vs one negative drawn from the SAM</td><td class="n neg">-0.00084</td><td class="n">1/5</td><td><span class="pill revert">not stable</span></td></tr>
+</tbody></table>
+<div class="card good">no single candidate beat the baseline on both the pooled score and 4/5 folds; the incumbent stays the baseline rather than a lucky draw</div>
+<div class="card bad">designated result scored -0.00058 against the banked floor; shipping the floor instead</div>
+<p class="sub mono">vs banked floor: pooled -0.00058, 1/5 folds</p>
+<h2>All candidates</h2>
+<p class="sub">Every scored node. The frozen list was written to the journal before any test label was read.</p>
+<table><thead><tr><th class="n">Iter</th><th>Candidate</th><th class="n">Validation primary</th><th></th></tr></thead><tbody>
+<tr><td class="n">0</td><td>baseline</td><td class="n">0.60219</td><td></td></tr>
+<tr><td class="n">1</td><td>Pairwise BPR sampling (one positive vs one negative drawn from the SAME user's i</td><td class="n">0.60134</td><td></td></tr>
+</tbody></table>
+<h2>Where the tokens went</h2>
+<table><thead><tr><th>Role</th><th class="n">Calls</th><th class="n">Input</th><th class="n">Output</th><th class="n">USD</th></tr></thead><tbody>
+<tr><td class="mono">coder</td><td class="n">1</td><td class="n">17,960</td><td class="n">7,715</td><td class="n">$0.30</td></tr>
+<tr><td class="mono">proposer</td><td class="n">2</td><td class="n">26,445</td><td class="n">8,881</td><td class="n">$0.32</td></tr>
+<tr><td class="mono">reflector</td><td class="n">1</td><td class="n">14,330</td><td class="n">2,091</td><td class="n">$0.08</td></tr>
+</tbody></table>
+<p class="sub">Controller, governor, guards, executor, cache, scorer and the submission builder make no model calls at all.</p>
+</div></body></html>

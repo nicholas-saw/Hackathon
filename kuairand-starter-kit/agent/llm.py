@@ -22,6 +22,35 @@ CACHE_WRITE_MULT = 1.25          # writing to cache costs ~1.25x input
 CACHE_READ_MULT = 0.10           # reading from cache costs ~0.1x input
 
 
+def load_dotenv(start=None):
+    """Read a .env from this directory or any parent, without adding a dependency.
+
+    The key lives in the repo root's .env, which is gitignored. Nothing else puts it in
+    the environment, so without this the whole LLM path is unreachable even though the
+    credential is present.
+    """
+    here = os.path.abspath(start or os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    seen = set()
+    for _ in range(6):
+        p = os.path.join(here, '.env')
+        if os.path.exists(p) and p not in seen:
+            seen.add(p)
+            with open(p, encoding='utf-8') as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line or line.startswith('#') or '=' not in line:
+                        continue
+                    k, v = line.split('=', 1)
+                    k, v = k.strip(), v.strip().strip('"').strip("'")
+                    if k and k not in os.environ:      # never override a real env var
+                        os.environ[k] = v
+        parent = os.path.dirname(here)
+        if parent == here:
+            break
+        here = parent
+    return bool(os.environ.get('ANTHROPIC_API_KEY') or os.environ.get('ANTHROPIC_AUTH_TOKEN'))
+
+
 class BudgetHalt(RuntimeError):
     """Raised when the run has spent its ceiling. The controller stops cleanly."""
 
@@ -91,6 +120,7 @@ class LLM:
                 import anthropic
             except ImportError:
                 raise LLMUnavailable('the `anthropic` package is not installed')
+            load_dotenv()
             if not (os.environ.get('ANTHROPIC_API_KEY') or os.environ.get('ANTHROPIC_AUTH_TOKEN')):
                 raise LLMUnavailable(
                     'no ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN. Set one, or run the '
@@ -103,10 +133,19 @@ class LLM:
         Caching is a prefix match, so the packet must be byte-identical on every call.
         Anything that varies per iteration goes in the user message, never in here.
         """
+        # Two breakpoints, not one. The role instructions are ~2.5k tokens and identical
+        # on every call for that role, so leaving them outside the cached prefix pays
+        # full input price for them every single time. Each role ends up with its own
+        # cached prefix (packet + its instructions), all reused across iterations.
+        # A 1-hour TTL, not the 5-minute default. Each node trains SEEDS_PER_NODE models
+        # at ~60s apiece, so consecutive calls for a role sit 3+ minutes apart and the
+        # default cache would expire between them — silently paying the write cost every
+        # iteration. Measured on the real 10,187-token prefix: rewriting each of 12
+        # iterations is $0.76, while one 1-hour write plus 12 reads is $0.16.
+        cc = {'type': 'ephemeral', 'ttl': '1h'}
         return [
-            {'type': 'text', 'text': self.packet,
-             'cache_control': {'type': 'ephemeral'}},
-            {'type': 'text', 'text': role_instructions},
+            {'type': 'text', 'text': self.packet, 'cache_control': cc},
+            {'type': 'text', 'text': role_instructions, 'cache_control': cc},
         ]
 
     def ask(self, role, instructions, user, effort='high', max_tokens=MAX_TOKENS):

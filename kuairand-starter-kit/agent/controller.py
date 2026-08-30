@@ -35,6 +35,19 @@ N_CONV = 3               # consecutive non-improving iterations
 ACCEPT = 0.0014          # 2 sigma on the measured paired noise floor (sigma ~ 0.0007)
 MAX_ITERS = 50           # official hard cap
 MAX_WALL_S = 6 * 3600    # official wall-clock ceiling
+
+# Every node is a rank-average of this many seeds. One seed per node makes each
+# measurement carry sigma ~ 0.0006, which is half the accept bar, so a real +0.001
+# improvement is indistinguishable from noise and gets rejected. Three seeds cut that
+# to ~0.00035 and make the bar mean something. Cost is 3x wall-clock per node, which
+# the 6h ceiling absorbs easily at ~60s a seed.
+SEEDS_PER_NODE = 3
+
+# The controller injects a pure-ensemble node this often. It trains nothing and calls no
+# model, so it costs zero tokens and seconds of wall-clock — and combining diverse
+# candidates is the one move measured to reliably clear the noise floor on this task.
+ENSEMBLE_EVERY = 3
+ENSEMBLE_MEMBERS = 4
 EDITABLE = coder_mod.EDITABLE
 
 # Fixed ideas for --dry-run: config-only changes, no model in the loop. Their job is to
@@ -140,6 +153,38 @@ class Controller:
                 parsed = json.loads(line[7:])
         return res, parsed
 
+    def ensemble_node(self, it, uv, yv):
+        """A node that trains nothing: rank-average the best distinct candidates so far.
+
+        Costs zero tokens and about a second of wall-clock, and on this task combining
+        diverse candidates is the only move measured to clear the noise floor reliably —
+        a member that is individually worse can still add value, because what an ensemble
+        buys is decorrelation, not strength. So this runs on a fixed cadence rather than
+        waiting for the proposer to think of it.
+        """
+        import numpy as np
+        from harness.score import rank_average
+        pool = [n for n in self.nodes if not n.get('is_ensemble')]
+        if len(pool) < 2:
+            return None
+        mem = sorted(pool, key=lambda n: -n['primary'])[:ENSEMBLE_MEMBERS]
+        enc, _ = load_encoded()
+        _, _, ut = enc['test']
+        vs, ts = [], []
+        for n in mem:
+            z = np.load(n['preds'])
+            vs.append(z['valid']); ts.append(z['test'])
+        t0 = time.time()
+        ev = rank_average(np.asarray(uv), vs)
+        et = rank_average(np.asarray(ut), ts)
+        out = os.path.join(self.preds_dir, 'iter%03d.npz' % it)
+        np.savez_compressed(out, valid=np.asarray(ev, np.float32),
+                            test=np.asarray(et, np.float32))
+        r = evaluate_raw(uv, yv, ev)
+        return {'metrics': {k: float(v) for k, v in r.items()},
+                'preds_path': out, 'seconds': round(time.time() - t0, 2),
+                'members': [n['iteration'] for n in mem]}
+
     # ---------- the loop ----------
     def run(self):
         enc, _ = load_encoded()
@@ -157,7 +202,7 @@ class Controller:
         t_start = time.time()
 
         # Iteration 0 is the untouched baseline: the parent everything is measured against.
-        res0, p0 = self.run_node(0, {}, [0], timeout=900)
+        res0, p0 = self.run_node(0, {}, list(range(SEEDS_PER_NODE)), timeout=1800)
         if not p0:
             self.jr.append(J.ERROR_RECOVERY, {'iteration': 0, 'fatal': True, **res0})
             raise RuntimeError('baseline node failed; harness is not trustworthy:\n%s'
@@ -186,6 +231,43 @@ class Controller:
                 self.jr.append(J.BUDGET_HALT, {'iteration': it, 'reason': str(exc)})
                 stop = 'budget'
                 break
+
+            # Zero-token ensembler on a fixed cadence, before spending a proposer call.
+            if it % ENSEMBLE_EVERY == 0:
+                ens = self.ensemble_node(it, uv, yv)
+                if ens:
+                    m = ens['metrics']
+                    delta = m['primary'] - parent['primary']
+                    self.nodes.append({'iteration': it, 'primary': m['primary'],
+                                       'preds': ens['preds_path'], 'metrics': m,
+                                       'is_ensemble': True,
+                                       'label': 'rank-average of %s'
+                                                % ','.join(map(str, ens['members']))})
+                    self.jr.append(J.ITERATION, {
+                        'iteration': it, 'provenance': 'harness',
+                        'hypothesis': 'Rank-averaging the %d best distinct candidates '
+                                      'decorrelates their errors.' % len(ens['members']),
+                        'mechanism': 'An ensemble buys decorrelation, not strength; a '
+                                     'member that is individually weaker can still help.',
+                        'verdict': 'KEEP' if delta > ACCEPT else 'INCONCLUSIVE',
+                        'reason': 'ensemble of iterations %s'
+                                  % ','.join(map(str, ens['members'])),
+                        'metrics': m, 'delta_vs_parent': delta, 'accept_bar': ACCEPT,
+                        'seconds': ens['seconds'], 'config': {}, 'diff': '',
+                        'ensemble_members': ens['members'],
+                        'cost_so_far_usd': self.meter.totals()['usd']})
+                    print('iter %03d  ENSEMBLE of %s  primary %.5f  delta %+.5f'
+                          % (it, ens['members'], m['primary'], delta), flush=True)
+                    if delta > ACCEPT:
+                        parent = {'primary': m['primary'],
+                                  'label': 'ensemble of %s'
+                                           % ','.join(map(str, ens['members'])),
+                                  'iteration': it, 'preds': ens['preds_path']}
+                    self.best_history.append(max(self.best_history[-1], m['primary']))
+                    if self._converged():
+                        stop = 'converged'
+                        break
+                    continue
 
             hyp, cfg, seeds, after_files, diff, note = self._plan(it, parent)
             if hyp == 'SKIP':
@@ -313,11 +395,16 @@ class Controller:
             note_budget = budget if not last else (
                 budget + '\n\nYou have used this iteration\'s analysis budget. Return '
                 'action EXPERIMENT now, using what you already know.')
-            prop, _ = proposer_mod.propose(
+            prop, _, rejections = proposer_mod.propose(
                 self.llm, digest, parent, it, note_budget,
                 directions=knowledge.summary(), catalogue=catalogue,
                 closed_ids=set(knowledge.closed_ids()),
                 analysis_results=answered or None)
+            # A rejected proposal costs a whole extra call. Record why, so the waste is
+            # visible in the report instead of hiding inside a doubled proposer bill.
+            for why in rejections:
+                self.jr.append(J.PROPOSAL_REJECT, {'iteration': it, 'reason': why})
+                print('iter %03d  proposal rejected: %s' % (it, why[:110]), flush=True)
 
             if prop.get('action') != 'REQUEST_ANALYSIS':
                 break
@@ -349,7 +436,7 @@ class Controller:
         after, note, _ = coder_mod.code(self.llm, hyp, ROOT)
         before = coder_mod.current_files(ROOT)
         diff = coder_mod.make_diff(before, after)
-        return hyp, {}, [0], after, diff, note
+        return hyp, {}, list(range(SEEDS_PER_NODE)), after, diff, note
 
     def _verdict(self, hyp, diff, metrics, parent, failure=None):
         if self.dry_run or self.llm is None:

@@ -22,6 +22,7 @@ GENESIS = '0' * 64
 RUN_START = 'RUN_START'
 ITERATION = 'iteration'
 ANALYSIS = 'analysis'
+PROPOSAL_REJECT = 'proposal_reject'
 GUARD_REJECT = 'guard_reject'
 ERROR_RECOVERY = 'error_recovery'
 HUMAN_INTERVENTION = 'human_intervention'

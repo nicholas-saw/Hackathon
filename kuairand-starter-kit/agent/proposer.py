@@ -177,21 +177,28 @@ def build_user_message(journal_digest, parent, iteration, budget_note,
 
 def propose(llm, journal_digest, parent, iteration, budget_note,
             directions='', catalogue=None, closed_ids=(), analysis_results=None):
-    """Returns (proposal_dict, usage_record). May return an action of REQUEST_ANALYSIS."""
+    """Returns (proposal, usage_record, rejections).
+
+    `rejections` lists the schema failures that forced a retry. A retry is a whole extra
+    call at roughly $0.16, so the reason is returned rather than swallowed — otherwise
+    the waste hides inside a doubled proposer bill with nothing to diagnose.
+    """
     msg = build_user_message(journal_digest, parent, iteration, budget_note,
                              directions, catalogue or {}, analysis_results)
     obj, rec = llm.ask_json('proposer', INSTRUCTIONS, msg, effort='high')
     ok, why = validate(obj, closed_ids)
-    if not ok:
-        obj2, rec2 = llm.ask_json(
-            'proposer', INSTRUCTIONS,
-            msg + '\n\nYour previous proposal was rejected: %s\nFix it.' % why,
-            effort='high')
-        ok2, why2 = validate(obj2, closed_ids)
-        if not ok2:
-            raise ValueError('proposer produced an invalid proposal twice: %s' % why2)
-        return obj2, rec2
-    return obj, rec
+    if ok:
+        return obj, rec, []
+    rejections = [why]
+    obj2, rec2 = llm.ask_json(
+        'proposer', INSTRUCTIONS,
+        msg + '\n\nYour previous proposal was rejected: %s\nFix it.' % why,
+        effort='high')
+    ok2, why2 = validate(obj2, closed_ids)
+    if not ok2:
+        rejections.append(why2)
+        raise ValueError('proposer produced an invalid proposal twice: %s' % why2)
+    return obj2, rec2, rejections
 
 
 def digest(entries, limit=14):

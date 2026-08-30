@@ -124,31 +124,42 @@ def designate(users, labels, candidates, baseline_preds, floor_preds=None,
                   'primary': float(evaluate_raw(users, labels, best['valid'])['primary'])}
         report['decisions'].append('best stable single candidate: iteration %s'
                                    % best['iteration'])
-
-        # 3. an ensemble of the stable candidates, if it is itself stable vs the single
-        if len(stable) >= 2:
-            mem = stable[:max_ensemble]
-            ens_valid = rank_average(users, [c['valid'] for c in mem])
-            cmp = compare(users, labels, ens_valid, best['valid'], folds)
-            report['ensemble'] = {'members': [c['iteration'] for c in mem], **cmp}
-            say('  ensemble of %d: pooled %+.5f vs best single, folds won %d/%d  %s'
-                % (len(mem), cmp['pooled_delta'], cmp['fold_wins'], N_FOLDS,
-                   'STABLE' if cmp['stable'] else 'not stable'))
-            if cmp['stable']:
-                # test vectors must be combined over TEST users, not validation users
-                choice = {'kind': 'ensemble',
-                          'iteration': -1,
-                          'label': 'rank-average of iterations %s'
-                                   % ','.join(str(c['iteration']) for c in mem),
-                          'valid': ens_valid,
-                          'test_members': [c['test'] for c in mem],
-                          'primary': float(evaluate_raw(users, labels, ens_valid)['primary'])}
-                report['decisions'].append('ensemble beat the best single, stably')
     else:
         report['decisions'].append(
-            'no candidate beat the baseline on both the pooled score and %d/%d folds; '
-            'designating the baseline rather than a lucky draw' % (MIN_FOLD_WINS, N_FOLDS))
-        say('  no stable improvement over the baseline — designating the baseline')
+            'no single candidate beat the baseline on both the pooled score and %d/%d '
+            'folds; the incumbent stays the baseline rather than a lucky draw'
+            % (MIN_FOLD_WINS, N_FOLDS))
+        say('  no stable single improvement over the baseline')
+
+    # 3. An ensemble of the top candidates by pooled score, NOT filtered to the
+    #    individually stable ones. What an ensemble buys is decorrelation, not strength:
+    #    on this dataset the listwise objective scores -0.0020 alone and still adds
+    #    +0.0012 to an ensemble. Filtering members by individual stability would remove
+    #    exactly the diversity that makes the combination work. So build it from the best
+    #    few regardless, and stability-test the ENSEMBLE itself against the incumbent —
+    #    which is the comparison that actually matters.
+    mem = [c for c in ranked if c['iteration'] != 0][:max_ensemble]
+    if len(mem) >= 2:
+        ens_valid = rank_average(users, [c['valid'] for c in mem])
+        cmp = compare(users, labels, ens_valid, choice['valid'], folds)
+        report['ensemble'] = {
+            'members': [c['iteration'] for c in mem],
+            'members_individually_stable': [c['iteration'] for c in mem if c in stable],
+            'vs': choice['kind'], **cmp}
+        say('  ensemble of %d (diverse, unfiltered): pooled %+.5f vs %s, folds won %d/%d  %s'
+            % (len(mem), cmp['pooled_delta'], choice['kind'], cmp['fold_wins'], N_FOLDS,
+               'STABLE' if cmp['stable'] else 'not stable'))
+        if cmp['stable']:
+            # test vectors must be combined over TEST users, not validation users
+            choice = {'kind': 'ensemble', 'iteration': -1,
+                      'label': 'rank-average of iterations %s'
+                               % ','.join(str(c['iteration']) for c in mem),
+                      'valid': ens_valid,
+                      'test_members': [c['test'] for c in mem],
+                      'primary': float(evaluate_raw(users, labels, ens_valid)['primary'])}
+            report['decisions'].append(
+                'ensemble of %s beat the incumbent stably'
+                % ','.join(str(c['iteration']) for c in mem))
 
     # 4. floor tripwire: never ship worse than what was already banked
     if floor_preds is not None:

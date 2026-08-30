@@ -121,6 +121,46 @@ feeds the result back without consuming an iteration — `no_op_screen` proves a
 constant within users (and therefore useless) in about a second, versus a minute and one
 of roughly ten iterations to discover the same thing by training.
 
+## What makes a real improvement detectable
+
+Three settings decide whether a genuine gain can be seen at all, and the first version got
+all three wrong.
+
+**Every node is a 3-seed rank-average.** A single-seed node carries sigma ~ 0.0006, which
+is most of the 0.0014 accept bar, so a real +0.001 improvement was indistinguishable from
+noise and got reverted. Three seeds cut the measurement noise to ~0.00035 and make the bar
+mean something. It costs 3x wall-clock per node, which the 6-hour ceiling absorbs easily.
+
+**The controller injects a free ensemble node every third iteration.** It trains nothing
+and calls no model — it rank-averages the best distinct candidates so far — so it costs
+zero tokens and about a second. Combining diverse candidates is the only move measured to
+clear the noise floor reliably on this task, and waiting for the proposer to think of it
+wasted iterations that the convergence rule does not have spare.
+
+**Ensemble members are not filtered by individual strength.** What an ensemble buys is
+decorrelation, not strength: on this dataset the listwise objective scores -0.0020 alone
+and still adds +0.0012 in combination. The earlier gate only ensembled individually-stable
+candidates, which removed exactly the diversity that makes it work. Now the ensemble is
+built from the top few regardless and the *ensemble* is stability-tested. On the real
+dry-run candidates this finds a stable +0.00055 where the old gate found nothing.
+
+## Token economics, measured
+
+Two paid calls against the live API established the real numbers, and two settings follow
+from them:
+
+- The packet is **10,192 tokens** and caches cleanly (call 1 wrote 10,187, call 2 read
+  10,187 back).
+- Role instructions are ~2.5k tokens, identical per role, and were sitting *outside* the
+  cached prefix — paying full input price every call. They now have their own breakpoint.
+- The cache TTL is **1 hour, not the 5-minute default**. Nodes take ~3 minutes, so
+  consecutive calls for a role fall outside a 5-minute window and silently pay the write
+  cost every iteration. Measured on the real prefix: rewriting each of 12 iterations is
+  $0.76, versus $0.16 for one 1-hour write plus 12 reads.
+
+Observed cost is ~$0.13 per proposer call after the first, dominated by output tokens
+(2,900-4,300 per call, three candidates plus adaptive thinking).
+
 ## Why the run cannot ship a regression
 
 No mechanism makes every hypothesis improve the score — a hypothesis that cannot fail is

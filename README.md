@@ -16,7 +16,9 @@ human interventions between `RUN_START` and `FINAL_DESIGNATION`.
 | **Rubric score** — mean over metrics of `score_agent(m) − score_baseline(m)` | | | **+0.005693** |
 
 Validation only. The hidden test split was never scored during development, and
-`verify.py` proves the ordering.
+`verify.py` proves the ordering. The winning pipeline was reconstructed from its own
+journal and re-measured: it reproduces to the last digit, and wins **5 of 5** disjoint
+user folds against the baseline.
 
 ---
 

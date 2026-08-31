@@ -77,6 +77,31 @@ argument rather than an argmax:
 - **It is the agent's own designation.** Shipping it means the submitted bytes are what
   the run produced, with no human selection step in between (see `INTERVENTIONS.md` §6).
 
+**It has now passed that gate directly.** The designated run predates `selection.py`, so
+its `FINAL_DESIGNATION` carries no `selection` block and the 5-fold test had never
+actually been applied to the shipped vector — the argument above was inference. On
+2026-09-01 the winning pipeline was reconstructed from the journal with `replay.py` and
+re-measured on three matched seeds. It reproduced **0.6072425246238708**, identical to the
+journal's designation to the last digit, which is itself the cleanest evidence that the
+result is real and that `replay.py` reconstructs faithfully. Put through
+`selection.compare` against a 3-seed baseline over five disjoint user folds:
+
+| | |
+|---|---:|
+| Pooled winner | 0.60725 |
+| Pooled 3-seed baseline | 0.60216 |
+| Pooled delta | **+0.00510** |
+| Folds won | **5 of 5** (4 required) |
+| Per-fold deltas | +0.00844, +0.00217, +0.00275, +0.00705, +0.00527 |
+| Fold mean / sd | +0.00514 / 0.00270 |
+| **Stable** | **yes** |
+
+Every one of five disjoint user partitions independently prefers it. Note this delta
+(+0.00510) is measured against our own *three-seed* baseline ensemble at 0.60216, which
+already carries the variance reduction of averaging; the rubric quantity of +0.005693 is
+against the organizer's published single-model baseline. Both are correct for what they
+measure.
+
 **Runner-up, retained but not submitted.** A within-user listwise softmax measured
 +0.00162 mean over three matched seeds (worst +0.00097) and was hand-rebuilt as a 3-seed
 ensemble at validation primary 0.604051, mean-of-deltas +0.002501

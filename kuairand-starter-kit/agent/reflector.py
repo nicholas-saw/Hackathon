@@ -17,9 +17,27 @@ happened. Decide what it means. Return ONE JSON object, no prose:
   "reason": "what the number tells us, in terms of the mechanism that was claimed",
   "mechanism_update": "what we now believe about why this task behaves as it does",
   "direction_status": "live" | "closed",
+  "attribution": "implementation" | "objective" | "unclear",
   "deprioritise": ["directions this result argues against"],
   "next_information_need": "what would most reduce uncertainty next, or null"
 }
+
+ATTRIBUTION IS THE FIELD MOST OFTEN GOT WRONG. A single result tells you what THIS CODE
+did. It rarely tells you what the OBJECTIVE does, and conflating the two has already cost
+this project real ground:
+
+- Nine implementations of "within-user listwise softmax" scored from -0.00318 to
+  +0.00162. Reading any one of them as a verdict on listwise would have been wrong seven
+  times out of nine, and the two earliest misses did close the direction -- three runs
+  before the implementation that became the banked submission arrived.
+- The spread across implementations of one label measured 5.2x the spread across seeds of
+  one implementation. Implementation detail, not the objective, is the dominant term.
+
+So use "objective" ONLY when the comparison actually isolates the loss -- same model, same
+features, same batching, same seeds, one thing changed. Otherwise say "implementation",
+or "unclear" if you cannot tell. Set `direction_status: "closed"` only when attribution is
+"objective"; a failed implementation does not close a direction, and saying so in
+`deprioritise` is how a good direction gets buried under bad code.
 
 Calibration you must apply:
 - The paired noise floor on this validation set is sigma ~ 0.0005 primary. A delta under
@@ -85,7 +103,7 @@ def offline_verdict(metrics, parent, failure=None, accept=0.0014):
     """
     if failure:
         return {'verdict': 'REVERT', 'reason': 'experiment failed to run (%s)'
-                % failure.get('failure'), 'mechanism_update': '', 'direction_status': 'live',
+                % failure.get('failure'), 'mechanism_update': '', 'direction_status': 'live', 'attribution': 'unclear',
                 'deprioritise': [], 'next_information_need': None, 'offline': True}
     d = metrics['primary'] - parent['primary']
     if d > accept:
@@ -95,5 +113,5 @@ def offline_verdict(metrics, parent, failure=None, accept=0.0014):
     else:
         v, why = 'INCONCLUSIVE', 'delta %+.5f is inside the noise floor' % d
     return {'verdict': v, 'reason': why, 'mechanism_update': '',
-            'direction_status': 'live', 'deprioritise': [],
+            'direction_status': 'live', 'attribution': 'unclear', 'deprioritise': [],
             'next_information_need': None, 'offline': True}

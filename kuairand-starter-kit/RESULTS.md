@@ -26,7 +26,6 @@ python replay.py runlogs/run_20260831T011354Z/journal.jsonl -o patches/
 git apply --directory=kuairand-starter-kit patches/iter004.patch
 git apply --directory=kuairand-starter-kit patches/iter012.patch
 ```
-
 ## 2. Results table
 
 Validation-best at convergence, against the official published baseline.
@@ -85,6 +84,26 @@ ensemble at validation primary 0.604051, mean-of-deltas +0.002501
 result. It is not the submission, for two reasons: it scores 2.3× lower, and its bytes
 match no `FINAL_DESIGNATION` in any journal because it was assembled by hand — which
 would make the delivered artifact a human selection rather than an agent one.
+
+It is fully reproducible, which it was not until 2026-08-31:
+
+> **Reproduce it:**
+> ```
+> python harness/run_node.py --out /tmp/pure.npz --seeds 0,1,2 \
+>   --config '{"model":"fm_listwise_pure","k":16,"lr":0.001,"epochs":40,"bs":8192,"patience":4}'
+> ```
+> Confirmed byte-identical to the banked CSV on 2026-08-31: per-seed validation
+> primaries 0.603445 / 0.602730 / 0.603003, 3-seed ensemble 0.604051, GAUC 0.670511,
+> nDCG@5 0.537590.
+>
+> The model key is `fm_listwise_pure`, **not** `fm_listwise`. Until 2026-08-31 this row
+> read `fm_listwise`, and that config would have silently produced a different model:
+> the winning loss had never been committed — it survived only as a diff inside
+> `runlogs/run_20260830T235541Z/journal.jsonl` — while a later, differently-behaved
+> listwise variant (ListNet top-1 mixed with `lw_alpha` * BCE, groups capped at `cap`)
+> held the `fm_listwise` name. The two differ in loss composition, group eligibility,
+> normalisation and capping. See `constraints.md` C25 and
+> `research/objective_ablation/FINDINGS.md`.
 
 ## 3. Resource consumption
 

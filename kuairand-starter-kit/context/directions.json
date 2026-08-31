@@ -4,10 +4,11 @@
    "id": "objective",
    "name": "Change the training objective",
    "summary": "Pointwise BCE optimises a different thing from a within-user ranking metric. Pairwise (BPR) or listwise (softmax over the user's list) targets the metric directly.",
-   "status": "untried",
+   "status": "live",
    "source": "organizer_ranked_1",
    "notes": [
-    "The organizers rank this their most likely direction. Untested here."
+    "SPLIT into concrete children: objective_listwise, objective_bpr, objective_hybrid_listwise. Consult those before proposing anything here.",
+    "The organizers rank this their most likely direction, and it is the only one that has produced a verified shippable gain -- but only in one of nine implementations."
    ]
   },
   "sequence": {
@@ -73,11 +74,33 @@
   "ensembling": {
    "id": "ensembling",
    "name": "Variance reduction / ensembling",
-   "summary": "Combine several models' within-user ranks to cancel seed variance.",
-   "status": "untried",
-   "source": "inferable_from_seed_variance",
+   "summary": "Combine several independently-seeded models' within-user ranks to cancel the per-seed embedding-noise term.",
+   "status": "live",
+   "source": "agent_runs",
    "notes": [
-    "Five identity seeds give a validation population std of 0.00032."
+    "Kept, but the gain is BELOW the 0.002 practical epsilon: +0.00112 mean over 3 matched seeds, worst +0.00090, all positive. Treat as a reliable small top-up, not as a direction that can carry a run on its own. See constraints.md C30.",
+    "Clears the UNANIMOUS_ACCEPT bar (0.0008), not the single-measurement ACCEPT bar (0.0014): mean +0.00112 with all three matched seeds positive. Under the old bar this node was reverted out of the lineage despite being the highest-scoring node of the project -- see BUGS.md F19.",
+    "Five identity seeds give a validation population std of 0.00032.",
+    "The harness also runs a zero-token rank-average ensembler on a fixed cadence, so proposing a plain seed-average duplicates something already free."
+   ],
+   "measured": [
+    {
+     "run": "20260831T011354Z",
+     "iteration": 12,
+     "delta": 0.00112,
+     "verdict": "KEEP",
+     "seeds": 3,
+     "note": "5-model average over the kept feature set; per-seed 0.60699/0.60723/0.60741",
+     "confirmed_positive": true
+    },
+    {
+     "run": "dry_run",
+     "iteration": 3,
+     "delta": 0.00072,
+     "verdict": "INCONCLUSIVE",
+     "seeds": 1,
+     "note": "3-seed rank-average, fixed dry-run idea"
+    }
    ]
   },
   "static_features": {
@@ -136,21 +159,921 @@
   },
   "objective_bpr": {
    "id": "objective_bpr",
-   "name": "objective_bpr",
-   "summary": "(proposed by the agent)",
+   "name": "Within-user pairwise (BPR) objective or auxiliary pairwise term",
+   "summary": "Sampled positive/negative pairs drawn within one user's impressions, either replacing the pointwise loss or added to it with a weight.",
    "status": "live",
-   "source": "agent",
-   "notes": [],
+   "source": "agent_runs",
+   "notes": [
+    "REOPENED by the controlled objective ablation. Given the WINNING implementation's scaffolding, pairwise scores +0.00119 over the official baseline and +0.00359 over pointwise on identical batches, 3/3 seeds up. The five historical BPR misses were IMPLEMENTATION failures, not evidence against pairwise objectives.",
+    "Pairwise and listwise are not distinguishable here: listwise leads by +0.00043, worst seed -0.00001, 2/3 up -- inside the 0.0008 seed reference and far below the 0.0014 bar. Do not propose listwise over pairwise expecting a gain.",
+    "Scope: research/objective_ablation (3 objectives x 3 matched seeds, one model, one batching scheme, only the loss varied)"
+   ],
    "measured": [
     {
+     "run": "20260830T230438Z",
+     "iteration": 3,
+     "delta": null,
+     "verdict": "VOID",
+     "seeds": 1,
+     "note": "delta exactly +0.00000: branch never activated -- see constraints.md C24"
+    },
+    {
+     "run": "20260830T222356Z",
+     "iteration": 4,
+     "delta": -0.00072,
+     "verdict": "INCONCLUSIVE",
+     "seeds": 3,
+     "note": "3-seed confirmation: mean -0.00072, worst -0.00127"
+    },
+    {
+     "run": "live_smoke",
      "iteration": 1,
-     "hypothesis": "Pairwise BPR sampling (one positive vs one negative drawn from the SAME user's impressions, in-batch) raises validation primary by more than 0.002 over pointwise BCE at identical f",
      "delta": -0.00085,
      "verdict": "REVERT",
-     "note": "The claimed mechanism (all gradient mass moved onto order-changing terms) was implemented correctly, but the effect it predicted did not appear: primary moved -0.00085, i.e. within ~1.7 sigma of the paired noise floor and an order of magnit"
+     "seeds": 1,
+     "note": "3 seeds"
+    },
+    {
+     "run": "20260830T155011Z",
+     "iteration": 3,
+     "delta": -0.00279,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "single seed"
+    },
+    {
+     "run": "20260831T005603Z",
+     "iteration": 2,
+     "delta": -0.00337,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "fm_hybrid pair_weight=0.5"
+    },
+    {
+     "run": "20260831T011354Z",
+     "iteration": 3,
+     "delta": -0.00139,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "fm_bpr pair_weight=0.3"
+    },
+    {
+     "run": "objective_ablation",
+     "iteration": null,
+     "delta": 0.00119,
+     "verdict": "CONFIRMED",
+     "seeds": 3,
+     "confirmed_positive": true,
+     "note": "pairwise, A's scaffolding, +0.00359 vs pointwise on identical batches"
     }
+   ]
+  },
+  "objective_listwise": {
+   "id": "objective_listwise",
+   "name": "Within-user listwise softmax replacing pointwise BCE",
+   "summary": "Replace the pointwise BCE objective with a within-user listwise softmax (ListNet / Plackett-Luce style) over each user's training list.",
+   "status": "live",
+   "source": "agent_runs",
+   "notes": [
+    "CONTROLLED ABLATION SETTLES THIS. Holding model, features, batching and seeds fixed and changing only the loss: pointwise 0.59905, pairwise 0.60263, listwise 0.60306. A RANKING OBJECTIVE beats pointwise by +0.00401 (3/3 seeds). LISTWISE beats PAIRWISE by only +0.00043 (2/3 seeds, worst -0.00001) -- indistinguishable.",
+    "So the gain belongs to \"not pointwise\", not to \"listwise\". The ablation reproduced the banked submission's hand-verified +0.00162 exactly, so this is measuring the right thing.",
+    "THE COST IS IN THE BATCHING. Grouping rows by user -- which the ranking losses require -- costs -0.00239 on its own (pointwise on grouped batches vs the official pointwise baseline). The net +0.00162 is a +0.00401 objective gain minus a -0.00239 batching loss. Recovering that -0.00239 is worth more than any further listwise variant.",
+    "Scope: research/objective_ablation (3 objectives x 3 matched seeds, one model, one batching scheme, only the loss varied)"
+   ],
+   "measured": [
+    {
+     "run": "20260830T230438Z",
+     "iteration": 1,
+     "delta": null,
+     "verdict": "VOID",
+     "seeds": 1,
+     "note": "delta exactly +0.00000: branch never activated, config was dropped. NOT a measurement -- see constraints.md C24"
+    },
+    {
+     "run": "20260830T155011Z",
+     "iteration": 1,
+     "delta": -0.00273,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "single seed"
+    },
+    {
+     "run": "20260830T164210Z",
+     "iteration": 1,
+     "delta": -0.00273,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "single seed"
+    },
+    {
+     "run": "20260830T222356Z",
+     "iteration": 1,
+     "delta": -0.0023,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "single seed"
+    },
+    {
+     "run": "20260830T234014Z",
+     "iteration": 1,
+     "delta": -0.00155,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "cfg fm_listwise pw=0.3 groups=256"
+    },
+    {
+     "run": "20260831T004013Z",
+     "iteration": 1,
+     "delta": -0.00233,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "single seed"
+    },
+    {
+     "run": "20260831T005603Z",
+     "iteration": 1,
+     "delta": -0.00318,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "single seed"
+    },
+    {
+     "run": "20260831T011354Z",
+     "iteration": 1,
+     "delta": -0.00233,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "single seed"
+    },
+    {
+     "run": "20260830T235541Z",
+     "iteration": 1,
+     "delta": 0.00197,
+     "verdict": "INCONCLUSIVE",
+     "seeds": 1,
+     "note": "VERIFIED +0.00162 mean over 3 matched seeds, all positive -- banked submission",
+     "confirmed_positive": true
+    },
+    {
+     "run": "objective_ablation",
+     "iteration": null,
+     "delta": 0.00162,
+     "verdict": "CONFIRMED",
+     "seeds": 3,
+     "confirmed_positive": true,
+     "note": "listwise, A's scaffolding; reproduces the banked +0.00162 exactly"
+    }
+   ],
+   "ablation": {
+    "ran": "2026-08-31",
+    "where": "research/objective_ablation/ (FINDINGS.md, results.json)",
+    "design": "one model, one batching scheme, 3 matched seeds, only the loss varied",
+    "arms": {
+     "pointwise": "0.599047  (-0.00239 vs official baseline)",
+     "pairwise": "0.602633  (+0.00119 vs official, +0.00359 vs pointwise, 3/3 up)",
+     "listwise": "0.603059  (+0.00162 vs official, +0.00401 vs pointwise, 3/3 up)"
+    },
+    "conclusion": "a RANKING objective beats pointwise by +0.00401, but listwise beats pairwise by only +0.00043 (2/3 seeds, worst -0.00001) -- indistinguishable. The gain is \"not pointwise\", not \"listwise\". The user-grouped batching the ranking losses need costs -0.00239 on its own; recovering that is worth more than another loss variant."
+   }
+  },
+  "objective_hybrid_listwise": {
+   "id": "objective_hybrid_listwise",
+   "name": "Pointwise BCE plus a weighted within-user listwise term",
+   "summary": "Keep the pointwise logloss on every row and add a weighted listwise softmax term.",
+   "status": "refuted",
+   "source": "agent_runs",
+   "notes": [
+    "Two independent formulations, both several sigma negative. Lightly replicated (n=2) -- classified WEAK NEGATIVE in constraints.md C27, closed here because two independent misses is the registry bar.",
+    "Weights tested: 0.5 (with and without a 3-epoch warmup) and 0.3."
+   ],
+   "measured": [
+    {
+     "run": "20260830T235541Z",
+     "iteration": 3,
+     "delta": -0.00289,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "lw_weight=0.5 patience=6"
+    },
+    {
+     "run": "20260831T004013Z",
+     "iteration": 2,
+     "delta": -0.00216,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "listwise_weight=0.5 warmup=3"
+    },
+    {
+     "run": "20260831T011354Z",
+     "iteration": 2,
+     "delta": null,
+     "verdict": "INCONCLUSIVE",
+     "seeds": 1,
+     "note": "listwise_weight=0.3; no usable metric returned"
+    }
+   ]
+  },
+  "prior_user_aggregates": {
+   "id": "prior_user_aggregates",
+   "name": "Strictly-prior USER-side behavioural aggregates as bucketized FM fields",
+   "summary": "Count-smoothed prior long_view rates built from strictly earlier rows: a user-level engagement-rate bucket (acts only through its crosses), plus user-tab and user-author affinity buckets (which vary within a user's list).",
+   "status": "live",
+   "source": "agent_runs",
+   "notes": [
+    "THE LARGEST SINGLE CONFIRMED GAIN IN ANY RUN: +0.00281 mean over 3 matched seeds, worst seed +0.00236, all three positive. Baseline 0.60147 -> 0.60609 as a 3-seed rank average. Gain is mainly GAUC (0.6674->0.6738).",
+    "Mechanism is C2-legal: user-tab and user-author vary within a list and reorder it first-order; the user-level rate is constant within a user and can only act through crosses with the item side.",
+    "Single investigation. Not yet independently replicated -- see constraints.md C28."
+   ],
+   "measured": [
+    {
+     "run": "20260831T011354Z",
+     "iteration": 4,
+     "delta": 0.00281,
+     "verdict": "KEEP",
+     "seeds": 3,
+     "note": "per-seed 0.60383/0.60445/0.60455, worst delta +0.00236",
+     "confirmed_positive": true
+    }
+   ]
+  },
+  "prior_item_aggregates": {
+   "id": "prior_item_aggregates",
+   "name": "Strictly-prior ITEM-side and user-item identity-level aggregates",
+   "summary": "Video prior long_view rate + support bucket, author prior rate + support bucket, user-author prior rate + support bucket, as bucketized categorical FM fields.",
+   "status": "refuted",
+   "source": "agent_runs",
+   "notes": [
+    "Added ON TOP of the kept user-side aggregates it went the wrong way: -0.00320. The stated reasoning was that item-side priors should help MORE than user-side ones because they vary within a list; the measured sign refuted that.",
+    "A user-tab conditional prior rate plus a user-level prior play_time bucket, also on top of the kept model, gave -0.00333.",
+    "Six earlier runs that bundled user-side and item-side prior aggregates together were all negative (-0.00114 to -0.00229); those do not isolate the item side but are consistent with it. See constraints.md C29."
+   ],
+   "measured": [
+    {
+     "run": "20260830T155011Z",
+     "iteration": 2,
+     "delta": -0.00229,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "bundled user+item, on the baseline"
+    },
+    {
+     "run": "20260830T164210Z",
+     "iteration": 2,
+     "delta": -0.00137,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "bundled user+item, on the baseline"
+    },
+    {
+     "run": "20260830T230438Z",
+     "iteration": 2,
+     "delta": -0.00118,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "bundled user+item, on the baseline"
+    },
+    {
+     "run": "20260831T004013Z",
+     "iteration": 3,
+     "delta": -0.0013,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "user x item-attribute rates"
+    },
+    {
+     "run": "20260831T005603Z",
+     "iteration": 3,
+     "delta": -0.00191,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "bundled user+item, on the baseline"
+    },
+    {
+     "run": "20260830T222356Z",
+     "iteration": 5,
+     "delta": -0.00114,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "per-video/author Bayesian prior"
+    },
+    {
+     "run": "20260831T011354Z",
+     "iteration": 5,
+     "delta": -0.0032,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "video+author+user-author priors on top of the iter-4 model"
+    },
+    {
+     "run": "20260831T011354Z",
+     "iteration": 6,
+     "delta": -0.00333,
+     "verdict": "REVERT",
+     "seeds": 1,
+     "note": "user-tab conditional prior + user play_time bucket on top of iter 4"
+    }
+   ]
+  },
+  "grouped_batching_cost": {
+   "id": "grouped_batching_cost",
+   "name": "Recover the cost of user-grouped batching",
+   "summary": "The ranking objectives need rows grouped by user. That grouping, with the loss held pointwise, measures -0.00239 against the official baseline. Anything that keeps the ranking objective while restoring the lost -0.00239 is worth more than a better ranking loss.",
+   "status": "untried",
+   "source": "objective_ablation",
+   "notes": [
+    "Measured, 3 matched seeds: official pointwise (random batches) 0.601440; the same pointwise loss on user-grouped batches 0.599047. Only the batching differs.",
+    "Candidates not yet tested: larger target_bs so a batch holds more users; a pointwise term restored on ungrouped rows alongside the ranking term; group-order shuffling at a finer granularity; revisiting early stopping, since the grouped pointwise arm ran to epochs 8/11/10 against listwise 3/4/4.",
+    "Scope: research/objective_ablation (3 objectives x 3 matched seeds, one model, one batching scheme, only the loss varied)"
    ]
   }
  },
- "updated": "2026-08-30T20:01:25Z"
+ "updated": "2026-08-31T14:51:16Z",
+ "implementations": {
+  "5021ac19db4f": {
+   "id": "5021ac19db4f",
+   "direction_id": "objective_bpr",
+   "model_family": "FM",
+   "objective_family": "pairwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "live_smoke",
+     "iteration": 1,
+     "delta": -0.00085,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Pairwise BPR sampling (one positive vs one negative drawn from the SAME user's impressions, in-batch) raises validation primary by more than 0.002 over pointwise BCE at identical f"
+    }
+   ]
+  },
+  "367782f072aa": {
+   "id": "367782f072aa",
+   "direction_id": "objective_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T155011Z",
+     "iteration": 1,
+     "delta": -0.00273,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Replacing the pointwise binary cross-entropy objective with a within-user listwise softmax (cross-entropy over each user's impression group, with the positives as targets) raises v"
+    }
+   ]
+  },
+  "8253870ffb14": {
+   "id": "8253870ffb14",
+   "direction_id": "prior_item_aggregates",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T155011Z",
+     "iteration": 2,
+     "delta": -0.00229,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Adding strictly-prior user-level history aggregates (prior long_view rate and prior interaction count, bucketized) as FM fields will not by itself help, but their cross terms with "
+    }
+   ]
+  },
+  "c326d429b92d": {
+   "id": "c326d429b92d",
+   "direction_id": "objective_bpr",
+   "model_family": "FM",
+   "objective_family": "pairwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T155011Z",
+     "iteration": 3,
+     "delta": -0.00279,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Adding a within-user pairwise (BPR) term on top of the existing pointwise binary cross-entropy — rather than replacing the pointwise loss as in iteration 1 — raises validation prim"
+    }
+   ]
+  },
+  "506020f943b7": {
+   "id": "506020f943b7",
+   "direction_id": "objective_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T164210Z",
+     "iteration": 1,
+     "delta": -0.00273,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Replacing the pointwise binary cross-entropy objective with a within-user listwise softmax (cross-entropy over each user's impression group, normalised by the group's positive coun"
+    }
+   ]
+  },
+  "8d8f5d244a18": {
+   "id": "8d8f5d244a18",
+   "direction_id": "prior_item_aggregates",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T164210Z",
+     "iteration": 2,
+     "delta": -0.00137,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Adding strictly-prior behavioural aggregates (item historical long_view rate + support count, user historical long_view rate, user×tab historical rate) as bucketed FM fields raises"
+    }
+   ]
+  },
+  "116db951a89d": {
+   "id": "116db951a89d",
+   "direction_id": "objective_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T222356Z",
+     "iteration": 1,
+     "delta": -0.0023,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Replacing the pointwise BCE loss with a within-user listwise softmax cross-entropy loss raises validation primary because it directly optimizes the same within-user ordering the me"
+    }
+   ]
+  },
+  "bfe6395e0429": {
+   "id": "bfe6395e0429",
+   "direction_id": "prior_item_aggregates",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T222356Z",
+     "iteration": 3,
+     "delta": null,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Adding a Bayesian-smoothed prior long_view rate per user (bucketized, sourced via harness.history from strictly-earlier rows) as a new categorical FM field raises validation primar"
+    }
+   ]
+  },
+  "fa40012753be": {
+   "id": "fa40012753be",
+   "direction_id": "objective_bpr",
+   "model_family": "FM",
+   "objective_family": "pairwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T222356Z",
+     "iteration": 4,
+     "delta": -0.00072,
+     "verdict": "INCONCLUSIVE",
+     "config": {},
+     "hypothesis": "Replacing pointwise BCE with a pairwise BPR loss (sampled positive/negative pairs within each user's train impressions) raises validation primary by directly optimizing relative or"
+    }
+   ]
+  },
+  "15246dcc8a4b": {
+   "id": "15246dcc8a4b",
+   "direction_id": "prior_item_aggregates",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T222356Z",
+     "iteration": 5,
+     "delta": -0.00114,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "A per-video (and per-author) Bayesian-smoothed prior long_view rate, built from strictly earlier train rows via harness.history, will raise validation primary because unlike the re"
+    }
+   ]
+  },
+  "312ca1386415": {
+   "id": "312ca1386415",
+   "direction_id": "objective_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T230438Z",
+     "iteration": 1,
+     "delta": 0.0,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Replacing the pointwise binary cross-entropy objective with a within-user listwise softmax (cross-entropy over each user's impression group, with a pointwise BCE auxiliary term for"
+    }
+   ]
+  },
+  "a440d4792b7a": {
+   "id": "a440d4792b7a",
+   "direction_id": "prior_item_aggregates",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T230438Z",
+     "iteration": 2,
+     "delta": -0.00118,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Adding strictly-prior behavioural aggregates as new FM fields — a smoothed prior long_view rate for the *video* (which varies inside a user's list) plus a bucketed prior rate and c"
+    }
+   ]
+  },
+  "b05ba6c05d29": {
+   "id": "b05ba6c05d29",
+   "direction_id": "objective_bpr",
+   "model_family": "FM",
+   "objective_family": "pairwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T230438Z",
+     "iteration": 3,
+     "delta": 0.0,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Adding a within-user pairwise (BPR) gradient term on top of the pointwise logloss — i.e. a hybrid loss where each batch is built from user-grouped rows and contributes both the sta"
+    }
+   ]
+  },
+  "58105bc91ce3": {
+   "id": "58105bc91ce3",
+   "direction_id": "objective_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T234014Z",
+     "iteration": 1,
+     "delta": -0.00155,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm_listwise",
+      "pw": 0.3,
+      "groups_per_batch": 256,
+      "lr": 0.001,
+      "k": 16
+     },
+     "hypothesis": "Replacing the pointwise binary cross-entropy with a within-user listwise softmax (Plackett-Luce/ListNet-style) objective, blended with a small pointwise term, raises validation pri"
+    }
+   ]
+  },
+  "121bb7fdf312": {
+   "id": "121bb7fdf312",
+   "direction_id": "objective_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [
+    "pure within-user softmax cross-entropy (no BCE term mixed in)",
+    "eligible groups: MIXED-LABEL ONLY (skips all-positive and all-negative users)",
+    "normalised by total positives in the batch",
+    "full impression list per user, uncapped",
+    "grouped batching: whole user groups packed to ~bs rows, group order reshuffled per epoch, a user is never split across batches",
+    "THE VERIFIED WINNER: +0.00162 over 3 matched seeds; banked submission",
+    "restored to the pipeline as model key `fm_listwise_pure` on 2026-08-31 and confirmed to regenerate the banked CSV byte-identically. It had survived only as a journal diff, while a different variant held the `fm_listwise` name."
+   ],
+   "measured": [
+    {
+     "run": "20260830T235541Z",
+     "iteration": 1,
+     "delta": 0.00197,
+     "verdict": "INCONCLUSIVE",
+     "config": {
+      "model": "fm_listwise",
+      "k": 16,
+      "lr": 0.001,
+      "epochs": 40,
+      "bs": 8192,
+      "patience": 4
+     },
+     "hypothesis": "Replacing the pointwise binary-cross-entropy objective with a within-user listwise softmax (cross-entropy over each user's impression group) raises validation primary by more than ",
+     "confirmed_positive": true,
+     "confirmation": {
+      "basis": "hand_verified_matched_seeds",
+      "per_seed_delta": [
+       0.00197,
+       0.00097,
+       0.00191
+      ],
+      "mean_delta": 0.00162,
+      "worst_delta": 0.00097,
+      "sd": 0.00046,
+      "source": "RESULTS.md section 2 -- baseline and method re-measured on the same three seeds. Not in this journal: the run itself recorded only the single-seed +0.00197."
+     }
+    }
+   ]
+  },
+  "d19c70ffcdf5": {
+   "id": "d19c70ffcdf5",
+   "direction_id": "objective_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T235541Z",
+     "iteration": 2,
+     "delta": 0.00062,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm_listwise",
+      "group_size": 5,
+      "lr": 0.001,
+      "k": 16,
+      "epochs": 40,
+      "patience": 4
+     },
+     "hypothesis": "The listwise softmax from iter 1 under-delivers because it is applied over each user's whole training list (median 31 impressions) while scoring happens over short evaluation lists"
+    }
+   ]
+  },
+  "640ebc86271e": {
+   "id": "640ebc86271e",
+   "direction_id": "objective_hybrid_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise+pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260830T235541Z",
+     "iteration": 3,
+     "delta": -0.00289,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm_hybrid",
+      "lw_weight": 0.5,
+      "k": 16,
+      "lr": 0.001,
+      "epochs": 40,
+      "patience": 6
+     },
+     "hypothesis": "A hybrid objective — pointwise BCE on every row plus a within-user listwise softmax term on the lists that contain at least one positive — beats both the pure pointwise baseline (0"
+    }
+   ]
+  },
+  "c1281f5eb9e8": {
+   "id": "c1281f5eb9e8",
+   "direction_id": "objective_hybrid_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise+pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T004013Z",
+     "iteration": 2,
+     "delta": -0.00216,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm_hybrid",
+      "listwise_weight": 0.5,
+      "warmup_epochs": 3
+     },
+     "hypothesis": "Adding a within-user listwise softmax term ON TOP OF the pointwise logloss (weight lambda, applied only to mixed-label groups, after a pointwise warm-up) raises validation primary "
+    }
+   ]
+  },
+  "900a1b7c255a": {
+   "id": "900a1b7c255a",
+   "direction_id": "prior_item_aggregates",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T004013Z",
+     "iteration": 3,
+     "delta": -0.0013,
+     "verdict": "REVERT",
+     "config": {},
+     "hypothesis": "Adding smoothed, strictly-prior user-conditioned preference rates over item attributes (user x dur_bucket, user x tab) as bucketized FM fields raises validation primary by more tha"
+    }
+   ]
+  },
+  "88b4427883f6": {
+   "id": "88b4427883f6",
+   "direction_id": "objective_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T005603Z",
+     "iteration": 1,
+     "delta": -0.00318,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm_listwise",
+      "lr": 0.001,
+      "k": 16,
+      "epochs": 40,
+      "patience": 4,
+      "bs": 8192
+     },
+     "hypothesis": "Replacing pointwise binary cross-entropy with a within-user listwise softmax (ListNet-style) over each user's impression group raises validation primary by more than 0.002 over the"
+    }
+   ]
+  },
+  "bef3fc971414": {
+   "id": "bef3fc971414",
+   "direction_id": "objective_bpr",
+   "model_family": "FM",
+   "objective_family": "pairwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T005603Z",
+     "iteration": 2,
+     "delta": -0.00337,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm_hybrid",
+      "pair_weight": 0.5
+     },
+     "hypothesis": "Adding a within-user BPR pairwise term on top of the existing pointwise binary cross-entropy (rather than replacing it, as iteration 1 did) raises validation primary by at least +0"
+    }
+   ]
+  },
+  "0ea340ca715e": {
+   "id": "0ea340ca715e",
+   "direction_id": "prior_item_aggregates",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T005603Z",
+     "iteration": 3,
+     "delta": -0.00191,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm"
+     },
+     "hypothesis": "Adding strictly-prior history aggregates as bucketized categorical fields (user prior long_view rate + prior count, user×tab prior rate, video prior long_view rate) raises validati"
+    }
+   ]
+  },
+  "2914dbd9646d": {
+   "id": "2914dbd9646d",
+   "direction_id": "objective_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T011354Z",
+     "iteration": 1,
+     "delta": -0.00233,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm_listwise",
+      "lr": 0.001,
+      "k": 16,
+      "bs": 8192,
+      "epochs": 40,
+      "patience": 4
+     },
+     "hypothesis": "Replacing pointwise logloss with a within-user listwise softmax (cross-entropy over each user's impression group, positives as the target distribution) raises validation primary by"
+    }
+   ]
+  },
+  "2d316bad3e11": {
+   "id": "2d316bad3e11",
+   "direction_id": "objective_hybrid_listwise",
+   "model_family": "FM",
+   "objective_family": "listwise+pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T011354Z",
+     "iteration": 2,
+     "delta": null,
+     "verdict": "INCONCLUSIVE",
+     "config": {
+      "model": "fm_hybrid",
+      "listwise_weight": 0.3,
+      "lr": 0.001,
+      "k": 16
+     },
+     "hypothesis": "A hybrid objective — pointwise BCE plus a weighted within-user listwise softmax term (applied only to mixed-label groups) — beats pure pointwise BCE by ≥0.002 validation primary, w"
+    }
+   ]
+  },
+  "d3f85fbd3792": {
+   "id": "d3f85fbd3792",
+   "direction_id": "objective_bpr",
+   "model_family": "FM",
+   "objective_family": "pairwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T011354Z",
+     "iteration": 3,
+     "delta": -0.00139,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm_bpr",
+      "pair_weight": 0.3,
+      "pair_bs": 8192,
+      "lr": 0.001,
+      "k": 16
+     },
+     "hypothesis": "Adding a small within-user pairwise (BPR) hinge/logistic term on top of the pointwise BCE objective — with the pairwise weight lambda tuned to a modest value (0.3) and pairs sample"
+    }
+   ]
+  },
+  "9709534c9c60": {
+   "id": "9709534c9c60",
+   "direction_id": "prior_user_aggregates",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T011354Z",
+     "iteration": 4,
+     "delta": 0.00281,
+     "verdict": "KEEP",
+     "config": {},
+     "hypothesis": "Adding strictly-prior behavioural aggregates as bucketized categorical FM fields — user-level engagement rate (acting only through its crosses), user×tab affinity, and user×author ",
+     "confirmed_positive": true
+    }
+   ]
+  },
+  "f58505cb6896": {
+   "id": "f58505cb6896",
+   "direction_id": "prior_item_aggregates",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T011354Z",
+     "iteration": 5,
+     "delta": -0.0032,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm",
+      "k": 16,
+      "lr": 0.001
+     },
+     "hypothesis": "Adding strictly-prior ITEM-side and USER×ITEM-side aggregates (video prior long_view rate + support bucket, author prior long_view rate + support bucket, user×author prior rate + s"
+    }
+   ]
+  },
+  "5e047fc2c788": {
+   "id": "5e047fc2c788",
+   "direction_id": "prior_item_aggregates",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T011354Z",
+     "iteration": 6,
+     "delta": -0.00333,
+     "verdict": "REVERT",
+     "config": {
+      "model": "fm"
+     },
+     "hypothesis": "Adding a user×tab conditional prior long_view rate (plus its support bucket) and a user-level prior mean play_time_ms bucket, on top of the iteration-4 user aggregates, raises vali"
+    }
+   ]
+  },
+  "05f2aa8db5c5": {
+   "id": "05f2aa8db5c5",
+   "direction_id": "ensembling",
+   "model_family": "FM",
+   "objective_family": "pointwise",
+   "traits": [],
+   "measured": [
+    {
+     "run": "20260831T011354Z",
+     "iteration": 12,
+     "delta": 0.00112,
+     "verdict": "KEEP",
+     "config": {
+      "model": "fm",
+      "n_models": 5
+     },
+     "hypothesis": "Averaging the predictions of 5 independently-seeded FMs (same kept feature set, each with its own validation-best checkpoint) raises validation primary by more than 0.002 over the ",
+     "confirmed_positive": true
+    }
+   ]
+  }
+ }
 }

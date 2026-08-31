@@ -1,0 +1,18 @@
+# The context freeze (kuairand-starter-kit/context/FROZEN.md) records a SHA-256 and a
+# byte count per reviewed file, and verification hashes the file as it sits on disk. With
+# core.autocrlf=true a checkout rewrites line endings, which changes those bytes without
+# changing a character of content -- constraints.md silently grew 1005 bytes that way
+# during a rebase and failed verification. Pin the checked files so a checkout reproduces
+# exactly the bytes that were hashed, on any platform.
+#
+# Seven were hashed as LF. problem_spec.md was hashed as CRLF (4268 bytes; the blob is
+# 4175 + 93 line endings), so it is pinned the other way rather than re-hashing a file
+# that is under human review and whose content nobody has changed.
+kuairand-starter-kit/context/problem_spec.md   eol=crlf
+kuairand-starter-kit/context/PROBLEM.md        eol=lf
+kuairand-starter-kit/context/RULES.md          eol=lf
+kuairand-starter-kit/context/DATA_GUIDE.md     eol=lf
+kuairand-starter-kit/context/constraints.md    eol=lf
+kuairand-starter-kit/context/references.md     eol=lf
+kuairand-starter-kit/research/data_profile.md  eol=lf
+kuairand-starter-kit/AGENT_RULES.md            eol=lf

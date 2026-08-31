@@ -25,10 +25,19 @@
    "id": "multitask",
    "name": "Multi-task auxiliary heads",
    "summary": "is_click, is_like, play_time_ms and others are available as auxiliary targets while long_view stays the scored task.",
-   "status": "untried",
+   "status": "live",
    "source": "organizer_ranked_3",
    "notes": [
     "Reach them with harness.adapter.auxiliary_targets(). Never same-row inputs."
+   ],
+   "measured": [
+    {
+     "iteration": 5,
+     "hypothesis": "Adding a second within-user listwise softmax head on `is_click`, sharing the FM embedding table with the scored `long_view` head, raises validation primary by more than 0.0015 beca",
+     "delta": 0.00015,
+     "verdict": "REVERT",
+     "note": "The auxiliary click head moved validation primary by +0.00015, a third of one sigma on the paired noise floor (~0.0005) and far under the +0.0015 the hypothesis pre-registered as its success bar. This is indistinguishable from a seed. The c"
+    }
    ]
   },
   "watchtime": {
@@ -478,16 +487,44 @@
    "id": "grouped_batching_cost",
    "name": "Recover the cost of user-grouped batching",
    "summary": "The ranking objectives need rows grouped by user. That grouping, with the loss held pointwise, measures -0.00239 against the official baseline. Anything that keeps the ranking objective while restoring the lost -0.00239 is worth more than a better ranking loss.",
-   "status": "untried",
+   "status": "live",
    "source": "objective_ablation",
    "notes": [
     "Measured, 3 matched seeds: official pointwise (random batches) 0.601440; the same pointwise loss on user-grouped batches 0.599047. Only the batching differs.",
     "Candidates not yet tested: larger target_bs so a batch holds more users; a pointwise term restored on ungrouped rows alongside the ranking term; group-order shuffling at a finer granularity; revisiting early stopping, since the grouped pointwise arm ran to epochs 8/11/10 against listwise 3/4/4.",
     "Scope: research/objective_ablation (3 objectives x 3 matched seeds, one model, one batching scheme, only the loss varied)"
+   ],
+   "measured": [
+    {
+     "iteration": 4,
+     "hypothesis": "The listwise arm is under-trained, not under-featured: with a smaller learning rate, more patience and larger user-grouped batches it will run past epoch 3-4 and gain more than +0.",
+     "delta": 0.00065,
+     "verdict": "REVERT",
+     "note": "Predicted >+0.002 from slower/larger-batch training; got +0.00065, ~1.3 sigma and below the 0.001 evidence threshold. This lands squarely in the invalid_if region: the early peak is real convergence, not an oversized step, so slowing the sc",
+     "confirmed_positive": true
+    }
+   ]
+  },
+  "objective_listwise+prior_user_aggregates": {
+   "id": "objective_listwise+prior_user_aggregates",
+   "name": "objective_listwise+prior_user_aggregates",
+   "summary": "(proposed by the agent)",
+   "status": "live",
+   "source": "agent",
+   "notes": [],
+   "measured": [
+    {
+     "iteration": 1,
+     "hypothesis": "Restoring the verified `fm_listwise_pure` ranking objective AND adding the confirmed strictly-prior user-side aggregate fields (user rate, user-tab, user-author) together raises va",
+     "delta": 0.0112,
+     "verdict": "KEEP",
+     "note": "Delta +0.01120 is ~22x the paired noise floor and ~5.6x eps, and GAUC reached 0.68255, clearing the pre-registered 0.670 gate. Both invalid_if conditions are unmet, so this is a real improvement over the pointwise/no-history parent and beco",
+     "confirmed_positive": true
+    }
    ]
   }
  },
- "updated": "2026-08-31T14:51:16Z",
+ "updated": "2026-08-31T20:38:33Z",
  "implementations": {
   "5021ac19db4f": {
    "id": "5021ac19db4f",
@@ -1072,6 +1109,73 @@
      },
      "hypothesis": "Averaging the predictions of 5 independently-seeded FMs (same kept feature set, each with its own validation-best checkpoint) raises validation primary by more than 0.002 over the ",
      "confirmed_positive": true
+    }
+   ]
+  },
+  "50cebc5d897d": {
+   "id": "50cebc5d897d",
+   "direction_id": "objective_listwise+prior_user_aggregates",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [
+    "pure within-user softmax cross-entropy, no pointwise BCE term mixed in (this is what separates it from the REFUTED objective_hybrid_listwise attempts at weights 0.5/0.3)",
+    "eligible groups restricted to MIXED-LABEL users only",
+    "loss normalised by total positives in the batch, not by row count or group count",
+    "full impression list per user, uncapped",
+    "grouped batching: whole user groups packed to ~bs rows, user never split across a batch boundary, group order reshuffled per epoch",
+    "new: the feature matrix additionally carries 6 strictly-prior user-side aggregate fields built by harness.history with train-only bucket edges"
+   ],
+   "measured": [
+    {
+     "iteration": 1,
+     "hypothesis": "Restoring the verified `fm_listwise_pure` ranking objective AND adding the confirmed strictly-prior user-side aggregate fields (user rate, user-tab, user-author) together raises va",
+     "delta": 0.0112,
+     "verdict": "KEEP",
+     "note": "Delta +0.01120 is ~22x the paired noise floor and ~5.6x eps, and GAUC reached 0.68255, clearing the pre-registered 0.670 gate. Both invalid_if conditions are unmet, so this is a real improvement over the pointwise/no-history parent and beco",
+     "confirmed_positive": true
+    }
+   ]
+  },
+  "044b8867c72d": {
+   "id": "044b8867c72d",
+   "direction_id": "grouped_batching_cost",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [
+    "loss, grouping, eligibility and normalisation are byte-identical to the confirmed 50cebc5d897d implementation -- only lr, batch target size and patience differ",
+    "batch target size raised so each step averages over roughly 4x more user groups, reducing the within-user gradient correlation that grouped batching introduces",
+    "patience doubled to let the ranking arm train past the epoch-3/4 stop observed in the ablation"
+   ],
+   "measured": [
+    {
+     "iteration": 4,
+     "hypothesis": "The listwise arm is under-trained, not under-featured: with a smaller learning rate, more patience and larger user-grouped batches it will run past epoch 3-4 and gain more than +0.",
+     "delta": 0.00065,
+     "verdict": "REVERT",
+     "note": "Predicted >+0.002 from slower/larger-batch training; got +0.00065, ~1.3 sigma and below the 0.001 evidence threshold. This lands squarely in the invalid_if region: the early peak is real convergence, not an oversized step, so slowing the sc",
+     "confirmed_positive": true
+    }
+   ]
+  },
+  "206dab891adf": {
+   "id": "206dab891adf",
+   "direction_id": "multitask",
+   "model_family": "FM",
+   "objective_family": "listwise",
+   "traits": [
+    "two listwise softmax terms, NOT a pointwise+listwise mix -- this is what separates it from the REFUTED objective_hybrid_listwise attempts at weights 0.5/0.3, which diluted the ranking signal with row-level BCE",
+    "aux term uses its own eligibility mask (click-mixed groups) and its own normaliser (batch click positives), so it activates on groups the main term skips rather than reweighting the same groups",
+    "shared V and shared field embeddings, task-specific first-order W and bias -- shared-bottom, not a shared output score",
+    "main-head-only early stopping and model selection on validation primary",
+    "everything else byte-identical to the confirmed 50cebc5d897d path including grouped batching, group reshuffle, uncapped lists"
+   ],
+   "measured": [
+    {
+     "iteration": 5,
+     "hypothesis": "Adding a second within-user listwise softmax head on `is_click`, sharing the FM embedding table with the scored `long_view` head, raises validation primary by more than 0.0015 beca",
+     "delta": 0.00015,
+     "verdict": "REVERT",
+     "note": "The auxiliary click head moved validation primary by +0.00015, a third of one sigma on the paired noise floor (~0.0005) and far under the +0.0015 the hypothesis pre-registered as its success bar. This is indistinguishable from a seed. The c"
     }
    ]
   }

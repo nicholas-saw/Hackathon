@@ -27,6 +27,15 @@ MODEL = 'claude-opus-4-8'
 ROLE_MODELS = {'proposer': 'claude-opus-5'}
 MAX_TOKENS = 16000
 
+# The coder returns whole file bodies, so its reply scales with the pipeline, not with
+# the size of the change. The three editable files are ~23k chars today (~9k output
+# tokens before JSON escaping or any thinking), and they grow as the agent adds
+# features -- train.py went from ~100 lines to 12.9k chars over these runs. At 16k the
+# measured coder average was already 11k, and two calls hit the cap and were cut off
+# mid-string. Headroom here is cheap: output is billed on what is produced, not on the
+# cap, so raising it costs nothing on replies that were already fitting.
+CODER_MAX_TOKENS = 32000
+
 # USD per million tokens, from the current pricing table.
 PRICE = {'claude-opus-5': (5.0, 25.0),
          # Assumed identical to opus-5 pricing; not independently confirmed. If it
@@ -206,18 +215,36 @@ class LLM:
         text = ''.join(b.text for b in resp.content if getattr(b, 'type', '') == 'text')
         return text, rec
 
-    def ask_json(self, role, instructions, user, effort='high', tries=2):
-        """Ask for JSON and parse it. One repair attempt, then give up honestly."""
-        last = None
+    def ask_json(self, role, instructions, user, effort='high', tries=2,
+                 max_tokens=MAX_TOKENS):
+        """Ask for JSON and parse it. One repair attempt, then give up honestly.
+
+        Truncation is reported as truncation. The coder returns whole files inside a
+        JSON string, so running out of output tokens cuts the reply mid-string and the
+        parse then fails on brace balance -- which reads as a model error when the real
+        cause is the cap. Two iterations of run 20260831T011354Z died that way, a node
+        each. When stop_reason says max_tokens, name it and ask for a smaller reply
+        rather than repeating the identical request.
+        """
+        last, note = None, ''
         for attempt in range(tries):
-            msg = user if attempt == 0 else (
-                user + '\n\nYour previous reply did not parse as JSON (%s). '
-                'Reply with the JSON object only — no prose, no code fence.' % last)
-            text, rec = self.ask(role, instructions, msg, effort=effort)
+            msg = user if attempt == 0 else (user + chr(10) + chr(10) + note)
+            text, rec = self.ask(role, instructions, msg, effort=effort,
+                                 max_tokens=max_tokens)
             try:
                 return extract_json(text), rec
             except Exception as exc:
-                last = str(exc)[:200]
+                if rec.get('stop_reason') == 'max_tokens':
+                    last = 'reply hit the %d-token output cap' % max_tokens
+                    note = ('Your previous reply was CUT OFF at the output token '
+                            'limit, so it could not be parsed. Return ONLY the files '
+                            'you actually changed and omit every file you did not '
+                            'touch. Do not restate unchanged files.')
+                else:
+                    last = str(exc)[:200]
+                    note = ('Your previous reply did not parse as JSON (%s). Reply '
+                            'with the JSON object only -- no prose, no code fence.'
+                            % last)
         raise ValueError('%s produced unparseable JSON twice: %s' % (role, last))
 
 

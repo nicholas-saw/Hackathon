@@ -89,7 +89,7 @@ reached the same conclusion from the evidence and it is the one that paid.
 set PYTHONUTF8=1
 python -m harness.cache                    # build the encoded cache (~22s)
 python context/build_packet.py             # regenerate the research packet
-python tests/test_harness.py               # 18 invariants
+python tests/test_harness.py               # 40 invariants
 python -m agent.controller --iterations 50 --budget 14
 python verify.py --chain --order runlogs/<run_id>/journal.jsonl
 python report.py runlogs/<run_id>/journal.jsonl -o report.html

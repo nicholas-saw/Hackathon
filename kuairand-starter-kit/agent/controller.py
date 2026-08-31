@@ -33,6 +33,24 @@ from agent.llm import LLM, LLMUnavailable, Meter, BudgetHalt      # noqa: E402
 EPS = 0.002              # organizer convergence threshold
 N_CONV = 3               # consecutive non-improving iterations
 ACCEPT = 0.0014          # 2 sigma on the measured paired noise floor (sigma ~ 0.0007)
+
+# The bar for a change whose paired seeds ALL moved the same way. ACCEPT is 2 sigma on a
+# single measurement; the mean of s matched seeds has standard error sigma/sqrt(s), so
+# holding a 3-seed paired mean to 0.0014 is ~3.5 sigma -- far stricter than the rule the
+# number was derived from, and strictness here is not free. In run 20260831T011354Z
+# iteration 12 measured mean +0.00112 with every one of three seeds positive (worst
+# +0.00090) and was reverted out of the lineage for missing 0.0014. It was the best
+# result of the whole project. Unanimity is itself evidence: p = 0.125 under the null for
+# three seeds. Requiring both unanimity and 2 sigma on the paired mean keeps the false
+# accept rate low, and designation still stability-tests the winner over 5 user folds.
+UNANIMOUS_ACCEPT = 0.0008
+
+# Node failures the coder can plausibly fix from the traceback, and which are therefore
+# worth one retry rather than a discarded iteration. executor.classify's own comment says
+# "the reason string goes back to the coder"; nothing was sending it. `timeout` and
+# `memory` are excluded because a retry would simply repeat them, and `leak` is excluded
+# deliberately -- a change that reached the test seal gets no coaching on getting past it.
+RETRYABLE_FAILURES = ('syntax', 'import', 'contract', 'nan')
 CONFIRM_SEEDS = [0, 1, 2]  # matched seeds for a candidate that might actually be kept
 CONFIRM_FLOOR = -0.0007  # -1 sigma: below this a single seed is enough to reject
 MAX_ROLE_FAILURES = 3    # consecutive LLM-role failures before giving up on the loop
@@ -361,17 +379,105 @@ class Controller:
                 if after_files:
                     ok, findings = guards.scan_diff(diff)
                     if not ok:
+                        # Hand the finding back and let the coder fix it, instead of
+                        # throwing the iteration away. guards.py is explicit that "a
+                        # guard that rejects without explaining trains the agent to
+                        # guess", and every finding already carries a `fix` written for
+                        # this -- coder.code() has taken a `last_error` since it was
+                        # written. Nothing was passing it. In run 20260831T011354Z the
+                        # coder tripped the same evaluate-on-test rule at iterations 7,
+                        # 8 and 11, each time losing a whole node, because it was never
+                        # told. One extra coder call is far cheaper than a lost
+                        # iteration: the iteration also costs a convergence slot, and
+                        # those are the binding constraint, not tokens.
                         self.jr.append(J.GUARD_REJECT, {
-                            'iteration': it, 'findings': findings,
+                            'iteration': it, 'findings': findings, 'attempt': 1,
+                            'action': 'returned to the coder with the finding',
                             'hypothesis': hyp.get('hypothesis', '')})
-                        print('iter %03d  GUARD REJECT: %s' % (it, findings[0]['reason']),
-                              flush=True)
+                        print('iter %03d  GUARD REJECT: %s -- returning it to the coder'
+                              % (it, findings[0]['reason']), flush=True)
+                        try:
+                            after_files, note, _ = coder_mod.code(
+                                self.llm, hyp, ROOT,
+                                last_error=('The static guard rejected your change before it ran. '
+                                            'This is not a runtime error -- the code never executed.'
+                                            + chr(10) + chr(10)
+                                            + guards.format_findings(findings)))
+                            diff = coder_mod.make_diff(
+                                coder_mod.current_files(ROOT), after_files)
+                            ok, findings = guards.scan_diff(diff)
+                        except BudgetHalt as exc:
+                            # Named before Exception: BudgetHalt is a RuntimeError, and
+                            # swallowing it here would report the ceiling as a coder
+                            # error. The loop's own check stops the run next iteration.
+                            self.jr.append(J.BUDGET_HALT,
+                                           {'iteration': it, 'reason': str(exc)})
+                            print('iter %03d  budget ceiling reached during guard retry'
+                                  % it, flush=True)
+                            ok = False
+                        except Exception as exc:
+                            ok, findings = False, [{
+                                'file': '<coder>', 'line': 0, 'rule': 'retry failed',
+                                'reason': '%s: %s' % (type(exc).__name__, exc),
+                                'fix': '', 'snippet': ''}]
+                        if ok:
+                            print('iter %03d  guard clean on retry' % it, flush=True)
+                    if not ok:
+                        self.jr.append(J.GUARD_REJECT, {
+                            'iteration': it, 'findings': findings, 'attempt': 2,
+                            'action': 'iteration abandoned',
+                            'hypothesis': hyp.get('hypothesis', '')})
+                        print('iter %03d  GUARD REJECT (retry): %s'
+                              % (it, findings[0]['reason']), flush=True)
                         continue
                     prev = coder_mod.write_change(ROOT, after_files)
 
                 role_failures = 0          # a good iteration clears the streak
                 timeout = executor.adaptive_timeout(self.node_times)
                 res, parsed = self.run_node(it, cfg, seeds, timeout)
+
+                # A syntax slip or a broken contract is a typo, not a refuted hypothesis.
+                # Give the coder the traceback once before spending the iteration: the
+                # node costs a minute of CPU, the iteration costs one of the ~10 that the
+                # convergence rule allows.
+                if not parsed and after_files and res['failure'] in RETRYABLE_FAILURES:
+                    self.jr.append(J.ERROR_RECOVERY, {
+                        'iteration': it, 'failure': res['failure'], 'attempt': 1,
+                        'timed_out': res['timed_out'], 'orphan_free': res['orphan_free'],
+                        'kill_note': res['kill_note'], 'seconds': res['seconds'],
+                        'stderr': res['stderr'][-2000:],
+                        'hypothesis': hyp.get('hypothesis', ''),
+                        'action': 'returned to the coder with the traceback'})
+                    print('iter %03d  FAILED (%s) -- returning the traceback to the coder'
+                          % (it, res['failure']), flush=True)
+                    try:
+                        after2, note2, _ = coder_mod.code(
+                            self.llm, hyp, ROOT,
+                            last_error=('Your change ran and crashed. Failure class: %s.'
+                                        % res['failure']) + chr(10) + chr(10)
+                                       + (res['stderr'] or '')[-2000:])
+                        d2 = coder_mod.make_diff(coder_mod.current_files(ROOT), after2)
+                        ok2, f2 = guards.scan_diff(d2)
+                        if ok2:
+                            if prev:
+                                coder_mod.restore(ROOT, prev)
+                            after_files, note, diff = after2, note2, d2
+                            prev = coder_mod.write_change(ROOT, after_files)
+                            res, parsed = self.run_node(it, cfg, seeds, timeout)
+                            print('iter %03d  retry %s' % (
+                                it, 'ran' if parsed else 'failed again (%s)'
+                                % res['failure']), flush=True)
+                        else:
+                            print('iter %03d  retry rejected by the guard: %s'
+                                  % (it, f2[0]['reason']), flush=True)
+                    except BudgetHalt as exc:
+                        self.jr.append(J.BUDGET_HALT,
+                                       {'iteration': it, 'reason': str(exc)})
+                        print('iter %03d  budget ceiling reached during node retry'
+                              % it, flush=True)
+                    except Exception as exc:
+                        print('iter %03d  retry could not be produced (%s)'
+                              % (it, type(exc).__name__), flush=True)
 
                 if not parsed:
                     self.jr.append(J.ERROR_RECOVERY, {
@@ -496,7 +602,18 @@ class Controller:
                 # three matched seeds, every seed positive -- a real effect. When
                 # confirmation says that, the node joins the lineage regardless of the
                 # narrative.
+                # Unanimous paired seeds clear a bar set for the paired mean, not for
+                # one draw. See UNANIMOUS_ACCEPT.
                 if (not keep and confirm is not None
+                        and confirm.get('all_paired_positive')
+                        and confirm['mean_delta'] > UNANIMOUS_ACCEPT):
+                    keep = True
+                    print('iter %03d  KEEP: all %d paired seeds up, mean %+.5f (worst '
+                          '%+.5f) -- clears the unanimous bar %.4f despite verdict %s'
+                          % (it, len(confirm['paired_deltas']), confirm['mean_delta'],
+                             confirm['worst_delta'], UNANIMOUS_ACCEPT,
+                             verdict['verdict']), flush=True)
+                elif (not keep and confirm is not None
                         and confirm['mean_delta'] > ACCEPT
                         and confirm['worst_delta'] > 0):
                     keep = True

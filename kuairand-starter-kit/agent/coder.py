@@ -12,6 +12,8 @@ computes the real diff with difflib for the journal.
 import difflib
 import os
 
+from agent.llm import CODER_MAX_TOKENS
+
 INSTRUCTIONS = """You are the coder in an autonomous ML research loop on KuaiRand-Pure.
 
 You are given one hypothesis and the current contents of the three editable files. Make
@@ -128,12 +130,14 @@ def code(llm, hypothesis, root, last_error=None):
     """Returns (after_files, note, usage_record)."""
     files = current_files(root)
     msg = build_user_message(hypothesis, files, last_error)
-    obj, rec = llm.ask_json('coder', INSTRUCTIONS, msg, effort='medium')
+    obj, rec = llm.ask_json('coder', INSTRUCTIONS, msg, effort='medium',
+                            max_tokens=CODER_MAX_TOKENS)
     ok, why = validate(obj)
     if not ok:
         obj, rec = llm.ask_json(
             'coder', INSTRUCTIONS,
-            msg + '\n\nYour previous reply was rejected: %s' % why, effort='medium')
+            msg + '\n\nYour previous reply was rejected: %s' % why, effort='medium',
+            max_tokens=CODER_MAX_TOKENS)
         ok, why = validate(obj)
         if not ok:
             raise ValueError('coder returned an invalid change twice: %s' % why)

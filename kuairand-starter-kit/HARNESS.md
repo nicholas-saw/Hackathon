@@ -138,12 +138,30 @@ measuring candidates on fewer seeds than the baseline charges them ~0.0007 of pu
 variance reduction as if it were a regression, half the accept bar. A dry run uses
 `DRY_SEEDS_PER_NODE = 2` to stay quick, but it uses 2 for everything.
 
+**A rejected change goes back to the coder before the iteration is spent.** A static
+guard finding and a node traceback are both returned once, with the guard's own `fix`
+text or the failure class and stderr, and the attempt is re-checked. Only a second
+failure abandons the iteration. This is not politeness: iterations are the binding
+constraint, not tokens. One run lost three separate nodes to the same
+evaluate-on-test mistake because nothing ever told the coder what it had done wrong.
+Timeouts and out-of-memory are not retried (they would repeat), and a run that reaches
+the test seal is not coached on getting past it.
+
 **Accept needs every paired seed to improve, not just the average.** Because the parent
 carries its own per-seed primaries, `paired_confirmation()` compares seed *s* against
 seed *s* — a matched test that removes the seed as a source of variance at no extra
 training cost. A change is kept only if the shipped artifact clears the accept bar *and*
 no individual seed regressed. Under the null, 3/3 paired seeds agreeing is p = 0.125 on
 its own; with the bar on top, a noise iteration essentially never enters the lineage.
+
+A change whose seeds ALL move the same way is held to `UNANIMOUS_ACCEPT = 0.0008`
+rather than `ACCEPT = 0.0014`. The two numbers measure different things: ACCEPT is
+2 sigma on a single draw, and the mean of s matched seeds has standard error
+sigma/sqrt(s), so applying ACCEPT to a 3-seed mean is ~3.5 sigma. The run that scored
+highest in this project had its best node -- paired mean +0.00112, all three seeds up --
+reverted out of the lineage on that mismatch. Unanimity is independent evidence, and
+the designated winner is stability-tested over 5 user folds regardless, so the looser
+lineage gate does not loosen what ships.
 
 **The controller injects a free ensemble node every third iteration.** It trains nothing
 and calls no model — it rank-averages the best distinct candidates so far — so it costs

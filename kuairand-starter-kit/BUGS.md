@@ -15,7 +15,7 @@
 
 | | Count |
 |---|---:|
-| Defects fixed | 15 |
+| Defects fixed | 19 |
 | Context/documentation corrections | 9 |
 | **Open — not fixed** | **6** |
 | Of the open items, blocking a measured run | 0 |
@@ -285,7 +285,7 @@ This is O3 (whole-file emission) turning into a correctness failure under a weak
 40260, pipeline scans CLEAN. The rewritten `features.py` docstring now also points at
 `harness.history` and `harness.adapter` instead of describing the forbidden route.
 
-## F15. The proposer's config never reached the model *(critical)*
+## F16. The proposer's config never reached the model *(critical)*
 
 **Symptom.** In run `20260830T230438Z`, iterations 1 and 3 scored
 **bit-identically to the baseline** — delta `+0.00000` — despite 266- and 237-line diffs
@@ -312,6 +312,65 @@ through.
 **Verified:** `python -m harness.run_node --config '{"lr": 0.01}'` returns primary 0.5976
 instead of 0.60147 — and that figure matches the frozen audit's lr=0.01 result of
 0.59709 ± 0.00053, so the harness agrees with the evidence base.
+
+## F17. Guard rejections were thrown away instead of returned to the coder *(the largest single source of lost iterations)*
+
+`guards.py` opens by saying "Every rejection returns a reason, and the reason goes back to
+the coder — a guard that rejects without explaining trains the agent to guess." Every
+finding carries a `fix` field written for exactly that. `coder.code()` has taken a
+`last_error` argument since it was written, and `build_user_message` renders it under
+"YOUR PREVIOUS ATTEMPT FAILED".
+
+None of it was connected. The controller's guard branch was three lines and a `continue`:
+the iteration was discarded and the coder was never told.
+
+The cost is visible in run `20260831T011354Z`, the best run of the project. Iterations
+**7, 8 and 11 all tripped the same rule** — `evaluate()` called on test, in `train.py`,
+each time written as the mirror image of the legitimate `valid` line beside it. Three
+nodes lost to one misunderstanding that a single sentence would have corrected. Across all
+14 measured runs, guard rejects are 4 of 52 iteration attempts.
+
+**Fixed.** A rejection now returns the formatted findings to the coder and re-scans. Only
+if the second attempt is also rejected is the iteration abandoned, and the journal records
+both attempts. One extra coder call is roughly $0.37; an iteration is roughly $0.67 *and*
+one of the ~10 slots the convergence rule allows, which is the scarcer resource.
+
+## F18. Node crashes were discarded with the traceback unused
+
+The same omission one stage later. `executor.classify()` names the failure and its comment
+says "The reason string goes back to the coder, so it has to name the thing that broke" —
+and the controller journalled it, reverted, and moved on. A syntax slip is not a refuted
+hypothesis, but it cost a whole iteration as though it were: `iter 003 FAILED (syntax)` in
+the sonnet run, `iter 002 FAILED (contract)` in the opus-4.8 run.
+
+**Fixed.** A failure in `RETRYABLE_FAILURES` (`syntax`, `import`, `contract`, `nan`)
+returns the traceback to the coder once, re-checks the guard, and re-runs the node.
+`timeout` and `memory` are excluded because a retry would simply repeat them. `leak` is
+excluded deliberately: a change that reached the test seal gets no coaching on how to get
+past it.
+
+## F19. The accept bar was calibrated for one seed but applied to a three-seed mean *(discarded the best result of the project)*
+
+`ACCEPT = 0.0014` is 2 sigma on a **single** measurement (sigma ~ 0.0007). The mean of
+*s* matched seeds has standard error sigma/sqrt(s), so holding a 3-seed paired mean to the
+same 0.0014 is about **3.5 sigma** — much stricter than the rule the number came from.
+
+Run `20260831T011354Z` iteration 12 measured a paired mean of **+0.00112 with all three
+seeds positive** (worst +0.00090). It was reverted out of the lineage for missing 0.0014.
+It was the highest-scoring node of the entire project (validation primary 0.60724). The
+existing "KEEP on confirmed evidence" override could not rescue it, because that override
+also required `mean_delta > ACCEPT` — the same bar it was failing.
+
+Designation saved the artifact, since selection considers every node rather than only the
+lineage. What was lost is the lineage: any iteration after 12 would have built on the
+weaker 0.60609 parent.
+
+**Fixed.** `UNANIMOUS_ACCEPT = 0.0008` — 2 sigma on the paired mean — applies when every
+matched seed moved the same way. Unanimity is independent evidence (p = 0.125 under the
+null for three seeds), and the designated winner is still stability-tested over 5 user
+folds afterwards, so this loosens the lineage gate without loosening what ships.
+
+---
 
 # Part 2 — Open. Not fixed.
 
@@ -351,6 +410,16 @@ re-emits entire files rather than patches.
 
 **Not fixed:** changing to patch-based editing risks correctness in the component whose
 correctness matters most. Flagged as the largest remaining cost lever.
+
+**Partly mitigated.** Whole-file output also has a *failure* mode, not just a cost: the
+reply is cut off at the output cap mid-string and the parse then fails on brace balance,
+which reads as "the model emitted bad JSON" when the real cause is the ceiling. Two
+iterations of run `20260831T011354Z` died that way. `MAX_TOKENS` was 16,000 while the
+three editable files are ~23k chars (~9k output tokens before escaping or thinking) and
+growing — `train.py` reached 12.9k chars over these runs — against a measured coder
+average of 11k. The coder now runs at `CODER_MAX_TOKENS = 32000`, which costs nothing on
+replies that already fit, and a truncated reply is now reported as truncation and retried
+with an instruction to return only the changed files.
 
 ## O4. `harness/history.py` recomputes from scratch on every call
 

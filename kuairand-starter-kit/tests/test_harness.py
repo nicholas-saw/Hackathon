@@ -465,5 +465,34 @@ def test_paired_confirmation_needs_two_shared_seeds():
     assert paired_confirmation({0: 0.61}, {0: 0.60, 1: 0.60}, 0.001) is None
 
 
+
+# ---------------- accept bars ----------------
+
+def test_unanimous_bar_is_below_the_single_measurement_bar():
+    """A 3-seed paired mean has se sigma/sqrt(3); holding it to ACCEPT is ~3.5 sigma."""
+    from agent.controller import ACCEPT, UNANIMOUS_ACCEPT
+    assert 0 < UNANIMOUS_ACCEPT < ACCEPT
+
+
+def test_the_reverted_best_result_would_now_be_kept():
+    """run 20260831T011354Z iter 12: mean +0.00112, worst +0.00090, 3/3 seeds up.
+
+    It was the best result of the project and was reverted for missing ACCEPT.
+    """
+    from agent.controller import UNANIMOUS_ACCEPT, paired_confirmation
+    c = paired_confirmation({'0': 0.60724, '1': 0.60700, '2': 0.60712},
+                            {'0': 0.60609, '1': 0.60610, '2': 0.60607}, 0.00112)
+    assert c['all_paired_positive']
+    assert c['mean_delta'] > UNANIMOUS_ACCEPT
+
+
+def test_a_split_decision_still_fails_the_unanimous_bar():
+    from agent.controller import UNANIMOUS_ACCEPT, paired_confirmation
+    c = paired_confirmation({'0': 0.6080, '1': 0.6055, '2': 0.6072},
+                            {'0': 0.6060, '1': 0.6061, '2': 0.6060}, 0.0012)
+    assert not c['all_paired_positive'], 'seed 1 regressed'
+    assert c['mean_delta'] > UNANIMOUS_ACCEPT, 'mean alone would have passed'
+
+
 if __name__ == '__main__':
     raise SystemExit(1 if _run_all() else 0)

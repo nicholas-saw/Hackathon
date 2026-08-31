@@ -11,8 +11,25 @@
 | File | `submissions/verified_listwise_3seed_ensemble.csv` |
 | Rows | 170,588 — `row_id` contract validated by the frozen `kit/submit.py` checker |
 | Method | Within-user **listwise softmax** objective replacing pointwise BCE, rank-averaged over 3 seeds |
-| Config | `{"model": "fm_listwise", "k": 16, "lr": 0.001, "epochs": 40, "bs": 8192, "patience": 4}` |
+| Config | `{"model": "fm_listwise_pure", "k": 16, "lr": 0.001, "epochs": 40, "bs": 8192, "patience": 4}` |
 | Provenance | Agent hypothesis (iteration 1 of run `20260830T235541Z`), verified on matched seeds |
+
+> **Reproduce it:**
+> ```
+> python harness/run_node.py --out /tmp/pure.npz --seeds 0,1,2 \
+>   --config '{"model":"fm_listwise_pure","k":16,"lr":0.001,"epochs":40,"bs":8192,"patience":4}'
+> ```
+> Confirmed byte-identical to the banked CSV on 2026-08-31, with per-seed validation
+> primaries matching the table in section 2 to six decimals.
+>
+> The model key is `fm_listwise_pure`, **not** `fm_listwise`. Until 2026-08-31 this row
+> read `fm_listwise`, and that config would have silently produced a different model:
+> the winning loss had never been committed — it survived only as a diff inside
+> `runlogs/run_20260830T235541Z/journal.jsonl` — while a later, differently-behaved
+> listwise variant (ListNet top-1 mixed with `lw_alpha` * BCE, groups capped at `cap`)
+> held the `fm_listwise` name. The two differ in loss composition, group eligibility,
+> normalisation and capping. See `constraints.md` C25 and
+> `research/objective_ablation/FINDINGS.md`.
 
 ## 2. Results table
 

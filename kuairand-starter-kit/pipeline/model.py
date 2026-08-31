@@ -3,6 +3,13 @@
 Public contract (train.py depends on these):
     FM(dim, k=16, lr=0.001, l2=1e-6, seed=0)
         .step(X, y) -> loss:float      # one mini-batch gradient update (pointwise BCE)
+        .step_listwise(X, y, group_offsets) -> loss:float
+            # PURE within-group softmax cross-entropy, no BCE term. X, y pre-sorted so
+            # each group is contiguous; group_offsets is a monotone boundary array with
+            # group g spanning [group_offsets[g]:group_offsets[g+1]). Groups with 0 or
+            # ALL positives are skipped -- they carry no ordering signal. Normalised by
+            # total positives. This is the loss behind the banked submission; see
+            # `fm_listwise_pure` in train.py. Not interchangeable with step_list below.
         .step_list(X, y, group_ends, lw_alpha=0.3) -> loss:float
             # X, y must be pre-sorted so that each user's rows are contiguous.
             # group_ends: 1D int array of exclusive end offsets into X/y marking each
@@ -53,6 +60,47 @@ class FM:
         g = ((sigmoid(z) - y) / B).astype(np.float32)    # (B,)
         self._apply_grad(X, g, S, E)
         return float(-np.mean(y * np.log(sigmoid(z) + 1e-9) + (1 - y) * np.log(1 - sigmoid(z) + 1e-9)))
+
+    def step_listwise(self, X, y, group_offsets):
+        """Within-group softmax cross-entropy. No BCE term, no group cap.
+
+        Transcribed from run 20260830T235541Z iteration 1 -- the implementation behind
+        `submissions/verified_listwise_3seed_ensemble.csv`, hand-verified at +0.00162
+        over three matched seeds. It had never been committed: it survived only as a
+        diff inside that run's journal, while the differently-behaved `step_list` below
+        occupied the `fm_listwise` name. Restored so the banked artifact is reproducible.
+
+        Four things distinguish it from `step_list`, and the controlled ablation in
+        research/objective_ablation does not say which of them matters:
+          - pure softmax CE here; step_list mixes in lw_alpha * pointwise BCE
+          - mixed-label groups only here; step_list admits any group with a positive
+          - normalised by total positives here; step_list by active-group count
+          - uncapped groups here; step_list subsamples groups larger than `cap`
+        """
+        z, E, S = self.logits(X)
+        grad = np.zeros(len(z), dtype=np.float32)
+        total_pos, loss_sum = 0.0, 0.0
+        offs = group_offsets
+        for gi in range(len(offs) - 1):
+            s_i, e_i = int(offs[gi]), int(offs[gi + 1])
+            if e_i - s_i < 2:
+                continue
+            zg, yg = z[s_i:e_i], y[s_i:e_i]
+            pos_count, size = float(yg.sum()), e_i - s_i
+            if pos_count <= 0.0 or pos_count >= size:
+                continue
+            mx = zg.max()
+            expz = np.exp(zg - mx)
+            denom = expz.sum()
+            grad[s_i:e_i] = pos_count * (expz / denom) - yg
+            loss_sum += -(float(np.sum(yg * zg)) - pos_count * (mx + np.log(denom)))
+            total_pos += pos_count
+
+        if total_pos <= 0.0:
+            return 0.0
+        g = (grad / total_pos).astype(np.float32)
+        self._apply_grad(X, g, S, E)
+        return float(loss_sum / total_pos)
 
     def step_list(self, X, y, group_ends, lw_alpha=0.3):
         """Within-user listwise softmax (ListNet top-1), mixed with pointwise BCE.

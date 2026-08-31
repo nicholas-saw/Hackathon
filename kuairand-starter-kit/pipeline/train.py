@@ -3,6 +3,8 @@
   --model pop          : item popularity (official baseline; pure statistics, no training)
   --model fm           : Factorization Machine, pointwise BCE (the starting model)
   --model fm_listwise  : same FM, within-user listwise softmax (ListNet top-1) + BCE mix
+  --model fm_listwise_pure : same FM, PURE within-user softmax CE, no BCE mix,
+                         uncapped groups -- the banked submission's loss
   --model random       : random scores (lower bound; self-check that the evaluator is intact)
 numpy only. Usage: see README.md
 """
@@ -76,6 +78,41 @@ def run_fm(splits, k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0, verbo
         Xte, yte, ute = enc['test']
         out['test'] = evaluate(ute, yte, m.predict(Xte))
     return out
+
+# ---------------- grouped batching for the pure listwise objective ----------------
+def _build_grouped_batches(X, y, users, target_bs=8192, rng=None):
+    """Pack whole user-groups into batches of roughly target_bs rows, never splitting a
+    user. Group order is reshuffled each call so training sees different compositions.
+
+    Transcribed from run 20260830T235541Z iteration 1 along with FM.step_listwise.
+    Note this is NOT the batching `fm_listwise` uses: `_make_listwise_batches` below
+    subsamples any group larger than `cap`, and this one does not.
+
+    Returns a list of (Xb, yb, group_offsets) tuples.
+    """
+    users_arr = np.asarray(users)
+    order = np.argsort(users_arr, kind='stable')
+    Xs, ys, us = X[order], y[order], users_arr[order]
+    change = np.where(us[1:] != us[:-1])[0] + 1
+    bounds = np.concatenate(([0], change, [len(us)]))
+    groups = [(int(bounds[i]), int(bounds[i + 1])) for i in range(len(bounds) - 1)]
+    if rng is not None:
+        rng.shuffle(groups)
+
+    batches, batch_idx, batch_offsets, cur = [], [], [0], 0
+    for (st, en) in groups:
+        batch_idx.extend(range(st, en))
+        batch_offsets.append(batch_offsets[-1] + (en - st))
+        cur += (en - st)
+        if cur >= target_bs:
+            batches.append((Xs[batch_idx], ys[batch_idx],
+                            np.array(batch_offsets, dtype=np.int64)))
+            batch_idx, batch_offsets, cur = [], [0], 0
+    if batch_idx:
+        batches.append((Xs[batch_idx], ys[batch_idx],
+                        np.array(batch_offsets, dtype=np.int64)))
+    return batches
+
 
 # ---------------- listwise batching helpers ----------------
 def _group_rows_by_user(users):
@@ -183,6 +220,32 @@ def fit_predict(enc, dim, model='fm', k=16, lr=0.001, epochs=40, bs=8192, patien
         rng = np.random.default_rng(seed)
         return {sp: rng.random(len(enc[sp][1])) for sp in enc}
 
+    if model == 'fm_listwise_pure':
+        # The banked submission's model. Kept as a separate key rather than folded into
+        # `fm_listwise`: the two differ in loss composition, group eligibility,
+        # normalisation and capping, and conflating them under one name is what made
+        # `submissions/verified_listwise_3seed_ensemble.csv` unreproducible from this
+        # tree in the first place.
+        m = FM(dim, k=k, lr=lr, seed=seed)
+        rng = np.random.default_rng(seed)
+        best, best_state, bad = -1, None, 0
+        for ep in range(1, epochs + 1):
+            for (Xb, yb, offs) in _build_grouped_batches(Xtr, ytr, utr, target_bs=bs,
+                                                         rng=rng):
+                m.step_listwise(Xb, yb, offs)
+            p = evaluate(uva, yva, m.predict(Xva))['primary']
+            if verbose:
+                print(f"  epoch {ep:2d} valid primary {p:.5f}", flush=True)
+            if p > best + 1e-5:
+                best, bad = p, 0
+                best_state = (m.V.copy(), m.W.copy(), np.float32(m.b))
+            else:
+                bad += 1
+                if bad >= patience:
+                    break
+        m.V, m.W, m.b = best_state
+        return {sp: m.predict(enc[sp][0]) for sp in enc}
+
     if model == 'fm_listwise':
         user_to_idx = _group_rows_by_user(utr)
         m = FM(dim, k=k, lr=lr, seed=seed)
@@ -231,7 +294,8 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--data_dir', default='./KuaiRand-Pure/data',
                     help='the extracted KuaiRand-Pure data directory')
-    ap.add_argument('--model', default='fm', choices=['pop', 'fm', 'fm_listwise', 'random'])
+    ap.add_argument('--model', default='fm',
+                    choices=['pop', 'fm', 'fm_listwise', 'fm_listwise_pure', 'random'])
     ap.add_argument('--k', type=int, default=16)
     ap.add_argument('--lr', type=float, default=0.001)
     ap.add_argument('--epochs', type=int, default=40)

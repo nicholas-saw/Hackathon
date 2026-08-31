@@ -603,5 +603,86 @@ def test_traits_accumulate_across_sightings_of_the_same_code():
         assert ims[0]['traits'] == ['no BCE mix', 'uncapped lists']
         assert len(ims[0]['measured']) == 2
 
+
+# ---------------- the banked submission's model ----------------
+
+def test_the_banked_model_key_exists_and_is_not_fm_listwise():
+    """RESULTS.md's config must select the loss that actually produced the CSV.
+
+    It said `fm_listwise` while the winning loss had never been committed, so that
+    config silently trained a different model. Byte-identical regeneration was only
+    restored once `fm_listwise_pure` existed.
+    """
+    import inspect
+    sys.path.insert(0, PIPELINE)
+    import train, model
+    src = inspect.getsource(train.fit_predict)
+    assert "model == 'fm_listwise_pure'" in src
+    assert "model == 'fm_listwise'" in src, 'the other variant must survive too'
+    assert hasattr(model.FM, 'step_listwise') and hasattr(model.FM, 'step_list')
+
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    with open(os.path.join(root, 'RESULTS.md'), encoding='utf-8') as fh:
+        results = fh.read()
+    cfg = [l for l in results.splitlines() if l.startswith('| Config |')]
+    assert cfg and 'fm_listwise_pure' in cfg[0], 'RESULTS.md config drifted'
+
+
+def test_pure_listwise_skips_uniform_label_groups():
+    """Its defining trait: a group with 0 or ALL positives carries no ordering signal.
+
+    step_list does not share this -- it admits any group with a positive -- which is one
+    of the four ways the two implementations differ.
+    """
+    sys.path.insert(0, PIPELINE)
+    from model import FM
+
+    X = np.array([[0, 2], [0, 3], [1, 2], [1, 3]], dtype=np.int64)
+    offs = np.array([0, 2, 4], dtype=np.int64)
+
+    m = FM(8, k=4, seed=0)
+    before = m.V.copy()
+    assert m.step_listwise(X, np.array([1.0, 1.0, 0.0, 0.0], dtype=np.float32), offs) == 0.0
+    assert np.array_equal(m.V, before), 'uniform-label groups must not move the weights'
+
+    m2 = FM(8, k=4, seed=0)
+    loss = m2.step_listwise(X, np.array([1.0, 0.0, 1.0, 0.0], dtype=np.float32), offs)
+    assert loss > 0.0 and not np.array_equal(m2.V, before), 'mixed groups must train'
+
+
+def test_the_two_listwise_losses_are_not_interchangeable():
+    """If these ever agree, one has been quietly replaced by the other.
+
+    The input carries an ALL-POSITIVE group, where the two differ structurally rather
+    than by magnitude: step_listwise skips it (a uniform-label group carries no ordering
+    signal), while step_list admits any group holding a positive and still applies its
+    BCE term there.
+
+    That asymmetry is what makes the check reliable. On mixed-label-only input the two
+    produce weights that are equal to ~1e-9 after one step, because the first Adam
+    update is m/(sqrt(v)+eps) = g/|g| -- sign only -- so a purely magnitude-level
+    difference cancels exactly. Comparing against the initial weights would not work
+    either: `_apply_grad` adds l2 * V over the whole matrix, so every weight moves on
+    every step whether or not it received a data gradient.
+    """
+    sys.path.insert(0, PIPELINE)
+    from model import FM
+
+    #        group 0: mixed labels        group 1: all positive
+    X = np.array([[0, 4], [0, 5], [1, 6], [1, 7]], dtype=np.int64)
+    y = np.array([1.0, 0.0, 1.0, 1.0], dtype=np.float32)
+
+    a = FM(8, k=4, seed=0)
+    loss_pure = a.step_listwise(X, y, np.array([0, 2, 4], dtype=np.int64))
+    b = FM(8, k=4, seed=0)
+    loss_mixed = b.step_list(X, y, np.array([2, 4], dtype=np.int64))
+
+    assert abs(loss_pure - loss_mixed) > 1e-6, (
+        'the two objectives report the same loss (%r vs %r); one has replaced the other'
+        % (loss_pure, loss_mixed))
+    assert not np.allclose(a.V, b.V), (
+        'step_listwise and step_list moved the weights identically on an all-positive '
+        'group -- they are no longer distinct implementations')
+
 if __name__ == '__main__':
     raise SystemExit(1 if _run_all() else 0)

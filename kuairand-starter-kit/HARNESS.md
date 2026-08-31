@@ -147,6 +147,12 @@ evaluate-on-test mistake because nothing ever told the coder what it had done wr
 Timeouts and out-of-memory are not retried (they would repeat), and a run that reaches
 the test seal is not coached on getting past it.
 
+> **Not yet demonstrated.** This is implemented and unit-tested, but no measured run
+> has happened since it landed, so no journal in this repository contains a recovered
+> iteration. Every recovery event a reader can find in `runlogs/` still says *node
+> pruned* or *iteration abandoned*. Treat the paragraph above as a description of the
+> code, not as a claim about evidence, until a run produces one.
+
 **Accept needs every paired seed to improve, not just the average.** Because the parent
 carries its own per-seed primaries, `paired_confirmation()` compares seed *s* against
 seed *s* — a matched test that removes the seed as a source of variance at no extra

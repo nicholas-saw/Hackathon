@@ -6,9 +6,9 @@
 
 ## Frozen files
 
-| File | Bytes | SHA-256 |
+| File | Bytes (as recorded) | SHA-256 (LF-normalised) |
 |---|---:|---|
-| `context/problem_spec.md` | 4268 | `2dcb13f41d6988a1019f5f874580b363a9d5eb7375f09571a76885a966abed4c` |
+| `context/problem_spec.md` | 4268 | `577413213b38a3739f46251825a627fe33f12e3c14735854b8a48d9739f8b116` |
 | `context/PROBLEM.md` | 13196 | `57c4773346a04e78efb88d3b70081d39e303b64cb4fba32583881f518110e655` |
 | `context/RULES.md` | 13004 | `a678c8ba6b85412cdf737a7ecbdfc6a0472e4158b559b0091ad395685e397c89` |
 | `context/DATA_GUIDE.md` | 12882 | `3ed7b8d8f78ec7a9faa2efdb7a802d4221632b26cd516b6e840b7374b93ffe5f` |
@@ -20,8 +20,19 @@
 Verify at any time:
 
 ```bash
-python -c "import hashlib,sys;[print(hashlib.sha256(open(p,'rb').read()).hexdigest(),p) for p in sys.argv[1:]]" context/problem_spec.md context/PROBLEM.md context/RULES.md context/DATA_GUIDE.md context/constraints.md context/references.md research/data_profile.md AGENT_RULES.md
+python context/verify_context.py        # exit 0 when all eight match
 ```
+
+> **The hashes above are over LF-normalised bytes, and that is deliberate.** Under
+> git's default Windows checkout every LF becomes CRLF, so the raw bytes of a text
+> file differ between machines while its content is identical. An earlier version of
+> this record published raw-byte hashes and a one-line `hashlib` command; on a Windows
+> checkout that command reported MISMATCH for seven of the eight files, each byte delta
+> equal to the file's CRLF count exactly (constraints.md: 32,657 - 31,902 = 755 = its
+> 755 CRLF line endings). Nothing had been altered. `FROZEN.md` warns that "a stale
+> fingerprint is worse than none, because it reads as verification that did not
+> happen" -- a fingerprint that fails on an untouched file is the same problem, so the
+> check now normalises before hashing and answers the question actually being asked.
 
 ## Not frozen, and why
 

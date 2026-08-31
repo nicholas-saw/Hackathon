@@ -212,6 +212,8 @@ class LLM:
         )
         rec = self.meter.add(role, resp.usage, model)
         rec['seconds'] = round(time.time() - t0, 2)
+        # ask_json branches on this to tell a truncated reply from a malformed one.
+        rec['stop_reason'] = getattr(resp, 'stop_reason', None)
         text = ''.join(b.text for b in resp.content if getattr(b, 'type', '') == 'text')
         return text, rec
 

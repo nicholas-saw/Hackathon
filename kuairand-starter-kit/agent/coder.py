@@ -34,6 +34,10 @@ Hard constraints — a violation is rejected before your code runs, and you lose
 - Never open a raw CSV. log_standard_4_22_to_5_08_pure.csv spans validation AND test.
   Use harness.adapter.raw_columns(), which cannot return test rows.
 - Post-impression columns are never same-row inputs.
+- Leave any `if report_test:` block byte-identical. It already reads `enc['test']`,
+  and the guard that scans your diff rejects `evaluate(...)` on anything spelled
+  `test`. Rewriting that block -- even harmlessly, even to index predictions by
+  `'test'` for an ensemble -- gets your whole change refused before it runs.
 
 Contracts the harness depends on — preserve them or the node cannot be scored:
   features.py: encode(splits) -> (enc, dim);  enc[split] = (X, y, users)

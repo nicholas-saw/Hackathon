@@ -98,7 +98,11 @@ def build(journal_path):
         ('Iterations', '%s<small>of %s</small>' % (f.get('iterations_used', len(iters) - 1),
                                                    f.get('iteration_cap', 50)), None),
         ('Wall-clock', '%.0f s' % (f.get('wall_clock_s') or 0), 'of 21600 s ceiling'),
-        ('LLM tokens', '{:,}'.format(res.get('tokens_total', 0)), 'input + output'),
+        ('LLM tokens', '{:,}'.format(res.get('tokens_total', 0)),
+         'fresh input + output + cache'),
+        ('  of which fresh input', '{:,}'.format(res.get('input', 0)),
+         'excludes %s cached' % '{:,}'.format(res.get('cache_read', 0)
+                                              + res.get('cache_write', 0))),
         ('Cost', '$%.2f' % res.get('usd', 0.0), 'Anthropic API'),
         ('GPU-hours', '%.1f' % (f.get('gpu_hours') or 0.0), 'CPU only by design'),
         ('Interventions', str(len(counted)), 'L2-L5, counted'),
@@ -286,14 +290,23 @@ def build(journal_path):
     # ---- resources by role ----
     if res.get('by_role'):
         o.append('<h2>Where the tokens went</h2>')
+        # by_role['input'] already folds cache_read and cache_write into itself
+        # (see Meter.totals), so labelling that column 'Input' next to a headline that
+        # means something narrower invites a judge to read the same run two ways and
+        # take the larger. Break it out instead of hiding it behind one word.
         o.append('<table><thead><tr><th>Role</th><th class="n">Calls</th>'
-                 '<th class="n">Input</th><th class="n">Output</th><th class="n">USD</th>'
-                 '</tr></thead><tbody>')
+                 '<th class="n">Fresh in</th><th class="n">Cached in</th>'
+                 '<th class="n">Output</th><th class="n">Total</th>'
+                 '<th class="n">USD</th></tr></thead><tbody>')
         for role, r in sorted(res['by_role'].items()):
+            cached = r.get('cache_read', 0) + r.get('cache_write', 0)
+            fresh = r['input'] - cached
             o.append('<tr><td class="mono">%s</td><td class="n">%d</td><td class="n">%s</td>'
-                     '<td class="n">%s</td><td class="n">$%.2f</td></tr>'
-                     % (esc(role), r['calls'], '{:,}'.format(r['input']),
-                        '{:,}'.format(r['output']), r['usd']))
+                     '<td class="n">%s</td><td class="n">%s</td><td class="n">%s</td>'
+                     '<td class="n">$%.2f</td></tr>'
+                     % (esc(role), r['calls'], '{:,}'.format(fresh),
+                        '{:,}'.format(cached), '{:,}'.format(r['output']),
+                        '{:,}'.format(r['input'] + r['output']), r['usd']))
         o.append('</tbody></table>')
         o.append('<p class="sub">Controller, governor, guards, executor, cache, scorer '
                  'and the submission builder make no model calls at all.</p>')

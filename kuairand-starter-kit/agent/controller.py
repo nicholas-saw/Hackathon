@@ -50,7 +50,13 @@ UNANIMOUS_ACCEPT = 0.0008
 # "the reason string goes back to the coder"; nothing was sending it. `timeout` and
 # `memory` are excluded because a retry would simply repeat them, and `leak` is excluded
 # deliberately -- a change that reached the test seal gets no coaching on getting past it.
-RETRYABLE_FAILURES = ('syntax', 'import', 'contract', 'nan')
+RETRYABLE_FAILURES = ('syntax', 'import', 'contract', 'nan', 'unknown')
+# 'unknown' is in the list on purpose. executor.classify() returns it for any
+# non-zero exit whose traceback matches none of its signatures, which is most
+# exceptions that are not Python builtins -- a numpy error, a shape mismatch
+# raised as a custom class. Those are ordinary code errors and the traceback is
+# exactly what fixes them. Timeout and memory stay out because a retry repeats
+# them, and they are classified before 'unknown' is ever reached.
 CONFIRM_SEEDS = [0, 1, 2]  # matched seeds for a candidate that might actually be kept
 CONFIRM_FLOOR = -0.0007  # -1 sigma: below this a single seed is enough to reject
 MAX_ROLE_FAILURES = 3    # consecutive LLM-role failures before giving up on the loop
@@ -204,9 +210,16 @@ class Controller:
              '--config', json.dumps(config), '--seeds', ','.join(map(str, seeds))],
             timeout=timeout, cwd=ROOT)
         parsed = None
+        # Keep the last line that both starts with the sentinel AND parses. The
+        # pipeline is agent-written, so it can print anything it likes; an
+        # unguarded json.loads here turned one stray 'RESULT ...' in generated
+        # code into a crash that ended the whole run rather than one node.
         for line in (res['stdout'] or '').splitlines():
             if line.startswith('RESULT '):
-                parsed = json.loads(line[7:])
+                try:
+                    parsed = json.loads(line[7:])
+                except ValueError:
+                    continue
         return res, parsed
 
     def ensemble_node(self, it, uv, yv):
@@ -660,7 +673,56 @@ class Controller:
             # The crash path needs this too: leaving the agent edits in the tree
             # would contaminate designation and the next run baseline.
             restore(base_snap)
-        return self._designate(stop, uv, yv, time.time() - t_start)
+        # Designation sits OUTSIDE the crash guard above, which is precisely where the
+        # run can least afford to fail: every iteration has already been spent and no
+        # submission has been written yet. That is not hypothetical -- a NameError in
+        # the designation payload (BUGS.md F13) killed a completed run exactly here.
+        # A crash now falls back to the banked floor so a run always ends with a valid
+        # submission, and says so in the journal rather than dying silently.
+        try:
+            return self._designate(stop, uv, yv, time.time() - t_start)
+        except BaseException as exc:
+            self.jr.append(J.ERROR_RECOVERY, {
+                'iteration': -1, 'failure': 'designation_crash',
+                'timed_out': False, 'orphan_free': True, 'kill_note': '',
+                'seconds': round(time.time() - t_start, 1),
+                'stderr': ('%s: %s' % (type(exc).__name__, exc))[:2000],
+                'hypothesis': '', 'action': 'falling back to the banked floor'})
+            print('DESIGNATION CRASH (%s) -- falling back to the banked floor'
+                  % type(exc).__name__, flush=True)
+            return self._designate_floor(stop, exc, time.time() - t_start)
+
+    def _designate_floor(self, stop, exc, elapsed):
+        """Last resort: ship the banked floor and record why.
+
+        Shipping the floor is an L5 human-selection intervention and the journal has to
+        say so -- it is a worse outcome than any designated node, but it is far better
+        than a run that spent its whole budget and produced no submission at all.
+        """
+        from harness.submission import write, check
+        fp = os.path.join(SUBMISSIONS, 'floor_test.csv')
+        ok, msg, scores = check(fp, 'test')
+        if not ok:
+            raise RuntimeError('designation failed (%s) and the banked floor at %s is not valid either: %s' % (exc, fp, msg))
+        sub = os.path.join(SUBMISSIONS, '%s_final.csv' % self.run_id)
+        write(sub, 'test', scores)
+        ok2, msg2, _ = check(sub, 'test')
+        payload = {'stop_reason': stop, 'chosen_kind': 'floor', 'chosen_iteration': -2,
+                   'chosen_label': 'banked floor (designation crashed)',
+                   'validation_primary': None,
+                   'chosen_artifact': 'banked_floor',
+                   'chosen_artifact_source': 'human_banked_floor',
+                   'chosen_seeds': [],
+                   'designation_error': '%s: %s' % (type(exc).__name__, exc),
+                   'submission': sub, 'submission_sha256': sha256_file(sub),
+                   'submission_check_ok': ok2, 'submission_check_msg': msg2,
+                   'iterations_used': max(len(self.nodes) - 1, 0),
+                   'iteration_cap': self.max_iters,
+                   'wall_clock_s': round(elapsed, 1),
+                   'resources': self.meter.totals(), 'gpu_hours': 0.0,
+                   'cache_working': self.meter.cache_working() if not self.dry_run else None}
+        self.jr.append(J.FINAL_DESIGNATION, payload)
+        return payload
 
     # ---------- helpers ----------
     def _converged(self):

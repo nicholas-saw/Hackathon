@@ -494,5 +494,33 @@ def test_a_split_decision_still_fails_the_unanimous_bar():
     assert c['mean_delta'] > UNANIMOUS_ACCEPT, 'mean alone would have passed'
 
 
+
+# ---------------- structural test-label firewall ----------------
+
+def test_run_node_blanks_test_labels_before_agent_code():
+    """The guard regex is bypassable by ordinary spellings; this must not be.
+
+    fit_predict needs test FEATURES to build a submission vector and never needs test
+    labels, so run_node zeroes them before importing the agent's pipeline. Without this
+    the firewall is a regex, and `Xt, yt, ut = enc['test']` walks straight past it.
+    """
+    import re
+    src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            'harness', 'run_node.py'), encoding='utf-8').read()
+    blank = src.index('enc[' + chr(39) + 'test' + chr(39) + '] = (Xt,')
+    load = src.index('enc, dim = load_encoded()')
+    imp = src.index('from train import fit_predict')
+    assert load < blank < imp, (
+        'test labels must be blanked after load_encoded and BEFORE the agent pipeline '
+        'is imported; ordering was load=%d blank=%d import=%d' % (load, blank, imp))
+
+
+def test_guard_regex_alone_is_not_the_firewall():
+    """Documents the hole the blanking closes, so nobody re-relies on the regex."""
+    fs = guards.scan_source('pipeline/train.py', text="Xt, yt, ut = enc['test']")
+    assert not fs, ('the tuple-unpack spelling is NOT caught by the static guard -- '
+                    'that is why harness/run_node.py blanks the labels structurally')
+
+
 if __name__ == '__main__':
     raise SystemExit(1 if _run_all() else 0)

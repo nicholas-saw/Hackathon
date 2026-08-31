@@ -1,0 +1,605 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Run report — run_20260831T011354Z</title>
+<style>
+:root{--bg:#eef1f4;--card:#fff;--ink:#101820;--ink2:#46525e;--ink3:#7c8894;
+--rule:#cdd5dd;--ok:#2d6a4f;--bad:#a31621;--warn:#b45309;--code:#2a6f97}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 24px 72px}
+h1{font-size:30px;letter-spacing:-.02em;margin:0 0 4px}
+h2{font-size:17px;margin:34px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.sub{color:var(--ink2);margin:0 0 20px}
+.panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;
+background:var(--rule);border:1px solid var(--rule);margin:18px 0}
+.panel div{background:var(--card);padding:11px 13px}
+.panel dt{font:11px ui-monospace,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+.panel dd{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.panel dd small{display:block;font-size:11px;font-weight:400;color:var(--ink3);margin-top:2px}
+table{border-collapse:collapse;width:100%;background:var(--card);border:1px solid var(--rule);font-size:13px}
+th{text-align:left;font:11px ui-monospace,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;
+color:var(--ink3);background:#e7ebef;padding:8px 10px;border-bottom:1px solid var(--rule)}
+td{padding:9px 10px;border-bottom:1px solid #e6eaee;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.n{text-align:right;font-family:ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:10px ui-monospace,Consolas,monospace;letter-spacing:.06em;
+text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid}
+.keep{color:var(--ok);background:#eaf3ee;border-color:var(--ok)}
+.revert{color:var(--bad);background:#fbeced;border-color:var(--bad)}
+.inconclusive{color:var(--warn);background:#fdf3e7;border-color:var(--warn)}
+.pos{color:var(--ok);font-weight:600}.neg{color:var(--bad);font-weight:600}
+.card{background:var(--card);border:1px solid var(--rule);padding:15px 17px;margin:12px 0}
+.card.good{border-top:3px solid var(--ok)}.card.bad{border-top:3px solid var(--bad)}
+details{margin-top:7px}summary{cursor:pointer;color:var(--code);font-size:12px}
+pre{font:12px/1.45 ui-monospace,Consolas,monospace;background:#f5f7f9;border:1px solid var(--rule);
+padding:9px 11px;overflow-x:auto;white-space:pre-wrap;margin:7px 0 0}
+.mono{font-family:ui-monospace,Consolas,monospace}
+.muted{color:var(--ink3)}
+</style></head><body><div class="wrap">
+<h1>Autonomous run report</h1>
+<p class="sub mono">run_20260831T011354Z &middot; KuaiRand-Pure &middot; stopped: <b>converged</b></p>
+<div class="panel">
+<div><dt>Validation primary</dt><dd>0.60724<small>designated checkpoint</small></dd></div>
+<div><dt>Iterations</dt><dd>6<small>of 50</small></dd></div>
+<div><dt>Wall-clock</dt><dd>6260 s<small>of 21600 s ceiling</small></dd></div>
+<div><dt>LLM tokens</dt><dd>1,643,099<small>fresh input + output + cache</small></dd></div>
+<div><dt>  of which fresh input</dt><dd>221,161<small>excludes 1,155,245 cached</small></dd></div>
+<div><dt>Cost</dt><dd>$8.66<small>Anthropic API</small></dd></div>
+<div><dt>GPU-hours</dt><dd>0.0<small>CPU only by design</small></dd></div>
+<div><dt>Interventions</dt><dd>0<small>L2-L5, counted</small></dd></div>
+</div>
+<h2>Integrity</h2>
+<div class="card good">
+<div><span class="pill keep">pass</span> <b>Hash chain</b> — <span class="muted">17 events, chain intact</span></div>
+<div><span class="pill keep">pass</span> <b>Designation before test read</b> — <span class="muted">FINAL_DESIGNATION at seq 15; test never opened</span></div>
+<div style="margin-top:9px" class="mono muted">submission run_20260831T011354Z_final.csv<br>sha256 475d168d1865c5dc815964d00243ff989aaf10549b61bfc3<br>row_id contract OK: 170588 rows, split=test</div>
+<div style="margin-top:9px" class="muted">Reproduce: <span class="mono">python verify.py --chain --order runlogs\run_20260831T011354Z\journal.jsonl</span></div>
+</div>
+<h2>Iterations</h2>
+<table><thead><tr><th>#</th><th>Hypothesis</th><th class="n">Primary</th><th class="n">&Delta; vs parent</th><th>Verdict</th><th class="n">Sec</th></tr></thead><tbody>
+<tr><td class="n">0</td><td>reproduce the official baseline<details><summary>detail</summary><div style="margin-top:6px"><span class="muted">none recorded</span></div></details></td><td class="n">0.60147</td><td class="n muted">+0.00000</td><td><span class="pill keep">KEEP</span></td><td class="n">51</td></tr>
+<tr><td class="n">1</td><td>Replacing pointwise logloss with a within-user listwise softmax (cross-entropy over each user's impression group, positives as the target distribution) raises validation primary by more than 0.002 over the 0.60147 pointwise FM.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> Softmax over a user's scores makes the gradient depend only on score differences inside the group. Constant-within-user terms get zero gradient (exactly the terms C2 proves cannot affect the metric), so all capacity goes into within-user contrast — which is literally what GAUC (pairwise order) and nDCG@5 (top-of-list order) measure. Under binary labels the listwise softmax is a consistent surrogate for nDCG-style top-heavy ordering, and it upweights getting the top position right, which is where nDCG@5 gain concentrates for short lists (median 4).<br><b>Predicted:</b> +0.004 to +0.010 valid primary (0.605-0.611); a null result is anything under +0.002<br><b>Falsifier:</b> Validation primary stays within +/-0.002 of 0.60147 after early stopping, or GAUC rises while nDCG@5 falls by an equal amount leaving primary flat.<br><b>Verdict reason:</b> The listwise softmax landed at 0.59914, -0.00233 below the pointwise parent — past both the noise floor (sigma ~0.0005) and eps (0.002). Both components dropped (GAUC 0.6638 vs 0.6674, nDCG@5 0.5345 vs 0.5357), so this is a genuine small regression, not a wash or a GAUC/nDCG trade. The claimed mechanism (gradient on within-user contrast only) is real, but it did not translate into a better ranking here.<br><b>Mechanism update:</b> Concentrating all gradient on within-user contrast is not automatically better than pointwise BCE on this data. Two plausible reasons: (1) median list length 4 with 42% uniform-label users means the softmax target is degenerate or near-degenerate for a large fraction of groups — all-positive groups give a flat target and all-negative groups contribute no ranking signal, so the loss is dominated by very short, low-information lists; (2) a plain full-group softmax with binary targets is a fairly weak, top-diffuse surrogate and can under-train the mid-list ordering that GAUC rewards. Pointwise BCE remains a surprisingly strong parent — the objective-mismatch headroom is not captured by this particular listwise form.<br><b>Evidence:</b> The organizer's own judged ranking of headroom puts loss/objective mismatch first: training is pointwise logloss while the metric is a within-user ranking metric (RULES §5, README).; Both metrics depend only on within-user ordering (C23), so any per-user monotone shift the pointwise loss spends capacity on is wasted effort.; Mixed-label users are 57.778% of validation users and hold 78.907% of rows (C9), so a group loss has real signal on most of the data.; Journal: two prior iterations of run 20260830T230438Z added listwise/BPR code but never activated it via config, so the direction is untested, not refuted.</div><pre>--- a/pipeline/train.py
++++ b/pipeline/train.py
+@@ -151,7 +151,7 @@
+     return out
+ 
+ # ---------------- harness contract ----------------
+-def fit_predict(enc, dim, model='fm', k=16, lr=0.001, epochs=40, bs=8192, patience=4,
++def fit_predict(enc, dim, model='fm_listwise', k=16, lr=0.001, epochs=40, bs=8192, patience=4,
+                 seed=0, verbose=False, lw_alpha=0.3, cap=64):
+     """Train on `train` and return raw scores for every split.
+ 
+@@ -159,6 +159,10 @@
+     is enough for a human reading stdout but not enough to build a submission -- and a
+     submission built any other way (e.g. kit/submit.py --make) silently ships the
+     untouched baseline instead of whatever this pipeline learned.
++
++    Default is now `fm_listwise`: the within-user listwise softmax is the hypothesis
++    under test, so the harness must route through it to produce a scored submission.
++    The `fm` (pointwise BCE) code path below is unchanged and remains selectable.
+ 
+     Contract, preserve it when you change the model or the loss:
+         fit_predict(enc, dim, ...) -&gt; {'train': ndarray, 'valid': ndarray, 'test': ndarray}
+@@ -205,7 +209,7 @@
+         m.V, m.W, m.b = best_state
+         return {sp: m.predict(enc[sp][0]) for sp in enc}
+ 
+-    # default: model == 'fm', pointwise BCE
++    # model == 'fm', pointwise BCE (unchanged; kept byte-identical for a clean A/B)
+     m = FM(dim, k=k, lr=lr, seed=seed)
+     rng = np.random.default_rng(seed)
+     best, best_state, bad = -1, None, 0
+</pre></details></td><td class="n">0.59914</td><td class="n neg">-0.00233</td><td><span class="pill revert">REVERT</span></td><td class="n">34</td></tr>
+<tr><td class="n">2</td><td>A hybrid objective — pointwise BCE plus a weighted within-user listwise softmax term (applied only to mixed-label groups) — beats pure pointwise BCE by ≥0.002 validation primary, whereas the pure listwise replacement of iteration 1 lost 0.00233 because it discarded the training signal from the 42% of users whose groups are label-uniform.<details><summary>detail</summary><div style="margin-top:6px"><b>Verdict reason:</b> No metric was produced. The run died on a contract mismatch: the harness called fit_predict with keyword 'listwise_weight', which fit_predict does not accept. This says nothing about whether the BCE-anchored hybrid beats pointwise BCE — the loss code never executed on a full run.<br><b>Failure:</b> contract</div><pre>--- a/pipeline/model.py
++++ b/pipeline/model.py
+@@ -4,10 +4,12 @@
+     FM(dim, k=16, lr=0.001, l2=1e-6, seed=0)
+         .step(X, y) -&gt; loss:float      # one mini-batch gradient update (pointwise BCE)
+         .step_list(X, y, group_ends, lw_alpha=0.3) -&gt; loss:float
+-            # X, y must be pre-sorted so that each user's rows are contiguous.
+-            # group_ends: 1D int array of exclusive end offsets into X/y marking each
+-            # user group (e.g. [3, 3, 5] means groups [0:3], [3:3] (empty, skipped),
+-            # [3:5]). Within-group softmax (ListNet top-1) mixed with lw_alpha * BCE.
++            # within-user softmax (ListNet top-1) dominant + lw_alpha * BCE mix.
++        .step_hybrid(X, y, group_ends, lw=0.3) -&gt; loss:float
++            # BCE ANCHOR (full weight, every row) + lw * within-user softmax term
++            # (only over mixed-label groups, i.e. groups with 0&lt;positives&lt;size).
++            # This is the reverse mix of step_list: pointwise BCE is the base loss and
++            # the listwise term is an additive rank-shaping pressure of weight lw.
+         .predict(X, bs=200_000) -&gt; np.ndarray[float]   # scores; higher = more relevant
+         .V, .W, .b                     # used by train.py to save/restore the best checkpoint
+ """
+@@ -59,9 +61,7 @@
+ 
+         X, y must already be sorted so each user's rows are contiguous; group_ends
+         gives the exclusive end index of each contiguous group. Groups with zero
+-        positives contribute no listwise gradient (target distribution p_i = y_i /
+-        sum(y) is undefined) but still contribute their BCE term, so all-negative
+-        users still push item-side signal.
++        positives contribute no listwise gradient but still contribute their BCE term.
+ 
+         Loss = mean_over_active_groups(-sum_i p_i log q_i) + lw_alpha * mean_BCE_all_rows
+         """
+@@ -98,5 +98,52 @@
+         avg_list_loss = total_listwise_loss / max(n_active, 1)
+         return avg_list_loss + lw_alpha * bce_loss
+ 
++    def step_hybrid(self, X, y, group_ends, lw=0.3):
++        """BCE-anchored hybrid: pointwise BCE over EVERY row (full weight) plus an
++        additive within-user softmax (ListNet top-1) term of weight `lw` applied only
++        to mixed-label groups (0 &lt; positives &lt; group_size).
++
++        This is the reverse mix of step_list. BCE keeps every row -- including the rows
++        of the ~42% of users whose groups are label-uniform -- pushing gradient into the
++        shared embeddings (the absolute-rate anchoring), while the listwise term shapes
++        only the within-user score differences that GAUC / nDCG@5 actually read on the
++        ~58% of users that can move.
++
++        Loss = mean_BCE_all_rows + lw * mean_over_mixed_groups(-sum_i p_i log q_i)
++        """
++        B = len(y)
++        z, E, S = self.logits(X)
++        p_sig = sigmoid(z)
++        g_bce = ((p_sig - y) / B).astype(np.float32)      # full-weight BCE anchor
++
++        g_list = np.zeros(B, dtype=np.float32)
++        start = 0
++        n_active = 0
++        total_listwise_loss = 0.0
++        for end in group_ends:
++            if end &gt; start:
++                y_g = y[start:end]
++                s_g = y_g.sum()
++                size = end - start
++                if 0 &lt; s_g &lt; size:                        # mixed-label group only
++                    z_g = z[start:end]
++                    zg = z_g - z_g.max()
++                    ez = np.exp(zg)
++                    q = ez / ez.sum()
++                    p_g = y_g / s_g
++                    g_list[start:end] = (q - p_g)
++                    n_active += 1
++                    total_listwise_loss += float(-np.sum(p_g * np.log(q + 1e-9)))
++            start = end
++        if n_active &gt; 0:
++            g_list *= (lw / n_active)
++
++        g = (g_bce + g_list).astype(np.float32)
++        self._apply_grad(X, g, S, E)
++
++        bce_loss = float(-np.mean(y * np.log(p_sig + 1e-9) + (1 - y) * np.log(1 - p_sig + 1e-9)))
++        avg_list_loss = tot</pre></details></td><td class="n">—</td><td class="n muted">—</td><td><span class="pill inconclusive">INCONCLUSIVE</span></td><td class="n">1</td></tr>
+<tr><td class="n">3</td><td>Adding a small within-user pairwise (BPR) hinge/logistic term on top of the pointwise BCE objective — with the pairwise weight lambda tuned to a modest value (0.3) and pairs sampled only inside mixed-label users — raises validation primary by more than 0.002 over the pointwise baseline.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> GAUC is a Mann-Whitney U statistic over within-user score differences; BPR's gradient is a direct, unbiased surrogate for exactly that quantity, whereas BCE only optimizes it indirectly through calibrated absolute probabilities. Unlike the listwise softmax (which normalizes over the whole short list and therefore heavily weights lists of length 1-3 where the metric is nearly saturated), BPR weights each user by its positive x negative pair count, which is close to the official GAUC weighting (positives from mixed users). Keeping BCE at full weight preserves the representation the pointwise run learned; the pairwise term only re-shapes the within-user ordering on top of it.<br><b>Predicted:</b> +0.003 to +0.006 valid primary (0.6045-0.6075); a null result is anything under +0.002<br><b>Falsifier:</b> valid primary with pair_weight=0.3 lands within +/-0.002 of 0.60147, or below it, indicating the pointwise objective already captures the within-user ordering the FM can express.<br><b>Verdict reason:</b> With lambda=0.3 the pairwise term moved valid primary to 0.60008, a -0.00139 delta that is beyond the ~0.0005 noise floor and clearly below the +0.002 bar the hypothesis set. Decisively, GAUC itself fell (0.66509 vs 0.6674) — BPR failed to improve the very Mann-Whitney quantity it directly optimizes, so this is a real refutation of the claimed mechanism, not a wash.<br><b>Mechanism update:</b> The pointwise BCE optimum already sits at (or past) the best within-user ordering this 5-field FM can express; the objective is not the binding constraint. Adding a within-user pairwise gradient does not expose new orderings the FM lacks capacity to represent — it only perturbs the shared V/W away from the BCE solution, degrading both GAUC and nDCG. The bottleneck is representational (user_id x video_id already captures the learnable signal), not the loss surrogate.<br><b>Evidence:</b> Organizer's judged #1 headroom item is loss/objective mismatch: training is pointwise logloss, metric is a within-user ranking metric (packet §5.1).; iter 1: a pure within-user listwise softmax scored -0.00233, i.e. replacing the pointwise signal entirely loses information (the pointwise loss also fits the global positive rate that GAUC's per-user AUC still benefits from through shared embeddings).; iter 2 hybrid listwise was INCONCLUSIVE (no delta reported), so the hybrid family is unmeasured, not refuted.; C9: 57.778% of validation users are mixed-label and hold 78.907% of rows; only these users generate valid pairs and only these users contribute to GAUC.; C2: within-user ranking means only score differences inside a user matter, which is exactly what a pairwise gradient sees.</div><pre>--- a/pipeline/model.py
++++ b/pipeline/model.py
+@@ -8,6 +8,11 @@
+             # group_ends: 1D int array of exclusive end offsets into X/y marking each
+             # user group (e.g. [3, 3, 5] means groups [0:3], [3:3] (empty, skipped),
+             # [3:5]). Within-group softmax (ListNet top-1) mixed with lw_alpha * BCE.
++        .step_pair(Xp, Xn, weight=1.0) -&gt; loss:float
++            # One within-user BPR minibatch. Xp/Xn are aligned feature rows of a sampled
++            # (positive, negative) pair from the SAME user. Loss = -log sigmoid(s_pos -
++            # s_neg). The scalar bias b cancels in the score difference, so it is not
++            # updated here. `weight` scales the pairwise gradient (lambda).
+         .predict(X, bs=200_000) -&gt; np.ndarray[float]   # scores; higher = more relevant
+         .V, .W, .b                     # used by train.py to save/restore the best checkpoint
+ """
+@@ -33,18 +38,23 @@
+         inter = 0.5 * ((S ** 2).sum(1) - (E ** 2).sum((1, 2)))
+         return self.b + self.W[X].sum(1) + inter, E, S
+ 
+-    def _apply_grad(self, X, g, S, E):
+-        """Shared Adam update given per-row dLoss/dlogit values g."""
+-        gV = np.zeros_like(self.V); gW = np.zeros_like(self.W)
+-        np.add.at(gW, X, g[:, None])
+-        np.add.at(gV, X, g[:, None, None] * (S[:, None, :] - E))
+-        gV += self.l2 * self.V; gW += self.l2 * self.W
++    def _adam_VW(self, gV, gW):
++        """One Adam step on V and W only (shared moment buffers). b is handled by the
++        caller when it is part of the objective; for BPR it cancels and is skipped."""
+         self.t += 1
+         b1, b2, eps = 0.9, 0.999, 1e-8
+         for P, G, M, Vv in ((self.V, gV, self.mV, self.vV), (self.W, gW, self.mW, self.vW)):
+             M *= b1; M += (1 - b1) * G
+             Vv *= b2; Vv += (1 - b2) * (G * G)
+             P -= self.lr * (M / (1 - b1 ** self.t)) / (np.sqrt(Vv / (1 - b2 ** self.t)) + eps)
++
++    def _apply_grad(self, X, g, S, E):
++        """Shared Adam update given per-row dLoss/dlogit values g (also updates b)."""
++        gV = np.zeros_like(self.V); gW = np.zeros_like(self.W)
++        np.add.at(gW, X, g[:, None])
++        np.add.at(gV, X, g[:, None, None] * (S[:, None, :] - E))
++        gV += self.l2 * self.V; gW += self.l2 * self.W
++        self._adam_VW(gV, gW)
+         self.b -= self.lr * g.sum()
+ 
+     def step(self, X, y):
+@@ -53,6 +63,27 @@
+         g = ((sigmoid(z) - y) / B).astype(np.float32)    # (B,)
+         self._apply_grad(X, g, S, E)
+         return float(-np.mean(y * np.log(sigmoid(z) + 1e-9) + (1 - y) * np.log(1 - sigmoid(z) + 1e-9)))
++
++    def step_pair(self, Xp, Xn, weight=1.0):
++        """Within-user BPR minibatch. Xp/Xn are aligned (positive, negative) feature
++        rows sampled from the same user. Loss = -log sigmoid(s_pos - s_neg). The bias b
++        cancels in the difference, so only V/W are updated. Gradients from the positive
++        and negative rows are accumulated into one Adam step."""
++        B = len(Xp)
++        zp, Ep, Sp = self.logits(Xp)
++        zn, En, Sn = self.logits(Xn)
++        diff = zp - zn
++        sig = sigmoid(diff)
++        coef = ((1.0 - sig) / B).astype(np.float32)      # magnitude of dLoss/ddiff
++        gp = (-coef * weight).astype(np.float32)          # dLoss/ds_pos
++        gn = (coef * weight).astype(np.float32)           # dLoss/ds_neg
++        gV = np.zeros_like(self.V); gW = np.zeros_like(self.W)
++        np.add.at(gW, Xp, gp[:, None]); np.add.at(gW, Xn, gn[:, None])
++        np.add.at(gV, Xp, gp[:, None, None] * (Sp[:, None, :] - Ep))
++        np.add.at(gV, Xn, gn[:, None, None] * (Sn[:, None, :] - En))
++        gV += self.l2 * self.V; gW += self.l2 * self.W
++        self._adam_VW(gV, gW)
++        return float(np.mean(-np.log(sig + 1e-9)))
+ 
+     def step_list(self, X, y, group_ends, lw_alpha=0.3):
+         """Within-user listwise softmax (ListNet top-1), mixed with pointwise BCE.
+--- a/pipeline/train.py
++++ b/pipeline/train.py
+@@ -2,6 +2,7 @@
+ (b</pre></details></td><td class="n">0.60008</td><td class="n neg">-0.00139</td><td><span class="pill revert">REVERT</span></td><td class="n">71</td></tr>
+<tr><td class="n">4</td><td>Adding strictly-prior behavioural aggregates as bucketized categorical FM fields — user-level engagement rate (acting only through its crosses), user×tab affinity, and user×author affinity — raises validation primary by more than the 0.002 noise floor over the five-field baseline.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> The FM currently expresses user taste only as V_user · V_item, a rank-16 estimate fitted from a median of 31 impressions per user; user×tab and user×author affinity rates are direct, low-variance, count-smoothed estimates of the same quantity and vary within a user's impression list (tab and author differ across a user's rows), so their first-order terms alone reorder that user's list. The user-level rate bucket is constant within a user and therefore contributes nothing first-order, but its embedding crosses with video_id/author_id/tab let the model rerank items differently for high- vs low-engagement users — the one legal channel C2 leaves open for user-side signal.<br><b>Predicted:</b> +0.003 valid primary (0.60147 -&gt; ~0.6045); anything at or below +0.0008 is a seed<br><b>Falsifier:</b> Validation primary delta &lt;= +0.0008, or a diagnostic shows any of the new fields takes a single value for &gt;95% of validation rows within a user (i.e. it is invariant and cannot move the metric).<br><b>Verdict reason:</b> Validation primary rose +0.00462, roughly 9x the noise floor and above the 0.002 eps, driven mainly by GAUC (0.6674-&gt;0.6738) with a smaller nDCG@5 lift (0.5357-&gt;0.5384). This is consistent with the claimed mechanism: within-user-varying prior affinity fields (user x tab, user x author) reorder impressions inside a list, and the user-rate bucket's crosses let high- vs low-engagement users be reranked differently.<br><b>Mechanism update:</b> The rank-16 V_user . V_item term does not fully capture user taste at a median of 31 impressions; direct count-smoothed prior affinity aggregates at finer keys (user x tab, user x author) carry within-list-varying signal the FM was not otherwise expressing. Strictly-prior behavioural history is a live source of headroom that first-order user-side features (ruled out by C2) could not reach. The GAUC-dominant gain suggests the benefit is chiefly in pairwise ordering of mixed-label users, less in top-5 gain.<br><b>Evidence:</b> C2: purely additive user-side terms are provably zero for within-user ranking, but user information reaching the score through crosses with item/context features is untested and explicitly left open.; C13: 98.114% of validation users have &gt;=1 prior train interaction; 3.381% of validation rows have a prior same-author interaction; every train timestamp precedes every validation timestamp, so all of train is legal history.; C12: 98.373% of validation user-video pairs are novel while 98-99.9% of individual entities are warm — the model must generalise at the relationship level, which is exactly what a smoothed affinity statistic supplies and a k=16 dot product estimates noisily.; Journal iters 1-3: the objective-family route (listwise -0.00233, BPR hybrid -0.00139, hybrid inconclusive) has consumed three iterations with no gain; the representation route is untouched.; harness.history.prior_stats guarantees strictly-earlier-only aggregation, ties excluded, test outcomes never entering — §0b.</div><pre>--- a/pipeline/features.py
++++ b/pipeline/features.py
+@@ -39,6 +39,8 @@
+ """
+ import numpy as np
+ 
++from harness.history import prior_stats, bucketize
++
+ # Field order of the fixed-length tuple returned by kit/data.py's load(). A restatement;
+ # kit/data.py itself remains the only source of truth.
+ IDX = {'date': 0, 'user_id': 1, 'video_id': 2, 'author_id': 3,
+@@ -57,9 +59,19 @@
+     'is_profile_enter',
+ })
+ 
+-# The 5 feature fields of the current kit baseline. To add a feature, add a column in
+-# raw() and register its name here.
+-FIELDS = ['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket']
++# The 5 baseline fields plus 4 strictly-prior behavioural aggregate fields:
++#   u_rate_b   : user-level prior long_view rate bucket (constant within a user; acts
++#                only through its FM cross terms -- the one legal channel C2 leaves open)
++#   ut_rate_b  : user x tab prior long_view rate bucket (varies within a user's list)
++#   ua_rate_b  : user x author prior long_view rate bucket (varies within a user's list)
++#   ua_count_b : user x author prior-interaction count bucket (confidence of ua_rate_b)
++# Bin 0 of every rate field is a dedicated 'no prior history' slot (count == 0).
++FIELDS = ['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket',
++          'u_rate_b', 'ut_rate_b', 'ua_rate_b', 'ua_count_b']
++
++# Smoothing constant toward the train global mean, matching the official item-popularity
++# baseline's prior weight of 20.
++PRIOR_WEIGHT = 20.0
+ 
+ def _bucket_edges(values, n=10):
+     return np.quantile(np.asarray(values), np.linspace(0, 1, n + 1)[1:-1])
+@@ -78,19 +90,77 @@
+                          f"targets; history features must come from other rows)")
+     return x[IDX[name]]
+ 
++def _rate_buckets(rate, count, nbins):
++    """Bucketize a strictly-prior rate array into nbins quantile bins, with bin 0
++    reserved for rows that have no prior history (count == 0). Edges are fit on the
++    TRAIN split's rows-with-history only, then applied to every split."""
++    tr_rate = np.asarray(rate['train'])
++    tr_mask = np.asarray(count['train']) &gt; 0
++    src = tr_rate[tr_mask] if tr_mask.any() else tr_rate
++    qs = np.linspace(0, 1, nbins + 1)[1:-1]
++    edges = np.quantile(src, qs)
++    out = {}
++    for s in rate:
++        b = bucketize(np.asarray(rate[s]), edges)          # 0 .. nbins-1
++        b = np.where(np.asarray(count[s]) &gt; 0, b + 1, 0)   # shift; 0 == no history
++        out[s] = b.astype(np.int64)
++    return out
++
++def _count_buckets(count):
++    """Map a prior-interaction count array into {0,1,2,3-5,6+} -&gt; {0,1,2,3,4}."""
++    out = {}
++    for s, c in count.items():
++        c = np.asarray(c)
++        b = np.zeros(len(c), dtype=np.int64)
++        b[c == 1] = 1
++        b[c == 2] = 2
++        b[(c &gt;= 3) &amp; (c &lt;= 5)] = 3
++        b[c &gt;= 6] = 4
++        out[s] = b
++    return out
++
+ def encode(splits):
+     """Map categorical features to contiguous ids. Unseen values fall into the field's
+     UNK slot. Bucket edges may be fitted on splits['train'] only, never valid/test."""
+     tr = splits['train']
+     edges = _bucket_edges([same_row(x, 'duration_ms') for x in tr])
+ 
+-    def raw(x):
++    # Strictly-prior behavioural aggregates (harness.history guarantees earlier-only
++    # ordering, tie-exclusion, and no test outcomes reach any aggregate).
++    u_rate, u_count = prior_stats(splits, signal='label', key='user_id',
++                                  prior_weight=PRIOR_WEIGHT)
++    ut_rate, ut_count = prior_stats(splits, signal='label', key=('user_id', 'tab'),
++                                    prior_weight=PRIOR_WEIGHT)
++    ua_rate, ua_count = prior_stats(splits, signal='label', key=('user_id', 'author_id'),
++                                    prior_weight=PRIOR_WEIGHT)
++
++    u_b = _rate_buckets(u_rate, u_count, nbins=8)
++    ut_b = _rate_buckets(ut_rate, ut_count, nbins=5)
++    ua_b = _rate_buckets(ua_rate, ua_count, nbins=5)
++    uac_b = _count_buckets(ua_count)
++
++    def base_raw(x):
+        </pre></details></td><td class="n">0.60609</td><td class="n pos">+0.00281</td><td><span class="pill keep">KEEP</span></td><td class="n">312</td></tr>
+<tr><td class="n">5</td><td>Adding strictly-prior ITEM-side and USER×ITEM-side aggregates (video prior long_view rate + support bucket, author prior long_view rate + support bucket, user×author prior rate + support bucket) as bucketized categorical FM fields raises validation primary by more than 0.002 over the current 0.60609, because unlike the user-level aggregates kept in iter 4 these vary *within* a user's impression list and therefore act on the ranking directly rather than only through cross terms.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> The FM currently sees `video_id` and `author_id` only as free embeddings fitted from the training loss. For tail videos/authors (long tail: 87% of authors have a single video, and validation lists are dominated by items with modest train support) those embeddings are noisy and under-trained. A smoothed prior long_view rate, bucketized into ~8 quantile bins from TRAIN edges, gives a low-variance, directly-ordinal item-quality signal shared across all rare items, plus a count bucket that lets the FM learn how much to trust it. Because this quantity differs between the items in one user's list, it moves within-user ordering — which is exactly what GAUC and nDCG@5 measure. The user×author prior rate adds a genuine personalization term on the 3.4% of rows where the user has seen that author before, again varying within the list.<br><b>Predicted:</b> +0.003 validation primary (0.606 -&gt; ~0.609); a null result would be &lt;=+0.001<br><b>Falsifier:</b> Validation primary changes by less than +0.001 relative to the iter-4 checkpoint at matched seed, or degrades — that would mean the identity embeddings already saturate item-side prior information.<br><b>Verdict reason:</b> Delta is -0.00320, over 6 sigma below the noise floor and beyond eps in the wrong direction. The added item-side priors did not sharpen within-user ordering; they degraded it. The claim was that video/author embeddings are noisy for tail items and a smoothed prior rate would help directly — the measured sign refutes that: the identity embeddings already carry the item-quality signal, and the extra bucket fields inject redundant, coarser, collinear information that dilutes the fitted interactions rather than stabilising them.<br><b>Mechanism update:</b> Item-side prior long_view rate is already saturated by the free video_id/author_id embeddings under the training loss — consistent with C12 (99.9% of validation videos/authors are warm) and C5 (static item-side expansion was neutral-to-negative). A bucketized prior is a lossy projection of what the embedding already learns, so it competes for FM cross-term capacity and adds variance. This differs from iter-4's user-level aggregate, which added a channel the model had NO other access to (user quality only reaches ranking via cross terms); item quality was never missing. 'Varies within the list' is necessary but not sufficient — the item embedding also varies within the list and already encodes this.<br><b>Evidence:</b> iter 4 KEEP, +0.00281: strictly-prior behavioural aggregates as bucketized categorical fields are the only direction that has cleared noise so far, so the mechanism (history via harness.history, bucketized, FM-crossed) is validated in this pipeline.; C2 (HARD FACT): terms constant within a user contribute exactly zero; user-level aggregates can only act through crosses, whereas item/author/user-author priors differ across the rows of one user's list.; Item popularity alone scores validation primary 0.5807 vs random 0.4834 — item-side prior engagement is a large standalone signal in this data.; C12/C13: 99.88% of validation videos and 99.91% of authors are warm in train, so item- and author-level prior aggregates have near-complete support (unlike exact user-video repeats at 1.62%); user-author prior covers 3.38% of validation rows, which is small but nonzero and falls through to an UNK/no-history bucket elsewhere.; C5/C6: static feature stuffing and width scaling are dead, so headroom is not in capacity — it is in information the current 5 identity/context fields do not carry, i.e. calibrated prior outcome rates with an explicit support/reliability signal.</div><pre>--- a/pipeline/features.py
++++ b/pipeline/features.py
+@@ -59,15 +59,23 @@
+     'is_profile_enter',
+ })
+ 
+-# The 5 baseline fields plus 4 strictly-prior behavioural aggregate fields:
++# The 5 baseline fields, the 4 iter-4 user-side/user-context/user-author aggregates, plus
++# 4 NEW strictly-prior ITEM-side aggregates (this iteration):
+ #   u_rate_b   : user-level prior long_view rate bucket (constant within a user; acts
+ #                only through its FM cross terms -- the one legal channel C2 leaves open)
+ #   ut_rate_b  : user x tab prior long_view rate bucket (varies within a user's list)
+ #   ua_rate_b  : user x author prior long_view rate bucket (varies within a user's list)
+ #   ua_count_b : user x author prior-interaction count bucket (confidence of ua_rate_b)
+-# Bin 0 of every rate field is a dedicated 'no prior history' slot (count == 0).
++#   v_rate_b   : video-level prior long_view rate bucket (varies within a user's list)
++#   v_count_b  : video prior-interaction count bucket (confidence of v_rate_b)
++#   a_rate_b   : author-level prior long_view rate bucket (varies within a user's list)
++#   a_count_b  : author prior-interaction count bucket (confidence of a_rate_b)
++# Bin 0 of every rate field is a dedicated 'no prior history' slot (count == 0). Because
++# v_rate_b / a_rate_b / ua_rate_b differ between items in one user's list, they move
++# within-user ordering directly -- which is what GAUC and nDCG@5 measure.
+ FIELDS = ['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket',
+-          'u_rate_b', 'ut_rate_b', 'ua_rate_b', 'ua_count_b']
++          'u_rate_b', 'ut_rate_b', 'ua_rate_b', 'ua_count_b',
++          'v_rate_b', 'v_count_b', 'a_rate_b', 'a_count_b']
+ 
+ # Smoothing constant toward the train global mean, matching the official item-popularity
+ # baseline's prior weight of 20.
+@@ -133,28 +141,42 @@
+                                     prior_weight=PRIOR_WEIGHT)
+     ua_rate, ua_count = prior_stats(splits, signal='label', key=('user_id', 'author_id'),
+                                     prior_weight=PRIOR_WEIGHT)
++    # NEW item-side aggregates: video-level and author-level prior long_view rates.
++    v_rate, v_count = prior_stats(splits, signal='label', key='video_id',
++                                  prior_weight=PRIOR_WEIGHT)
++    a_rate, a_count = prior_stats(splits, signal='label', key='author_id',
++                                  prior_weight=PRIOR_WEIGHT)
+ 
+     u_b = _rate_buckets(u_rate, u_count, nbins=8)
+     ut_b = _rate_buckets(ut_rate, ut_count, nbins=5)
+     ua_b = _rate_buckets(ua_rate, ua_count, nbins=5)
+     uac_b = _count_buckets(ua_count)
++    v_b = _rate_buckets(v_rate, v_count, nbins=8)
++    vc_b = _count_buckets(v_count)
++    a_b = _rate_buckets(a_rate, a_count, nbins=8)
++    ac_b = _count_buckets(a_count)
+ 
+     def base_raw(x):
+         return [same_row(x, 'user_id'), same_row(x, 'video_id'), same_row(x, 'author_id'),
+                 same_row(x, 'tab'),
+                 str(int(np.searchsorted(edges, same_row(x, 'duration_ms'))))]
+ 
+-    # Full per-split feature rows (base 5 + 4 aggregate buckets), positionally aligned.
++    # Full per-split feature rows (base 5 + 4 user-side + 4 item-side buckets), aligned.
+     feats = {}
+     for name, rws in splits.items():
+         rows = []
+         ub, tb, ab, cb = u_b[name], ut_b[name], ua_b[name], uac_b[name]
++        vb, vcb, aab, acb = v_b[name], vc_b[name], a_b[name], ac_b[name]
+         for n, x in enumerate(rws):
+             r = base_raw(x)
+             r.append(int(ub[n]))
+             r.append(int(tb[n]))
+             r.append(int(ab[n]))
+             r.append(int(cb[n]))
++            r.append(int(vb[n]))
++            r.append(int(vcb[n]))
++            r.append(int(aab[n]))
++            r.append(int(acb[n]))
+             rows.append(r)
+         feats[name] = rows
+ 
+</pre></details></td><td class="n">0.60289</td><td class="n neg">-0.00320</td><td><span class="pill revert">REVERT</span></td><td class="n">188</td></tr>
+<tr><td class="n">6</td><td>Adding a user×tab conditional prior long_view rate (plus its support bucket) and a user-level prior mean play_time_ms bucket, on top of the iteration-4 user aggregates, raises validation primary above 0.6081 (&gt;+0.002 over the current best).<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> GAUC/nDCG only see within-user score order. A user×tab prior rate varies across a user's impressions whenever their validation list spans more than one tab, so it can reorder rows first-order; where the list is single-tab it degenerates to a user-level bucket that still crosses with video_id/dur_bucket exactly as the iter-4 features did. The play_time prior bucket gives the FM a scalar 'how long this user normally watches' category whose cross with dur_bucket encodes duration preference — the one user×item cross with dense support, unlike the refuted identity-level ones.<br><b>Predicted:</b> +0.003 validation primary (0.6061 -&gt; ~0.609)<br><b>Falsifier:</b> Validation primary lands at or below 0.6081, i.e. the added conditional priors do not beat the iter-4 representation by more than the 0.002 practical epsilon; or the user×tab field alone (ablated) shows no effect while the play_time field carries everything.<br><b>Verdict reason:</b> Delta is -0.00333, roughly 6-7 sigma below the noise floor and past the practical epsilon in the wrong direction. The claimed mechanism (user x tab prior reorders multi-tab lists first-order; play_time prior crosses with dur_bucket) did not merely fail to help, it actively degraded ranking. The added fields injected more noise into the FM cross terms than within-list signal they recovered.<br><b>Mechanism update:</b> Piling additional user-conditioned prior buckets on top of the iter-4 aggregates is past the point of diminishing returns and into interference: the extra low-support categorical ids (especially user x tab, where many validation lists are single-tab and the field degenerates to a user constant, and the play_time bucket which is fully user-constant) add parameters that dilute the identity-cross signal rather than sharpen within-user order. The one legal channel C2 leaves open -- crosses with item-side fields -- is not improved by stacking more coarse user-side categoricals; it appears already saturated at the iter-4 representation.<br><b>Evidence:</b> iter 4 KEEP, delta +0.00281: strictly-prior USER-level behavioural aggregates as bucketized FM fields were the only change so far that cleared the noise floor.; iter 5 REVERT, delta -0.00320: the aggregates that failed were ITEM-identity-side (video prior rate, author) and user×ITEM-identity, whose keys are almost entirely novel at eval time — only 1.627% of validation user-video pairs and 3.376% of user-author pairs were seen in train (C12/C13). tab is a 15-value field with full coverage, so a user×tab key is dense, not sparse.; C2 / organizer README: terms constant within a user contribute exactly zero to GAUC and nDCG, so iter-4's gain can only have arrived through FM cross terms between the user-history buckets and item/context fields — an explicitly conditioned prior supplies that cross directly instead of asking k=16 latents to discover it.; C15: removing `tab` costs -0.0159 primary, i.e. tab is by far the highest-value non-identity field in this FM, so conditioning user history on tab is conditioning on the axis the model already relies on most.; harness.history.prior_stats supports tuple keys such as ('user_id','tab') with Bayesian smoothing and returns a support count, with strictly-earlier ordering and tie exclusion proven by tests.</div><pre>--- a/pipeline/features.py
++++ b/pipeline/features.py
+@@ -59,15 +59,20 @@
+     'is_profile_enter',
+ })
+ 
+-# The 5 baseline fields plus 4 strictly-prior behavioural aggregate fields:
+-#   u_rate_b   : user-level prior long_view rate bucket (constant within a user; acts
+-#                only through its FM cross terms -- the one legal channel C2 leaves open)
+-#   ut_rate_b  : user x tab prior long_view rate bucket (varies within a user's list)
+-#   ua_rate_b  : user x author prior long_view rate bucket (varies within a user's list)
+-#   ua_count_b : user x author prior-interaction count bucket (confidence of ua_rate_b)
++# The 5 baseline fields plus strictly-prior behavioural aggregate fields:
++#   u_rate_b    : user-level prior long_view rate bucket (constant within a user; acts
++#                 only through its FM cross terms -- the one legal channel C2 leaves open)
++#   ut_rate_b   : user x tab prior long_view rate bucket (varies within a user's list)
++#   ua_rate_b   : user x author prior long_view rate bucket (varies within a user's list)
++#   ua_count_b  : user x author prior-interaction count bucket (confidence of ua_rate_b)
++#   ut_count_b  : user x tab prior-interaction support bucket (confidence of ut_rate_b)
++#   u_pt_b      : user-level prior mean play_time_ms bucket (crosses with dur_bucket to
++#                 encode duration preference; play_time_ms is used ONLY as history from
++#                 OTHER rows, never as a same-row input -- harness.history enforces this)
+ # Bin 0 of every rate field is a dedicated 'no prior history' slot (count == 0).
+ FIELDS = ['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket',
+-          'u_rate_b', 'ut_rate_b', 'ua_rate_b', 'ua_count_b']
++          'u_rate_b', 'ut_rate_b', 'ua_rate_b', 'ua_count_b',
++          'ut_count_b', 'u_pt_b']
+ 
+ # Smoothing constant toward the train global mean, matching the official item-popularity
+ # baseline's prior weight of 20.
+@@ -119,6 +124,22 @@
+         out[s] = b
+     return out
+ 
++def _support_buckets(count):
++    """Map a prior-interaction count array into {0, 1-2, 3-9, 10-29, 30+} -&gt; {0..4}.
++    Coarser than _count_buckets: user x tab support ranges much higher than user x
++    author, so wider bins better reflect how much confidence the ut_rate_b estimate
++    rests on."""
++    out = {}
++    for s, c in count.items():
++        c = np.asarray(c)
++        b = np.zeros(len(c), dtype=np.int64)
++        b[(c &gt;= 1) &amp; (c &lt;= 2)] = 1
++        b[(c &gt;= 3) &amp; (c &lt;= 9)] = 2
++        b[(c &gt;= 10) &amp; (c &lt;= 29)] = 3
++        b[c &gt;= 30] = 4
++        out[s] = b
++    return out
++
+ def encode(splits):
+     """Map categorical features to contiguous ids. Unseen values fall into the field's
+     UNK slot. Bucket edges may be fitted on splits['train'] only, never valid/test."""
+@@ -133,28 +154,37 @@
+                                     prior_weight=PRIOR_WEIGHT)
+     ua_rate, ua_count = prior_stats(splits, signal='label', key=('user_id', 'author_id'),
+                                     prior_weight=PRIOR_WEIGHT)
++    # play_time_ms reached ONLY as history from other rows (never a same-row input);
++    # harness.history sources it through the adapter, so no test outcome enters here.
++    pt_rate, pt_count = prior_stats(splits, signal='play_time_ms', key='user_id',
++                                    prior_weight=PRIOR_WEIGHT)
+ 
+     u_b = _rate_buckets(u_rate, u_count, nbins=8)
+     ut_b = _rate_buckets(ut_rate, ut_count, nbins=5)
+     ua_b = _rate_buckets(ua_rate, ua_count, nbins=5)
+     uac_b = _count_buckets(ua_count)
++    utc_b = _support_buckets(ut_count)
++    pt_b = _rate_buckets(pt_rate, pt_count, nbins=8)   # 'mean watch time' quantile bins
+ 
+     def base_raw(x):
+         return [same_row(x, 'user_id'), same_row(x, 'video_id'), same_row(x, 'author_id'),
+                 same_row(x, 'tab'),
+                 str(int(np.searchsorted(edges, same_row(x, 'duration_ms'))))]
+ 
+-    # Full per-split feature rows (base 5 + 4 aggregate buckets), positionally a</pre></details></td><td class="n">0.60276</td><td class="n neg">-0.00333</td><td><span class="pill revert">REVERT</span></td><td class="n">184</td></tr>
+<tr><td class="n">12</td><td>Averaging the predictions of 5 independently-seeded FMs (same kept feature set, each with its own validation-best checkpoint) raises validation primary by more than 0.002 over the single-seed 0.60609, because within-user ranking is dominated by embedding noise on long-tail video/author IDs that averages out across seeds.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> GAUC and nDCG@5 depend only on the within-user ordering. Each seed produces a different random initialisation of V and a different minibatch order, so each model's score for a given (user, rare video) row carries an independent error term on top of a shared signal. Averaging M members shrinks that independent component by ~1/sqrt(M) while leaving the shared signal intact, which flips exactly the near-tied within-user pairs that are currently ordered by noise. This is the one lever that improves the metric without needing any new information or a new objective — both of which this run has now failed at three times each.<br><b>Predicted:</b> +0.002 to +0.004 valid primary, i.e. 0.608-0.610<br><b>Falsifier:</b> 5-member averaged validation primary is &lt;= 0.6075 (i.e. gain &lt;= +0.0014 over the 0.60609 single-seed best)<br><b>Verdict reason:</b> Seed-averaging moved validation primary from 0.60609 to 0.60724, a +0.00115 delta at roughly 2.3 sigma above the paired noise floor, so the sign and mechanism are credible: shrinking the independent per-seed embedding-noise term flips a small number of near-tied within-user pairs, and the gain shows up in GAUC (0.67514) as the noise-averaging story predicts. It becomes the new parent because it strictly improves the validation-best checkpoint that will be scored, and ensembling variance reduction is a well-established real effect rather than a story invented for noise.<br><b>Mechanism update:</b> The metric is indeed partly noise-limited on long-tail IDs, but the reducible-noise share is smaller than assumed: the change hit its own pre-registered invalid_if (gain &lt;= +0.0014) with +0.00115, so 5-member averaging captures maybe half the predicted headroom. The shared signal, not per-seed init variance, dominates the residual ordering error — meaning the remaining gap to oracle is information-limited, not variance-limited.<br><b>Evidence:</b> iter 4 KEEP at 0.60609 is a single-seed run; every journal number so far is one seed; C8/noise: seed std of the aggregate metric is 0.0008 (published) / 0.00032 (local) — the aggregate is stable, but per-row score variance is far larger than the aggregate variance, which is exactly the regime where averaging helps ranking; C12: validation is 98-99.9% warm at entity level but 98.4% of user-video pairs are novel, so scores rest on individual ID embeddings rather than on memorised pairs; those embeddings are the noisiest parameters in the model; C6: k=8/16/32/64 all score within 0.0005 of each other, i.e. members of any width are individually interchangeable in quality — variance, not bias, is what is left; C20: a baseline-class run is ~60s CPU, so 5 members is a few minutes, well inside budget</div><pre>--- a/pipeline/train.py
++++ b/pipeline/train.py
+@@ -16,7 +16,7 @@
+ from data import load
+ from evaluate import evaluate
+ from features import encode, FIELDS, IDX
+-from model import FM
++from model import FM, sigmoid
+ 
+ # ---------------- item popularity (official baseline) ----------------
+ def run_pop(splits, prior=20.0, report_test=False):
+@@ -150,9 +150,60 @@
+         out['test'] = evaluate(ute, yte, m.predict(Xte))
+     return out
+ 
++# ---------------- single-member trainers (return a fitted FM) ----------------
++def _train_fm_member(enc, dim, k, lr, epochs, bs, patience, seed, verbose):
++    """Train one pointwise-BCE FM to its own validation-best checkpoint and return it.
++    Identical loop to fit_predict's default path; factored out so the ensemble path
++    can reuse it without changing the single-seed behaviour."""
++    Xtr, ytr, utr = enc['train']; Xva, yva, uva = enc['valid']
++    m = FM(dim, k=k, lr=lr, seed=seed)
++    rng = np.random.default_rng(seed)
++    best, best_state, bad = -1, None, 0
++    for ep in range(1, epochs + 1):
++        idx = rng.permutation(len(ytr))
++        for i in range(0, len(idx), bs):
++            m.step(Xtr[idx[i:i + bs]], ytr[idx[i:i + bs]])
++        p = evaluate(uva, yva, m.predict(Xva))['primary']
++        if verbose:
++            print(f"  seed {seed} epoch {ep:2d} valid primary {p:.5f}", flush=True)
++        if p &gt; best + 1e-5:
++            best, bad = p, 0
++            best_state = (m.V.copy(), m.W.copy(), np.float32(m.b))
++        else:
++            bad += 1
++            if bad &gt;= patience:
++                break
++    m.V, m.W, m.b = best_state
++    return m
++
++def _train_fm_listwise_member(enc, dim, k, lr, epochs, bs, patience, seed, verbose,
++                              lw_alpha, cap):
++    """Train one listwise FM to its own validation-best checkpoint and return it."""
++    Xtr, ytr, utr = enc['train']; Xva, yva, uva = enc['valid']
++    user_to_idx = _group_rows_by_user(utr)
++    m = FM(dim, k=k, lr=lr, seed=seed)
++    rng = np.random.default_rng(seed)
++    best, best_state, bad = -1, None, 0
++    for ep in range(1, epochs + 1):
++        batches = _make_listwise_batches(user_to_idx, bs, cap, rng)
++        for idxs, ends in batches:
++            m.step_list(Xtr[idxs], ytr[idxs], ends, lw_alpha=lw_alpha)
++        p = evaluate(uva, yva, m.predict(Xva))['primary']
++        if verbose:
++            print(f"  seed {seed} epoch {ep:2d} valid primary {p:.5f}", flush=True)
++        if p &gt; best + 1e-5:
++            best, bad = p, 0
++            best_state = (m.V.copy(), m.W.copy(), np.float32(m.b))
++        else:
++            bad += 1
++            if bad &gt;= patience:
++                break
++    m.V, m.W, m.b = best_state
++    return m
++
+ # ---------------- harness contract ----------------
+ def fit_predict(enc, dim, model='fm', k=16, lr=0.001, epochs=40, bs=8192, patience=4,
+-                seed=0, verbose=False, lw_alpha=0.3, cap=64):
++                seed=0, verbose=False, lw_alpha=0.3, cap=64, n_models=1):
+     """Train on `train` and return raw scores for every split.
+ 
+     THE HARNESS CALLS THIS. `run_fm`/`run_fm_listwise` above return metrics only, which
+@@ -164,6 +215,12 @@
+         fit_predict(enc, dim, ...) -&gt; {'train': ndarray, 'valid': ndarray, 'test': ndarray}
+     One float per row, higher = more relevant, aligned to enc[split] row order. Selection
+     and early stopping use `valid` only; `test` scores are produced but never read here.
++
++    n_models &gt; 1 (fm / fm_listwise only): train n_models members with seeds
++    seed, seed+1, ..., seed+n_models-1, each with its own independent validation-best
++    checkpoint, and return the element-wise mean of sigmoid(logit) across members for
++    every split. n_models == 1 reproduces the original single-seed behaviour bit-for-bit
++    (raw logits, no sigmoid), so the default path is untouched.
+     """
+     Xtr, ytr, utr = enc['train']
+     Xva, yva, uva = enc['valid']
+@@ -183,47 +240,27 @@
+         rng = np.random.default_rng(s</pre></details></td><td class="n">0.60724</td><td class="n pos">+0.00112</td><td><span class="pill keep">KEEP</span></td><td class="n">1575</td></tr>
+</tbody></table>
+<h2>Robustness</h2>
+<table><thead><tr><th>Seq</th><th>Kind</th><th>Detail</th><th>Recovered</th></tr></thead><tbody>
+<tr><td class="n">9</td><td>guard reject</td><td>calls the official evaluator on test</td><td><span class="pill keep">yes</span> before execution</td></tr>
+<tr><td class="n">10</td><td>guard reject</td><td>calls the official evaluator on test</td><td><span class="pill keep">yes</span> before execution</td></tr>
+<tr><td class="n">13</td><td>guard reject</td><td>calls the official evaluator on test</td><td><span class="pill keep">yes</span> before execution</td></tr>
+<tr><td class="n">3</td><td>contract</td><td>node pruned</td><td><span class="pill keep">yes</span> node pruned</td></tr>
+<tr><td class="n">11</td><td>agent_role</td><td>iteration skipped</td><td><span class="pill keep">yes</span> node pruned</td></tr>
+<tr><td class="n">12</td><td>agent_role</td><td>iteration skipped</td><td><span class="pill keep">yes</span> node pruned</td></tr>
+</tbody></table>
+<h2>Manual interventions</h2>
+<p class="sub">Counted classes are L2 environment repair, L3 code edit, L4 steering and L5 human selection. L0 setup (before RUN_START) and L1 observation are logged but do not count against autonomy.</p>
+<div class="card good"><b>0 counted interventions.</b> No human touched the run between RUN_START and FINAL_DESIGNATION.</div>
+<h2>All candidates</h2>
+<p class="sub">Every scored node. The frozen list was written to the journal before any test label was read.</p>
+<table><thead><tr><th class="n">Iter</th><th>Candidate</th><th class="n">Validation primary</th><th></th></tr></thead><tbody>
+<tr><td class="n">12</td><td>Averaging the predictions of 5 independently-seeded FMs (same kept feature set, </td><td class="n">0.60724</td><td><span class="pill keep">designated</span></td></tr>
+<tr><td class="n">4</td><td>Adding strictly-prior behavioural aggregates as bucketized categorical FM fields</td><td class="n">0.60609</td><td></td></tr>
+<tr><td class="n">5</td><td>Adding strictly-prior ITEM-side and USER×ITEM-side aggregates (video prior long_</td><td class="n">0.60289</td><td></td></tr>
+<tr><td class="n">6</td><td>Adding a user×tab conditional prior long_view rate (plus its support bucket) and</td><td class="n">0.60276</td><td></td></tr>
+<tr><td class="n">0</td><td>baseline</td><td class="n">0.60147</td><td></td></tr>
+<tr><td class="n">3</td><td>Adding a small within-user pairwise (BPR) hinge/logistic term on top of the poin</td><td class="n">0.60008</td><td></td></tr>
+<tr><td class="n">1</td><td>Replacing pointwise logloss with a within-user listwise softmax (cross-entropy o</td><td class="n">0.59914</td><td></td></tr>
+</tbody></table>
+<h2>Where the tokens went</h2>
+<table><thead><tr><th>Role</th><th class="n">Calls</th><th class="n">Fresh in</th><th class="n">Cached in</th><th class="n">Output</th><th class="n">Total</th><th class="n">USD</th></tr></thead><tbody>
+<tr><td class="mono">coder</td><td class="n">15</td><td class="n">178,803</td><td class="n">495,105</td><td class="n">165,931</td><td class="n">839,839</td><td class="n">$5.60</td></tr>
+<tr><td class="mono">proposer</td><td class="n">13</td><td class="n">19,812</td><td class="n">429,091</td><td class="n">94,956</td><td class="n">543,859</td><td class="n">$2.69</td></tr>
+<tr><td class="mono">reflector</td><td class="n">7</td><td class="n">22,546</td><td class="n">231,049</td><td class="n">5,806</td><td class="n">259,401</td><td class="n">$0.37</td></tr>
+</tbody></table>
+<p class="sub">Controller, governor, guards, executor, cache, scorer and the submission builder make no model calls at all.</p>
+</div></body></html>

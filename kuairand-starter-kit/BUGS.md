@@ -15,7 +15,7 @@
 
 | | Count |
 |---|---:|
-| Defects fixed | 19 |
+| Defects fixed | 25 |
 | Context/documentation corrections | 9 |
 | **Open — not fixed** | **6** |
 | Of the open items, blocking a measured run | 0 |
@@ -369,6 +369,93 @@ weaker 0.60609 parent.
 matched seed moved the same way. Unanimity is independent evidence (p = 0.125 under the
 null for three seeds), and the designated winner is still stability-tested over 5 user
 folds afterwards, so this loosens the lineage gate without loosening what ships.
+
+## F20. The truncation retry never fired — `stop_reason` was never captured *(self-inflicted, in F-series code)*
+
+F17/F18 added a branch in `ask_json` that recognises a reply cut off at the output cap and
+retries asking for a smaller one. It read `rec.get('stop_reason')`. Nothing ever set it:
+`Meter.add()` builds `rec` from `usage` only, and `resp.stop_reason` was never read. The
+branch was unreachable from the day it was written.
+
+The cause is worth recording because it is a general trap. The edit that added
+`rec['stop_reason']` and the edit that added the branch were in one script, the second
+assertion failed, and the script raised **before** its single write — so neither landed.
+A later pass re-applied only the branch. A partial edit that fails loudly still leaves a
+file that parses, passes tests, and does nothing.
+
+**Fixed.** One line in `LLM.ask()`. Truncation is the largest remaining source of lost
+iterations — two of the flagship run's six losses were `unparseable JSON: unbalanced
+braces`, the classic signature.
+
+## F21. The test-label firewall rested on a regex that ordinary spellings defeat
+
+`guards.FORBIDDEN` matches the literal `enc['test'][1]`. It does not match
+`Xt, yt, ut = enc['test']`, `enc.get('test')[1]`, `k = 'test'; enc[k][1]`, or
+`enc[ 'test' ][ 1 ]` — all return clean. The tuple-unpack form appears in recorded agent
+diffs across ten runs. Nothing leaked in fact, but the guarantee rested on spelling, and
+`scan_pipeline()` certified a file containing `evaluate(ute, yte, ...)` as clean.
+
+**Fixed structurally.** `harness/run_node.py` now blanks the hidden-test label array
+immediately after `load_encoded()` and **before** the agent's pipeline is imported.
+`fit_predict` needs test *features* to build a submission vector and never needs test
+*labels*, so the array agent code can reach is zeros. A leak is now impossible rather than
+discouraged, whatever the guards do. Two tests pin the ordering and document the regex hole
+so nobody re-relies on it.
+
+## F22. `report.py` counted cached tokens as input, inflating a scored measure
+
+Feasibility is graded on total tokens. The by-role table headed **Input** printed
+`by_role['input']`, which `Meter.totals()` folds `cache_read` and `cache_write` into, while
+the headline panel captioned `tokens_total` as "input + output". Same run, two readings,
+and the larger one is the one a judge would quote against us: for the scored run the role
+table summed to 1,376,406 against a true fresh input of 221,161.
+
+**Fixed.** The table now breaks out Fresh in / Cached in / Output / Total, and the headline
+adds fresh input beside the total. The columns reconcile exactly: 221,161 fresh and
+1,155,245 cached.
+
+## F23. A stray `RESULT` line in generated code ended the whole run
+
+`Controller.run_node` scanned stdout for lines starting with `RESULT ` and called
+`json.loads` on the remainder, unguarded. The pipeline is agent-written and may print
+anything; one such line turned into an uncaught `ValueError` that escaped the node and
+ended the run rather than the iteration.
+
+**Fixed.** Keep the last line that starts with the sentinel *and* parses.
+
+Also in this pass: `unknown` joined `RETRYABLE_FAILURES`. `executor.classify()` returns it
+for any non-zero exit matching none of its signatures — most exceptions that are not Python
+builtins. Those are ordinary code errors and the traceback is what fixes them. Timeout and
+memory are classified earlier and stay excluded.
+
+## F24. `FROZEN.md`'s own verification command failed on 7 of its 8 files
+
+The freeze record published raw-byte SHA-256 hashes and a one-line `hashlib` command. On a
+Windows checkout git converts LF to CRLF, so seven of eight reported MISMATCH. Every byte
+delta equalled that file's CRLF count exactly — `constraints.md` 32,657 − 31,902 = 755, and
+it has 755 CRLF endings. Nothing had been altered.
+
+`FROZEN.md` itself warns that "a stale fingerprint is worse than none, because it reads as
+verification that did not happen". A fingerprint that fails on an untouched file is the same
+failure: a judge running the documented command sees the integrity artifact fail.
+
+**Fixed.** Hashes are now over LF-normalised bytes and `context/verify_context.py` ships
+alongside them. `PASS: 8 of 8`.
+
+## F25. Designation ran outside the crash guard
+
+`Controller.run()` wraps its whole loop in `try/except BaseException/finally`, and then
+calls `self._designate(...)` on the line **after** the `finally`. So the one step that
+cannot be retried and has the most sunk cost behind it — every iteration spent, no
+submission written yet — was the one step with no protection.
+
+This is not theoretical. F13 was a `NameError` in the designation payload that killed a
+completed run at exactly this point.
+
+**Fixed.** Designation is wrapped, and a crash there falls back to writing the banked
+floor as the submission, journalling `designation_crash` and the original traceback. The
+floor is a worse result than any designated node and the record says so — but a run that
+spends its budget and produces no submission at all is worse than both.
 
 ---
 

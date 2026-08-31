@@ -14,6 +14,8 @@ import os
 import sys
 import time
 
+import numpy as np
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from harness.cache import load_encoded          # noqa: E402
@@ -32,6 +34,18 @@ def main():
 
     t0 = time.time()
     enc, dim = load_encoded()
+
+    # Blank the hidden-test labels before any agent-written code can reach them.
+    # fit_predict needs test FEATURES to produce a submission vector; it never needs
+    # test labels. Until this line the whole firewall rested on a regex in
+    # harness/guards.py, and a regex is defeated by ordinary spellings --
+    # `Xt, yt, ut = enc['test']`, `enc.get('test')[1]`, or a variable key all walk
+    # straight past it. This makes the leak structurally impossible instead of
+    # textually discouraged: the array the agent could read is zeros, so no test
+    # label can influence a development decision even if every guard is bypassed.
+    Xt, _yt, ut = enc['test']
+    enc['test'] = (Xt, np.zeros(len(ut), dtype=np.float32), ut)
+
     from train import fit_predict                # the agent's editable pipeline
     from harness.score import rank_average
 
@@ -51,7 +65,6 @@ def main():
         valid_vec = per_seed[seeds[0]]['valid']
         test_vec = per_seed[seeds[0]]['test']
 
-    import numpy as np
     # A diverged model produces NaN scores that evaluate() will happily rank, yielding a
     # plausible-looking primary from garbage — and submit.py would reject the file at the
     # last moment. Fail here instead, loudly, so the node is pruned and logged.

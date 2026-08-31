@@ -1,0 +1,112 @@
+FULL RUN  key=set  workspace=wrkspc_01B1ri56yfTa9r6U2Qr2akSY
+model: claude-sonnet-5
+iter 000  baseline  valid primary 0.60147
+iter 001  primary 0.59829  delta -0.00318  REVERT  (reverted)
+iter 002  primary 0.59810  delta -0.00337  REVERT  (reverted)
+iter 003  primary 0.59956  delta -0.00191  REVERT  (reverted)
+{
+  "stop_reason": "converged",
+  "chosen_iteration": 0,
+  "chosen_label": "baseline",
+  "validation_primary": 0.6014695167541504,
+  "validation_metrics": {
+    "GAUC": 0.6671333909034729,
+    "nDCG@5": 0.5358057022094727,
+    "primary": 0.6014695167541504,
+    "users": 22377.0,
+    "rows": 124909.0
+  },
+  "candidates_considered": [
+    {
+      "iteration": 0,
+      "primary": 0.6014695167541504,
+      "label": "baseline",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "official_baseline"
+    },
+    {
+      "iteration": 1,
+      "primary": 0.5982917547225952,
+      "label": "Replacing pointwise binary cross-entropy with a within-user listwise softmax (Li",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 2,
+      "primary": 0.5980995893478394,
+      "label": "Adding a within-user BPR pairwise term on top of the existing pointwise binary c",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 3,
+      "primary": 0.5995572805404663,
+      "label": "Adding strictly-prior history aggregates as bucketized categorical fields (user ",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    }
+  ],
+  "chosen_artifact": "single_seed",
+  "chosen_artifact_source": "official_baseline",
+  "chosen_seeds": [
+    0
+  ],
+  "submission": "C:\\Users\\nicho\\OneDrive\\Documents\\Hackathon\\kuairand-starter-kit\\submissions\\run_20260831T005603Z_final.csv",
+  "submission_sha256": "5791bb6de104587d22d8393ebcd21bd32ff3134b3b6efdc8af37704c8d4fe642",
+  "submission_check_ok": true,
+  "submission_check_msg": "row_id contract OK: 170588 rows, split=test",
+  "iterations_used": 3,
+  "iteration_cap": 50,
+  "wall_clock_s": 914.2,
+  "resources": {
+    "calls": 9,
+    "input": 48233,
+    "output": 55644,
+    "cache_write": 33007,
+    "cache_read": 264056,
+    "usd": 1.9987,
+    "by_role": {
+      "proposer": {
+        "calls": 3,
+        "input": 102905,
+        "output": 23984,
+        "cache_write": 0,
+        "cache_read": 99021,
+        "usd": 0.66853
+      },
+      "coder": {
+        "calls": 3,
+        "input": 132271,
+        "output": 29483,
+        "cache_write": 33007,
+        "cache_read": 66014,
+        "usd": 1.266401
+      },
+      "reflector": {
+        "calls": 3,
+        "input": 110120,
+        "output": 2177,
+        "cache_write": 0,
+        "cache_read": 99021,
+        "usd": 0.063771
+      }
+    },
+    "tokens_total": 400940
+  },
+  "gpu_hours": 0.0,
+  "cache_working": true
+}
+
+journal: C:\Users\nicho\OneDrive\Documents\Hackathon\kuairand-starter-kit\runlogs\run_20260831T005603Z\journal.jsonl

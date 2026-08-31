@@ -1,0 +1,119 @@
+FULL RUN  key=set  workspace=wrkspc_01B1ri56yfTa9r6U2Qr2akSY
+model: claude-sonnet-5
+iter 000  baseline  valid primary 0.60147
+iter 001  primary 0.59917  delta -0.00230  REVERT  (reverted)
+iter 002  GUARD REJECT: reads IDX["label"] in the feature builder, outside the target assignment
+iter 003  FAILED (syntax) -> reverted
+iter 004  confirming on 3 seeds: mean -0.00072  worst -0.00127
+iter 004  primary 0.60179  delta -0.00072  INCONCLUSIVE  (reverted)
+iter 005  primary 0.60033  delta -0.00114  REVERT  (reverted)
+{
+  "stop_reason": "converged",
+  "chosen_iteration": 4,
+  "chosen_label": "Replacing pointwise BCE with a pairwise BPR loss (sampled positive/negative pair",
+  "validation_primary": 0.6017889976501465,
+  "validation_metrics": {
+    "GAUC": 0.6671037077903748,
+    "nDCG@5": 0.5364742875099182,
+    "primary": 0.6017889976501465,
+    "users": 22377.0,
+    "rows": 124909.0
+  },
+  "candidates_considered": [
+    {
+      "iteration": 0,
+      "primary": 0.6014695167541504,
+      "label": "baseline",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "official_baseline"
+    },
+    {
+      "iteration": 1,
+      "primary": 0.599166750907898,
+      "label": "Replacing the pointwise BCE loss with a within-user listwise softmax cross-entro",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 4,
+      "primary": 0.6017889976501465,
+      "label": "Replacing pointwise BCE with a pairwise BPR loss (sampled positive/negative pair",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "artifact": "rank_average_ensemble",
+      "artifact_source": "harness_confirmation"
+    },
+    {
+      "iteration": 5,
+      "primary": 0.60032719373703,
+      "label": "A per-video (and per-author) Bayesian-smoothed prior long_view rate, built from ",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    }
+  ],
+  "chosen_artifact": "rank_average_ensemble",
+  "chosen_artifact_source": "harness_confirmation",
+  "chosen_seeds": [
+    0,
+    1,
+    2
+  ],
+  "submission": "C:\\Users\\nicho\\OneDrive\\Documents\\Hackathon\\kuairand-starter-kit\\submissions\\run_20260830T222356Z_final.csv",
+  "submission_sha256": "59771f3b639750966f889b12bdb483d74aca3adf5788bd7ca853996a1166b6d8",
+  "submission_check_ok": true,
+  "submission_check_msg": "row_id contract OK: 170588 rows, split=test",
+  "iterations_used": 3,
+  "iteration_cap": 50,
+  "wall_clock_s": 1319.9,
+  "resources": {
+    "calls": 15,
+    "input": 68126,
+    "output": 88480,
+    "cache_write": 33007,
+    "cache_read": 462098,
+    "usd": 1.2455,
+    "by_role": {
+      "proposer": {
+        "calls": 5,
+        "input": 169583,
+        "output": 37469,
+        "cache_write": 0,
+        "cache_read": 165035,
+        "usd": 0.416791
+      },
+      "coder": {
+        "calls": 6,
+        "input": 245014,
+        "output": 48724,
+        "cache_write": 33007,
+        "cache_read": 165035,
+        "usd": 0.746217
+      },
+      "reflector": {
+        "calls": 4,
+        "input": 148634,
+        "output": 2287,
+        "cache_write": 0,
+        "cache_read": 132028,
+        "usd": 0.082486
+      }
+    },
+    "tokens_total": 651711
+  },
+  "gpu_hours": 0.0,
+  "cache_working": true
+}
+
+journal: C:\Users\nicho\OneDrive\Documents\Hackathon\kuairand-starter-kit\runlogs\run_20260830T222356Z\journal.jsonl

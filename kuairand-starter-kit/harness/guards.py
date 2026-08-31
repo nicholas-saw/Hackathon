@@ -41,6 +41,13 @@ FORBIDDEN = [
      'opens a raw log CSV directly',
      'log_standard_4_22_to_5_08_pure.csv spans validation AND test and carries '
      'long_view. Use harness.adapter.raw_columns(), which cannot return test rows.'),
+    # Blanking docstrings (see _strip_comments) means text inside a triple-quoted
+    # region is no longer scanned. Dynamic execution would turn that into an evasion
+    # route, so it is closed explicitly rather than left implicit.
+    (r'(?:exec|eval|compile)\s*\(',
+     'uses dynamic execution',
+     'exec/eval/compile can run code the static scanner never saw. Write the change '
+     'as ordinary code in the three editable files.'),
     (r'os\.remove|shutil\.rmtree|os\.unlink',
      'deletes files',
      'the pipeline has no reason to delete anything.'),
@@ -71,11 +78,42 @@ _LABEL_OK = re.compile(r'^\s*y\s*\[\s*\w+\s*\]\s*=\s*\w+\s*\[\s*IDX\[[\'"]label[
 
 
 def _strip_comments(src):
-    out = []
-    for ln in src.split('\n'):
-        s = ln.split('#', 1)[0] if '#' in ln else ln
-        out.append(s)
-    return '\n'.join(out)
+    """Blank out everything that is not executable: # comments and docstrings.
+
+    Docstrings matter as much as comments. An agent that writes
+
+        a docstring saying "do not hand-roll aggregation, it hits the IDX['label']
+        guard" is documenting the rule correctly, and the scanner used to reject it
+        for saying the words. That cost a real iteration in run 20260830T222356Z.
+
+
+    Only TRIPLE-quoted regions are blanked, never single-line string literals: the
+    label rule has to keep matching x[IDX['label']] in real code, and that subscript
+    contains a quoted literal itself. Blanking all strings would turn a false positive
+    into a false negative, which is far worse.
+    """
+    out, fence = [], None
+    for ln in src.split(chr(10)):
+        if fence is None:
+            s = ln.split(chr(35), 1)[0] if chr(35) in ln else ln
+            for q in (chr(34) * 3, chr(39) * 3):
+                k = s.find(q)
+                if k != -1:
+                    rest = s[k + 3:]
+                    if q in rest:            # opens and closes on one line
+                        s = s[:k] + " " + rest.split(q, 1)[1]
+                    else:
+                        fence = q
+                        s = s[:k]
+                    break
+            out.append(s)
+        else:
+            if fence in ln:                  # closing fence
+                out.append(ln.split(fence, 1)[1])
+                fence = None
+            else:
+                out.append("")
+    return chr(10).join(out)
 
 
 def scan_source(path, text=None):

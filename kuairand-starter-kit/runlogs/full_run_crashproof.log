@@ -1,0 +1,112 @@
+FULL RUN  key=set  workspace=wrkspc_01B1ri56yfTa9r6U2Qr2akSY
+model: claude-sonnet-5
+iter 000  baseline  valid primary 0.60147
+iter 001  primary 0.60344  delta +0.00197  INCONCLUSIVE  (reverted)
+iter 002  primary 0.60209  delta +0.00062  REVERT  (reverted)
+iter 003  primary 0.59858  delta -0.00289  REVERT  (reverted)
+{
+  "stop_reason": "converged",
+  "chosen_iteration": 1,
+  "chosen_label": "Replacing the pointwise binary-cross-entropy objective with a within-user listwi",
+  "validation_primary": 0.603444516658783,
+  "validation_metrics": {
+    "GAUC": 0.6697818636894226,
+    "nDCG@5": 0.5371071696281433,
+    "primary": 0.603444516658783,
+    "users": 22377.0,
+    "rows": 124909.0
+  },
+  "candidates_considered": [
+    {
+      "iteration": 0,
+      "primary": 0.6014695167541504,
+      "label": "baseline",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "official_baseline"
+    },
+    {
+      "iteration": 1,
+      "primary": 0.603444516658783,
+      "label": "Replacing the pointwise binary-cross-entropy objective with a within-user listwi",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 2,
+      "primary": 0.6020931005477905,
+      "label": "The listwise softmax from iter 1 under-delivers because it is applied over each ",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 3,
+      "primary": 0.5985840559005737,
+      "label": "A hybrid objective \u2014 pointwise BCE on every row plus a within-user listwise soft",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    }
+  ],
+  "chosen_artifact": "single_seed",
+  "chosen_artifact_source": "agent_hypothesis",
+  "chosen_seeds": [
+    0
+  ],
+  "submission": "C:\\Users\\nicho\\OneDrive\\Documents\\Hackathon\\kuairand-starter-kit\\submissions\\run_20260830T235541Z_final.csv",
+  "submission_sha256": "0828d21870cee84138cbc0cbc710247b39e2541d5cf6352e930fe1f783ad06db",
+  "submission_check_ok": true,
+  "submission_check_msg": "row_id contract OK: 170588 rows, split=test",
+  "iterations_used": 3,
+  "iteration_cap": 50,
+  "wall_clock_s": 803.7,
+  "resources": {
+    "calls": 10,
+    "input": 40009,
+    "output": 60674,
+    "cache_write": 0,
+    "cache_read": 330070,
+    "usd": 1.1373,
+    "by_role": {
+      "proposer": {
+        "calls": 4,
+        "input": 137271,
+        "output": 21949,
+        "cache_write": 0,
+        "cache_read": 132028,
+        "usd": 0.640953
+      },
+      "coder": {
+        "calls": 3,
+        "input": 122722,
+        "output": 36735,
+        "cache_write": 0,
+        "cache_read": 99021,
+        "usd": 0.434555
+      },
+      "reflector": {
+        "calls": 3,
+        "input": 110086,
+        "output": 1990,
+        "cache_write": 0,
+        "cache_read": 99021,
+        "usd": 0.061833
+      }
+    },
+    "tokens_total": 430753
+  },
+  "gpu_hours": 0.0,
+  "cache_working": true
+}
+
+journal: C:\Users\nicho\OneDrive\Documents\Hackathon\kuairand-starter-kit\runlogs\run_20260830T235541Z\journal.jsonl

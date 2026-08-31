@@ -245,6 +245,74 @@ provenance block, where every node reported `seeds: [0]`.
 
 ---
 
+## F13. Guard rejected docstrings that merely *mentioned* the rule
+
+**Symptom.** Iteration 2 of run `20260830T222356Z` was rejected for this line, which the
+agent wrote as documentation inside a docstring:
+
+> `不要在这个文件里手搓聚合，那会碰到 IDX['label'] 的静态[检查]`
+
+("Do not hand-roll aggregation here, that hits the `IDX['label']` static guard.") The
+agent documented the rule correctly and was rejected for saying the words.
+
+**Cause.** `_strip_comments` stripped `#` comments but not docstrings, so prose inside a
+triple-quoted region was scanned as if it were code.
+
+**Fix.** `_strip_comments` now also blanks triple-quoted regions. Deliberately **not**
+single-line string literals: the label rule must keep matching `x[IDX['label']]` in real
+code, and that subscript contains a quoted literal. Blanking all strings would convert a
+false positive into a false negative.
+
+**Hole closed at the same time.** Blanking docstrings would let code hide in a string and
+be `exec`'d, so `exec` / `eval` / `compile` were added to `FORBIDDEN`.
+
+**Verified:** docstring mentioning the rule ACCEPTED; the real Chinese docstring ACCEPTED;
+actual label read REJECTED; legitimate `y[n] = x[IDX['label']]` ACCEPTED; `exec` evasion
+REJECTED.
+
+## F14. Non-ASCII docstrings corrupted by whole-file emission
+
+**Symptom.** Iteration 3 of the same run died with
+`SyntaxError: invalid character '）' (U+FF09)` at `features.py:32`.
+
+**Cause.** The three editable pipeline files shipped with Chinese docstrings — 1,043
+non-ASCII characters across 54 lines. `coder.py` emits whole files, so every iteration had
+to reproduce that text verbatim. Opus managed it; Sonnet mangled a full-width parenthesis.
+This is O3 (whole-file emission) turning into a correctness failure under a weaker model.
+
+**Fix.** All prose in `features.py`, `model.py` and `train.py` translated to ASCII English,
+**every executable line untouched**. Verified behaviourally identical: encoded dim still
+40260, pipeline scans CLEAN. The rewritten `features.py` docstring now also points at
+`harness.history` and `harness.adapter` instead of describing the forbidden route.
+
+## F15. The proposer's config never reached the model *(critical)*
+
+**Symptom.** In run `20260830T230438Z`, iterations 1 and 3 scored
+**bit-identically to the baseline** — delta `+0.00000` — despite 266- and 237-line diffs
+implementing a listwise softmax and a BPR hybrid.
+
+**Cause.** The agent did the sensible thing: it added opt-in paths (`--model fm_listwise`,
+`step_hybrid`) and left the default `fm` path untouched for a clean A/B. But
+`agent/controller.py:361` returned a hardcoded `{}` as the config, and
+`agent/proposer.py`'s schema had no `config` field at all. `harness/run_node.py` has always
+accepted `--config` and splatted it into `fit_predict(...)` — the chain was broken at the
+two agent-side links. **The agent could write a new code path but had no way to activate
+it.**
+
+**Consequence.** Any change that added a branch rather than editing the default path was
+silently inert, scored exactly its parent, and still counted toward the three
+non-improving iterations that trigger convergence. Two of three iterations in that run
+were wasted this way.
+
+**Fix.** `config` added to the proposer's output schema, with an explicit contract stating
+that the harness runs exactly `fit_predict(enc, dim, seed=0, **config)` and that an opt-in
+branch must be requested via config or it is never entered. The controller now threads it
+through.
+
+**Verified:** `python -m harness.run_node --config '{"lr": 0.01}'` returns primary 0.5976
+instead of 0.60147 — and that figure matches the frozen audit's lr=0.01 result of
+0.59709 ± 0.00053, so the harness agrees with the evidence base.
+
 # Part 2 — Open. Not fixed.
 
 ## O1. The parent is still a single-seed measurement — **CLOSED**
@@ -403,7 +471,10 @@ recovered ~1,250 tokens (~4%), and the first was under 1% of the packet. Output 
 | Cache-TTL probe | $0.3470 |
 | Measured run 4 (`20260830T164210Z`) — 2 iterations, new code | $1.6262 |
 | TTL-bucket diagnostic probes | $0.0353 |
-| **Total** | **$7.4710** |
+| Full run, Sonnet (`20260830T222356Z`) — 3 scored iterations | $1.2455 |
+| Sonnet smoke test | $0.1321 |
+| Full run, Opus proposer + Sonnet (`20260830T230438Z`) | $1.1388 |
+| **Total** | **$9.9874** |
 
 Injection recovery tests (`leak`, `syntax`, `timeout`, `nan`) run in dry-run mode and cost
 nothing. All four recovered with `orphan_free=True`.

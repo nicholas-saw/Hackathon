@@ -1,62 +1,86 @@
-"""特征工程 —— 唯一允许改特征的地方。见 AGENT_RULES.md。
+"""Feature engineering -- the only place feature changes are allowed. See AGENT_RULES.md.
 
-kit/data.py 是冻结的 Starter Kit 代码，不能改，这个文件也不从它 import 任何东西 ——
-只能读 kit/data.load(splits) 返回的 splits（每行 schema 见下面的 IDX，这是对
-kit/data.py 那个定长 tuple 的复述，不是另一份定义，改 kit/data.py 的人如果动了
-行 schema，这里也要跟着改）。不允许用 test 的任何东西（包括 label 和统计量）来构造特征
-（比如不能用 test 集统计量做分桶边界）。Do not use ANY test-split data to build features.
+kit/data.py is frozen Starter Kit code. It cannot be edited, and this file imports
+nothing from it: it only reads the splits returned by kit.data.load(splits). The per-row
+schema is restated as IDX below. That restatement is not a second source of truth -- if
+anyone changes the row layout in kit/data.py, this has to follow.
 
-同一行的输入特征一律走 same_row(x, name)，它会拒绝 LEAKY_COLUMNS 里的曝光后结果列
-（is_click/is_like/.../play_time_ms/label 等）—— 这些列只能当同一行的多任务目标，
-或用于别的行（该用户历史）的序列特征，不能当同一行输入。kit/data.py 目前只加载了
-这 11 列里的 label 本身；其余 10 列如果以后要接进来（多任务/序列特征），只能在这个
-文件里自己读 CSV 加进去 —— kit/data.py 不能改 —— 加的时候同样受这条规则约束。
+Never use ANY test-split data to build features, including its labels and any statistic
+derived from it (for example, do not fit bucket edges on the test split).
 
-对外契约：
+Same-row input features must go through same_row(x, name). It refuses the
+post-impression outcome columns in LEAKY_COLUMNS (is_click / is_like / ... /
+play_time_ms / label). Those columns are legal only as multi-task targets for the same
+row, or as history aggregated from OTHER rows (the user's past interactions).
+
+For history aggregates, use harness.history -- do not hand-roll them here:
+
+    from harness.history import prior_stats, bucketize
+    rate, count = prior_stats(splits, signal='label', key='user_id')
+
+It guarantees strictly-earlier ordering, treats tied timestamps as non-predecessors, and
+keeps test outcomes out of every aggregate. Building the same thing by hand in this file
+means touching the label directly, which the static guard rejects, and it is the wrong
+place to get the ordering right anyway.
+
+kit/data.py currently loads only the label out of those 11 columns. The other 10 are not
+in IDX, so same_row() raises KeyError on them, which is the safe failure. Reach them
+through harness.adapter, never by opening a raw CSV: log_standard_4_22_to_5_08_pure.csv
+spans validation AND test and carries long_view.
+
+Public contract:
+
     encode(splits) -> (enc, dim)
-    enc[name] = (X, y, users)   # X: int32 (N, len(FIELDS)); y: float32 (N,); users: list
-    dim                          # 所有 field 的 vocab 总大小，喂给 model.FM(dim, ...)
-FIELDS 不只是文档用途：len(FIELDS) 决定 vocabs 和 X 的第二维（见下面 65/76 行）。
-往 raw() 加一列，就必须同时在 FIELDS 登记名字，否则形状不匹配。
-FIELDS is NOT documentation: len(FIELDS) sizes vocabs and X. Keep them in sync.
+    enc[name] = (X, y, users)    # X: int32 (N, len(FIELDS)); y: float32 (N,); users: list
+    dim                          # total vocab size across fields, fed to model.FM(dim, ...)
+
+FIELDS is not documentation: len(FIELDS) sizes vocabs and the second dimension of X. Add a
+column to raw() and you must register its name in FIELDS, or the shapes will not match.
 """
 import numpy as np
 
-# kit/data.py 的 load() 返回的定长 tuple 的字段顺序（复述，唯一的 schema 来源仍是
-# kit/data.py 本身）。
+# Field order of the fixed-length tuple returned by kit/data.py's load(). A restatement;
+# kit/data.py itself remains the only source of truth.
 IDX = {'date': 0, 'user_id': 1, 'video_id': 2, 'author_id': 3,
        'tab': 4, 'duration_ms': 5, 'label': 6}
 
-# 曝光后才产生的结果列（post-impression outcome/feedback）。同一行绝不能拿来预测
-# 同一行的 label —— 就算完全只用 train 数据算，同一行内用这些列当输入照样泄漏，
-# 因为它们和 label 是同一次曝光的并发结果，不是曝光前已知的信息。目前 kit/data.py
-# 只加载了 label；其余列不在当前 IDX 里，same_row() 对它们会直接 KeyError（安全的
-# 失败方式）——这个集合列出完整的 11 个名字，是给以后真的把这些列读进来时用的。
+# Post-impression outcome/feedback columns. Never use these to predict the label of the
+# SAME row. Even computed purely from train data, a same-row use leaks: they are
+# concurrent outcomes of the same impression as the label, not information available
+# before it. kit/data.py currently loads only the label; the rest are absent from IDX, so
+# same_row() raises KeyError on them (the safe failure). The full set of 11 names is
+# listed here for when those columns are eventually read in.
 LEAKY_COLUMNS = frozenset({
-    'label',            # long_view，主任务目标本身
+    'label',            # long_view, the main task target itself
     'is_click', 'is_like', 'is_follow', 'is_comment', 'is_forward',
     'is_hate', 'play_time_ms', 'profile_stay_time', 'comment_stay_time',
     'is_profile_enter',
 })
 
-# 5 个特征域（当前 kit 的 baseline）。想加特征就在 raw() 里加列，并在这里登记名字。
+# The 5 feature fields of the current kit baseline. To add a feature, add a column in
+# raw() and register its name here.
 FIELDS = ['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket']
 
 def _bucket_edges(values, n=10):
     return np.quantile(np.asarray(values), np.linspace(0, 1, n + 1)[1:-1])
 
 def same_row(x, name):
-    """取当前行某一列的值，作为该行的输入特征。曝光后结果列（见 data.LEAKY_COLUMNS）
-    在这里直接报错 —— 它们只能当同一行的多任务目标，或用于别的行（历史）的序列特征，
-    不能当同一行的输入，否则就是把要预测的答案喂给模型。"""
+    """Read one column of the current row as an input feature for that row.
+
+    Post-impression outcome columns (see LEAKY_COLUMNS) raise here. They are legal only
+    as multi-task targets for the same row, or as history features built from other
+    rows -- never as an input for the row being predicted, which would feed the model
+    the answer it is meant to produce.
+    """
     if name in LEAKY_COLUMNS:
-        raise ValueError(f"{name!r} 是曝光后结果列，不能当同一行的输入特征"
-                          f"（同一行只能当多任务目标；历史序列特征要用别的行）")
+        raise ValueError(f"{name!r} is a post-impression outcome column and cannot be a "
+                         f"same-row input feature (same-row use is limited to multi-task "
+                         f"targets; history features must come from other rows)")
     return x[IDX[name]]
 
 def encode(splits):
-    """把类别特征映射成连续 id。未见过的取值统一落到该域的 UNK 槽。
-    分桶边界只能用 splits['train'] 算，不能用 valid/test。"""
+    """Map categorical features to contiguous ids. Unseen values fall into the field's
+    UNK slot. Bucket edges may be fitted on splits['train'] only, never valid/test."""
     tr = splits['train']
     edges = _bucket_edges([same_row(x, 'duration_ms') for x in tr])
 
@@ -69,7 +93,7 @@ def encode(splits):
         for i, v in enumerate(raw(x)):
             if v not in vocabs[i]:
                 vocabs[i][v] = len(vocabs[i])
-    unk = [len(v) for v in vocabs]                 # 每个域末尾留一个 UNK 槽
+    unk = [len(v) for v in vocabs]                 # one UNK slot at the end of each field
     field_dims = [len(v) + 1 for v in vocabs]
     offsets = np.cumsum([0] + field_dims[:-1]).astype(np.int32)
 

@@ -81,7 +81,8 @@ Return ONE JSON object, no prose, no code fence. Either:
       "cost": "low" | "medium" | "high",
       "invalid_if": "the observation that would refute this",
       "files_to_modify": ["pipeline/model.py"],
-      "extends_refuted": null
+      "extends_refuted": null,
+      "config": {"model": "fm", "lr": 0.001}
     },
     ... exactly 3 ...
   ],
@@ -98,6 +99,21 @@ or:
   "question": "what you are trying to learn",
   "why_needed": "which candidate this would change, and how"
 }
+
+`config` IS HOW YOU ACTIVATE WHAT THE CODER WRITES. The harness runs exactly
+`pipeline.train.fit_predict(enc, dim, seed=s, **config)` and nothing else.
+- Its keys must be keyword arguments of `fit_predict`, whose signature today is
+  `(enc, dim, model='fm', k=16, lr=0.001, epochs=40, bs=8192, patience=4, seed=0,
+  verbose=False, lw_alpha=0.3, cap=64)`.
+- If your change adds a new opt-in branch (say `model='fm_listwise'`), you MUST request
+  `"config": {"model": "fm_listwise"}` or the branch is never entered and the node scores
+  bit-identically to its parent -- a wasted iteration that still counts toward
+  convergence. This has actually happened: two iterations of run 20260830T230438Z added
+  a listwise path and a BPR path, left the default `fm` path untouched for a clean A/B,
+  and both scored delta +0.00000.
+- `{}` means the default path, the plain pointwise FM.
+- If the coder must add a NEW keyword argument to `fit_predict` for your idea, say so in
+  `proposed_change` and request it in `config`.
 
 RULES. Only pipeline/features.py, pipeline/model.py and pipeline/train.py may change.
 Post-impression signals are legal as auxiliary targets or as history from strictly

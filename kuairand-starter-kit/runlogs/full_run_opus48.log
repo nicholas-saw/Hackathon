@@ -1,0 +1,159 @@
+FULL RUN  key=set  workspace=wrkspc_01B1ri56yfTa9r6U2Qr2akSY
+model: claude-opus-4-8
+iter 000  baseline  valid primary 0.60147
+iter 001  primary 0.59914  delta -0.00233  REVERT  (reverted)
+iter 002  FAILED (contract) -> reverted
+iter 003  primary 0.60008  delta -0.00139  REVERT  (reverted)
+iter 004  confirming on 3 seeds: mean +0.00281  worst +0.00236
+iter 004  primary 0.60609  delta +0.00281  KEEP
+iter 005  primary 0.60289  delta -0.00320  REVERT  (reverted)
+iter 006  primary 0.60276  delta -0.00333  REVERT  (reverted)
+iter 007  GUARD REJECT: calls the official evaluator on test
+iter 008  GUARD REJECT: calls the official evaluator on test
+iter 009  ROLE FAILED (ValueError) -> skipped
+iter 010  ROLE FAILED (ValueError) -> skipped
+iter 011  GUARD REJECT: calls the official evaluator on test
+iter 012  confirming on 3 seeds: mean +0.00112  worst +0.00090
+iter 012  primary 0.60724  delta +0.00112  KEEP  (reverted)
+{
+  "stop_reason": "converged",
+  "chosen_iteration": 12,
+  "chosen_label": "Averaging the predictions of 5 independently-seeded FMs (same kept feature set, ",
+  "validation_primary": 0.6072425246238708,
+  "validation_metrics": {
+    "GAUC": 0.6751369833946228,
+    "nDCG@5": 0.5393480658531189,
+    "primary": 0.6072425246238708,
+    "users": 22377.0,
+    "rows": 124909.0
+  },
+  "candidates_considered": [
+    {
+      "iteration": 0,
+      "primary": 0.6014695167541504,
+      "label": "baseline",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "official_baseline"
+    },
+    {
+      "iteration": 1,
+      "primary": 0.5991438031196594,
+      "label": "Replacing pointwise logloss with a within-user listwise softmax (cross-entropy o",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 3,
+      "primary": 0.60008305311203,
+      "label": "Adding a small within-user pairwise (BPR) hinge/logistic term on top of the poin",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 4,
+      "primary": 0.606092095375061,
+      "label": "Adding strictly-prior behavioural aggregates as bucketized categorical FM fields",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "artifact": "rank_average_ensemble",
+      "artifact_source": "harness_confirmation"
+    },
+    {
+      "iteration": 5,
+      "primary": 0.6028901934623718,
+      "label": "Adding strictly-prior ITEM-side and USER\u00d7ITEM-side aggregates (video prior long_",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 6,
+      "primary": 0.6027572154998779,
+      "label": "Adding a user\u00d7tab conditional prior long_view rate (plus its support bucket) and",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 12,
+      "primary": 0.6072425246238708,
+      "label": "Averaging the predictions of 5 independently-seeded FMs (same kept feature set, ",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "artifact": "rank_average_ensemble",
+      "artifact_source": "harness_confirmation"
+    }
+  ],
+  "chosen_artifact": "rank_average_ensemble",
+  "chosen_artifact_source": "harness_confirmation",
+  "chosen_seeds": [
+    0,
+    1,
+    2
+  ],
+  "submission": "C:\\Users\\nicho\\OneDrive\\Documents\\Hackathon\\kuairand-starter-kit\\submissions\\run_20260831T011354Z_final.csv",
+  "submission_sha256": "475d168d1865c5dc815964d00243ff989aaf10549b61bfc38275161adbc7fe10",
+  "submission_check_ok": true,
+  "submission_check_msg": "row_id contract OK: 170588 rows, split=test",
+  "iterations_used": 6,
+  "iteration_cap": 50,
+  "wall_clock_s": 6259.6,
+  "resources": {
+    "calls": 35,
+    "input": 221161,
+    "output": 266693,
+    "cache_write": 33007,
+    "cache_read": 1122238,
+    "usd": 8.6643,
+    "by_role": {
+      "proposer": {
+        "calls": 13,
+        "input": 448903,
+        "output": 94956,
+        "cache_write": 0,
+        "cache_read": 429091,
+        "usd": 2.687503
+      },
+      "coder": {
+        "calls": 15,
+        "input": 673908,
+        "output": 165931,
+        "cache_write": 33007,
+        "cache_read": 462098,
+        "usd": 5.603408
+      },
+      "reflector": {
+        "calls": 7,
+        "input": 253595,
+        "output": 5806,
+        "cache_write": 0,
+        "cache_read": 231049,
+        "usd": 0.373406
+      }
+    },
+    "tokens_total": 1643099
+  },
+  "gpu_hours": 0.0,
+  "cache_working": true
+}
+
+journal: C:\Users\nicho\OneDrive\Documents\Hackathon\kuairand-starter-kit\runlogs\run_20260831T011354Z\journal.jsonl

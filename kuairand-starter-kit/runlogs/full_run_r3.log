@@ -1,0 +1,3 @@
+FULL RUN  key=set  workspace=wrkspc_01B1ri56yfTa9r6U2Qr2akSY
+model: claude-sonnet-5
+iter 000  baseline  valid primary 0.60147

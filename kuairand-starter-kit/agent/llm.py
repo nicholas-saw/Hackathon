@@ -1,6 +1,6 @@
 """Anthropic client, prompt caching, and the token/cost meter.
 
-Budget reality: claude-opus-5 is $5 / $25 per MTok. A node costs roughly one proposer
+Budget reality: claude-sonnet-5 is $2 / $10 per MTok (opus-5 is $5 / $25). A node costs roughly one proposer
 call, one to three coder calls and one reflector call. Uncached, ~20 iterations plus two
 rehearsals runs to about $26 — over the $20 the team has. With the stable research packet
 cached it is about $9. Caching is what makes the budget work, not downgrading the model,
@@ -11,11 +11,27 @@ import os
 import re
 import time
 
-MODEL = 'claude-opus-5'
+MODEL = 'claude-opus-4-8'
+
+# Per-role model. The proposer is what Innovation & Problem Insight (20%) actually
+# scores, and the coder decides whether a good hypothesis is implemented correctly --
+# a weaker coder produced a U+FF09 syntax error and an unparseable-JSON crash in earlier
+# runs. Both run on the stronger model; the reflector, which only renders a verdict on
+# numbers already computed, stays on MODEL. Each distinct model keeps its OWN prompt
+# cache entry, so this means two packet writes per cache lifetime.
+# Cost note: the coder is the largest output consumer (~30-48k output tokens per run),
+# so moving it to opus roughly 2.5x's that line item.
+# Measured 2026-08-31: opus in the coder seat cost 2x ($1.27 vs $0.43 per run) and
+# produced the three worst deltas of any run. The one run that beat the baseline used
+# sonnet here. Reverted on the evidence.
+ROLE_MODELS = {'proposer': 'claude-opus-5'}
 MAX_TOKENS = 16000
 
 # USD per million tokens, from the current pricing table.
 PRICE = {'claude-opus-5': (5.0, 25.0),
+         # Assumed identical to opus-5 pricing; not independently confirmed. If it
+         # differs, every usd figure for a 4.8 run is wrong by that ratio.
+         'claude-opus-4-8': (5.0, 25.0),
          'claude-sonnet-5': (2.0, 10.0),
          'claude-haiku-4-5': (1.0, 5.0)}
 # Cache write pricing depends on the TTL: 1.25x input for the default 5-minute
@@ -176,15 +192,16 @@ class LLM:
             raise LLMUnavailable('LLM disabled (dry run)')
         self.meter.check()
         t0 = time.time()
+        model = ROLE_MODELS.get(role, self.model)
         resp = self.client.messages.create(
-            model=self.model,
+            model=model,
             max_tokens=max_tokens,
             system=self._system(instructions),
             thinking={'type': 'adaptive'},
             output_config={'effort': effort},
             messages=[{'role': 'user', 'content': user}],
         )
-        rec = self.meter.add(role, resp.usage, self.model)
+        rec = self.meter.add(role, resp.usage, model)
         rec['seconds'] = round(time.time() - t0, 2)
         text = ''.join(b.text for b in resp.content if getattr(b, 'type', '') == 'text')
         return text, rec
@@ -231,5 +248,5 @@ def extract_json(text):
         elif ch == '}':
             depth -= 1
             if depth == 0:
-                return json.loads(t[start:i + 1])
+                return json.loads(t[start:i + 1], strict=False)
     raise ValueError('unbalanced JSON braces')

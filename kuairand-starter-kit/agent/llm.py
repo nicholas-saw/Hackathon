@@ -202,14 +202,25 @@ class LLM:
         self.meter.check()
         t0 = time.time()
         model = ROLE_MODELS.get(role, self.model)
-        resp = self.client.messages.create(
+        # Streamed, not messages.create(). With max_tokens=16000, adaptive thinking and
+        # effort='high', the SDK's own estimate of the worst-case duration exceeds ten
+        # minutes and it refuses the non-streaming call outright:
+        #   ValueError: Streaming is required for operations that may take longer than
+        #   10 minutes.
+        # That is raised client-side before any request is sent, so it costs nothing and
+        # buys nothing -- every proposer call in run 20260831T193129Z died on it, and
+        # the run stopped on MAX_ROLE_FAILURES having spent $0.00. get_final_message()
+        # reassembles the same Message object, so usage, stop_reason and content below
+        # are unchanged.
+        with self.client.messages.stream(
             model=model,
             max_tokens=max_tokens,
             system=self._system(instructions),
             thinking={'type': 'adaptive'},
             output_config={'effort': effort},
             messages=[{'role': 'user', 'content': user}],
-        )
+        ) as stream:
+            resp = stream.get_final_message()
         rec = self.meter.add(role, resp.usage, model)
         rec['seconds'] = round(time.time() - t0, 2)
         # ask_json branches on this to tell a truncated reply from a malformed one.

@@ -24,10 +24,9 @@
   }
  },
  "noise": {
-  "published_seed_std_test": 0.0008,
+  "reference_seed_std": 0.0008,
   "measured_seed_std_valid_population": 0.00032,
-  "measured_paired_delta_sigma_valid": 0.0005,
-  "note": "The widely-quoted 0.0008 is the TEST seed std. On validation, five identity seeds give a population std of 0.00032 and paired deltas run about 0.0005. So eps = 0.002 is roughly 4 sigma: a null iteration essentially never clears it."
+  "note": "Use the published 0.0008 as the noise reference: it is the organizer-reported TEST seed std. The locally measured validation population std of 0.00032 is narrower, and the pre-audit review ruled that treating the narrower figure as the reference is over-confident. Against 0.0008, eps = 0.002 is about 2.5 sigma, which is the derivation the organizers give. Read a delta under roughly 0.0008 as indistinguishable from a seed, and one under 0.002 as below the practical threshold set by the competition."
  },
  "convergence": {
   "epsilon": 0.002,

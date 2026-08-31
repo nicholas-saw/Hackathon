@@ -66,11 +66,11 @@ def validate(obj):
 
 def reflect(llm, hypothesis, diff, metrics, parent, failure=None):
     msg = build_user_message(hypothesis, diff, metrics, parent, failure)
-    obj, rec = llm.ask_json('reflector', INSTRUCTIONS, msg, effort='high')
+    obj, rec = llm.ask_json('reflector', INSTRUCTIONS, msg, effort='medium')
     ok, why = validate(obj)
     if not ok:
         obj, rec = llm.ask_json('reflector', INSTRUCTIONS,
-                                msg + '\n\nRejected: %s' % why, effort='high')
+                                msg + '\n\nRejected: %s' % why, effort='medium')
         ok, why = validate(obj)
         if not ok:
             raise ValueError('reflector returned an invalid verdict twice: %s' % why)

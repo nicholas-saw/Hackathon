@@ -13,3 +13,5 @@ submissions/*_final.csv
 
 __pycache__/
 *.pyc
+
+.env

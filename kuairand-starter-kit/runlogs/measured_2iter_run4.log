@@ -1,0 +1,94 @@
+key set: yes | workspace: wrkspc_01B1ri56yfTa9r6U2Qr2akSY
+iter 000  baseline  valid primary 0.60147
+iter 001  primary 0.59874  delta -0.00273  REVERT  (reverted)
+iter 002  primary 0.60010  delta -0.00137  REVERT  (reverted)
+{
+  "stop_reason": "iteration_cap",
+  "chosen_iteration": 0,
+  "chosen_label": "baseline",
+  "validation_primary": 0.6014695167541504,
+  "validation_metrics": {
+    "GAUC": 0.6671333909034729,
+    "nDCG@5": 0.5358057022094727,
+    "primary": 0.6014695167541504,
+    "users": 22377.0,
+    "rows": 124909.0
+  },
+  "candidates_considered": [
+    {
+      "iteration": 0,
+      "primary": 0.6014695167541504,
+      "label": "baseline",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "official_baseline"
+    },
+    {
+      "iteration": 1,
+      "primary": 0.5987386703491211,
+      "label": "Replacing the pointwise binary cross-entropy objective with a within-user listwi",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 2,
+      "primary": 0.6001037359237671,
+      "label": "Adding strictly-prior behavioural aggregates (item historical long_view rate + s",
+      "seeds": [
+        0
+      ],
+      "artifact": "single_seed",
+      "artifact_source": "agent_hypothesis"
+    }
+  ],
+  "chosen_artifact": "single_seed",
+  "chosen_artifact_source": "official_baseline",
+  "chosen_seeds": [
+    0
+  ],
+  "submission": "C:\\Users\\nicho\\OneDrive\\Documents\\Hackathon\\kuairand-starter-kit\\submissions\\run_20260830T164210Z_final.csv",
+  "submission_sha256": "5791bb6de104587d22d8393ebcd21bd32ff3134b3b6efdc8af37704c8d4fe642",
+  "submission_check_ok": true,
+  "submission_check_msg": "row_id contract OK: 170588 rows, split=test",
+  "iterations_used": 2,
+  "iteration_cap": 2,
+  "wall_clock_s": 651.0,
+  "resources": {
+    "calls": 6,
+    "input": 26669,
+    "output": 30668,
+    "cache_write": 66014,
+    "cache_read": 132028,
+    "usd": 1.6262,
+    "by_role": {
+      "proposer": {
+        "calls": 2,
+        "input": 67720,
+        "output": 11908,
+        "usd": 0.652804
+      },
+      "coder": {
+        "calls": 2,
+        "input": 82018,
+        "output": 15661,
+        "usd": 0.818119
+      },
+      "reflector": {
+        "calls": 2,
+        "input": 74973,
+        "output": 3099,
+        "usd": 0.155276
+      }
+    },
+    "tokens_total": 255379
+  },
+  "gpu_hours": 0.0,
+  "cache_working": true
+}
+
+journal: C:\Users\nicho\OneDrive\Documents\Hackathon\kuairand-starter-kit\runlogs\run_20260830T164210Z\journal.jsonl

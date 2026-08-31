@@ -13,7 +13,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from harness import guards, journal as J                                  # noqa: E402
+from harness import guards, journal as J, PIPELINE                        # noqa: E402
 from harness.adapter import TestRowsRequested, raw_columns                # noqa: E402
 from harness.score import TestSealError, rank_average, score_split        # noqa: E402
 
@@ -308,6 +308,122 @@ def test_guard_allows_valid_for_early_stopping_in_train():
     assert not fs, 'early stopping on validation was wrongly flagged'
 
 
+# ---------------- causal history helper ----------------
+
+def test_history_is_strictly_causal():
+    """A prior aggregate must never include the row itself or a tie."""
+    from harness import history
+
+    # Rows: (date, user, video, author, tab, duration, label). Users 'a' and 'b'.
+    # Two of a's rows share timestamp 20 -- they must not see each other.
+    rows = [(20220409, 'a', 'v1', 'w1', '1', 1000.0, 1),
+            (20220409, 'a', 'v2', 'w1', '1', 1000.0, 1),
+            (20220409, 'a', 'v3', 'w1', '1', 1000.0, 0),
+            (20220409, 'b', 'v1', 'w1', '1', 1000.0, 0)]
+    stamps = [10, 20, 20, 15]
+
+    class FakeAdapter:
+        @staticmethod
+        def raw_columns(names, dtype=None, **kw):
+            return {'train': {'time_ms': np.asarray(stamps, dtype=dtype or np.int64)},
+                    'valid': {'time_ms': np.asarray([], dtype=dtype or np.int64)}}
+
+    real, history.adapter = history.adapter, FakeAdapter
+    try:
+        splits = {'train': rows, 'valid': []}
+        rate, count = history.prior_stats(splits, signal='label', key='user_id',
+                                          prior_weight=0.0)
+    finally:
+        history.adapter = real
+
+    # row 0 (t=10): no prior -> count 0
+    assert count['train'][0] == 0, count['train'][0]
+    # rows 1 and 2 share t=20: each sees only row 0, not each other
+    assert count['train'][1] == 1 and count['train'][2] == 1, count['train'][:3]
+    assert abs(rate['train'][1] - 1.0) < 1e-6, rate['train'][1]
+    assert abs(rate['train'][2] - 1.0) < 1e-6, rate['train'][2]
+    # user b is independent of user a
+    assert count['train'][3] == 0, count['train'][3]
+
+
+def test_history_excludes_test_outcomes():
+    """Test labels must not reach any aggregate, including the test rows' own."""
+    from harness import history
+
+    train = [(20220409, 'a', 'v1', 'w1', '1', 1000.0, 1),
+             (20220409, 'a', 'v2', 'w1', '1', 1000.0, 1)]
+    test = [(20220429, 'a', 'v9', 'w1', '1', 1000.0, 1),
+            (20220429, 'a', 'v8', 'w1', '1', 1000.0, 1)]
+    flipped = [tuple(list(r[:6]) + [0]) for r in test]
+
+    class FakeAdapter:
+        @staticmethod
+        def raw_columns(names, dtype=None, **kw):
+            return {'train': {'time_ms': np.asarray([10, 20], dtype=dtype or np.int64)},
+                    'valid': {'time_ms': np.asarray([], dtype=dtype or np.int64)}}
+
+    real, history.adapter = history.adapter, FakeAdapter
+    try:
+        a = history.prior_stats({'train': train, 'valid': [], 'test': test},
+                                prior_weight=0.0)
+        b = history.prior_stats({'train': train, 'valid': [], 'test': flipped},
+                                prior_weight=0.0)
+    finally:
+        history.adapter = real
+
+    # every test row sees the full train state, and only that
+    assert list(a[1]['test']) == [2.0, 2.0], a[1]['test']
+    # flipping every test label changes nothing anywhere
+    for split in ('train', 'test'):
+        assert np.array_equal(a[0][split], b[0][split]), split
+        assert np.array_equal(a[1][split], b[1][split]), split
+
+
+def test_guard_allows_history_helper():
+    """The legal route must pass the guard; the direct read must still fail."""
+    NL = chr(10)
+    legal = NL.join([
+        'from harness.history import prior_stats',
+        "IDX = {'label': 6}",
+        'def encode(splits):',
+        "    rate, count = prior_stats(splits, key='user_id')",
+        '    return rate, count',
+    ])
+    illegal = NL.join([
+        "IDX = {'label': 6}",
+        'def encode(splits):',
+        "    hist = [x[IDX['label']] for x in splits['train']]",
+        '    return hist',
+    ])
+    assert not guards.scan_source('pipeline/features.py', text=legal)
+    assert guards.scan_source('pipeline/features.py', text=illegal)
+
+
+def test_guard_scopes_label_rule_to_features_file():
+    """train.py legitimately reads labels; the feature rule must not judge it.
+
+    coder.py emits whole files, so every line of train.py reappears as an added line.
+    When scan_diff flattened all added lines into one blob, the pristine shipped
+    train.py failed its own guard and no training-loop change could ever pass.
+    """
+    import difflib
+    train = open(os.path.join(PIPELINE, "train.py"), encoding="utf-8").read().split(chr(10))
+    whole = chr(10).join(difflib.unified_diff(
+        [], train, fromfile="a/pipeline/train.py", tofile="b/pipeline/train.py",
+        lineterm=""))
+    ok, findings = guards.scan_diff(whole)
+    assert ok, "pristine train.py rejected by its own guard: %r" % (findings[:1],)
+
+    # The same rule must still fire for features.py.
+    feats = open(os.path.join(PIPELINE, "features.py"), encoding="utf-8").read().split(chr(10))
+    leaky = list(feats) + ["""    bad = [x[IDX['label']] for x in splits['train']]"""]
+    d = chr(10).join(difflib.unified_diff(
+        [], leaky, fromfile="a/pipeline/features.py",
+        tofile="b/pipeline/features.py", lineterm=""))
+    ok2, f2 = guards.scan_diff(d)
+    assert not ok2, "direct label read in features.py was allowed through"
+
+
 def _run_all():
     fns = [(n, f) for n, f in sorted(globals().items())
            if n.startswith('test_') and callable(f)]
@@ -321,6 +437,32 @@ def _run_all():
             print('  FAIL  %s: %s' % (name, exc))
     print('\n%d/%d passed' % (len(fns) - bad, len(fns)))
     return bad
+
+
+# ---------------- paired per-seed confirmation ----------------
+
+def test_paired_confirmation_flags_a_single_lucky_seed():
+    """Ensemble may be up while one seed regressed -- that must not be kept."""
+    from agent.controller import paired_confirmation
+    c = paired_confirmation({0: 0.610, 1: 0.605, 2: 0.598},
+                            {0: 0.602, 1: 0.601, 2: 0.600}, 0.004)
+    assert c['worst_delta'] < 0, c
+    assert not c['all_paired_positive']
+
+
+def test_paired_confirmation_accepts_a_consistent_gain():
+    from agent.controller import paired_confirmation
+    c = paired_confirmation({0: 0.605, 1: 0.604, 2: 0.606},
+                            {0: 0.602, 1: 0.601, 2: 0.600}, 0.003)
+    assert c['all_paired_positive'] and c['worst_delta'] > 0
+    assert abs(c['mean_delta'] - 0.004) < 1e-9
+
+
+def test_paired_confirmation_needs_two_shared_seeds():
+    """An ensemble node trains no seeds; it must fall back, not invent a comparison."""
+    from agent.controller import paired_confirmation
+    assert paired_confirmation({}, {0: 0.6, 1: 0.6}, 0.001) is None
+    assert paired_confirmation({0: 0.61}, {0: 0.60, 1: 0.60}, 0.001) is None
 
 
 if __name__ == '__main__':

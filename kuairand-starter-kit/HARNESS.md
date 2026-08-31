@@ -131,6 +131,20 @@ is most of the 0.0014 accept bar, so a real +0.001 improvement was indistinguish
 noise and got reverted. Three seeds cut the measurement noise to ~0.00035 and make the bar
 mean something. It costs 3x wall-clock per node, which the 6-hour ceiling absorbs easily.
 
+The count is one number, `self.seeds_per_node`, and it governs the **baseline as well as
+every candidate**. That is not a detail: a rank-average scores systematically above any of
+its members — measured here, 0.60219 over three seeds against 0.60147 over one — so
+measuring candidates on fewer seeds than the baseline charges them ~0.0007 of pure
+variance reduction as if it were a regression, half the accept bar. A dry run uses
+`DRY_SEEDS_PER_NODE = 2` to stay quick, but it uses 2 for everything.
+
+**Accept needs every paired seed to improve, not just the average.** Because the parent
+carries its own per-seed primaries, `paired_confirmation()` compares seed *s* against
+seed *s* — a matched test that removes the seed as a source of variance at no extra
+training cost. A change is kept only if the shipped artifact clears the accept bar *and*
+no individual seed regressed. Under the null, 3/3 paired seeds agreeing is p = 0.125 on
+its own; with the bar on top, a noise iteration essentially never enters the lineage.
+
 **The controller injects a free ensemble node every third iteration.** It trains nothing
 and calls no model — it rank-averages the best distinct candidates so far — so it costs
 zero tokens and about a second. Combining diverse candidates is the only move measured to

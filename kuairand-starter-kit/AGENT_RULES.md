@@ -65,6 +65,74 @@ around it.
 
 ---
 
+## 0b. Prior-history features: use `harness.history`
+
+**A fifth defect, found by running the agent.**
+
+The rules permit an outcome column to become an input feature when it is aggregated from
+*strictly earlier* rows (§3). Nothing made that possible. `same_row()` refuses `label` by
+name, the static guard rejects any other `IDX['label']` read inside `features.py`, and no
+helper existed — so the one legal route to headroom idea 2 was documented as legal and
+was unreachable in practice. §5 item 2 compounded it by pointing at raw-CSV reads, which
+the guard also rejects.
+
+> Scope note, for the record: this gap was found alongside a *separate* defect — see §0c —
+> and the two were initially conflated. The guard rejections observed in the measured runs
+> were caused by §0c, not by this one. No run has yet been blocked by the missing history
+> route, because no proposal has reached for it yet. The gap is real regardless: without
+> a helper, the first history hypothesis would have hit the same wall.
+
+`harness/history.py` is the route:
+
+```python
+from harness.history import prior_stats, bucketize
+
+rate, count = prior_stats(splits, signal='label', key='user_id')
+# rate[s], count[s] are float arrays aligned 1:1 with splits[s], for train/valid/test
+edges = np.quantile(rate['train'], [0.2, 0.4, 0.6, 0.8])   # TRAIN only
+bucket = {s: bucketize(rate[s], edges) for s in splits}
+```
+
+- `signal`: `'label'`, or any post-impression column (`is_click`, `is_like`,
+  `play_time_ms`, …) — sourced through the adapter, so test rows never enter memory.
+- `key`: a row field, or a tuple — `('user_id', 'author_id')` for user-author affinity.
+- `prior_weight`: Bayesian smoothing toward the train global mean. `count` tells the
+  model how much the estimate rests on.
+
+Three guarantees, proven by tests in `tests/test_harness.py` rather than by discipline:
+strictly-earlier only; **ties are not predecessors** (5.60% of validation rows share a
+user/timestamp); and **test outcomes never enter any aggregate** — flipping every test
+label leaves every output byte-identical.
+
+This is a mechanism, not a recommendation. Whether a prior aggregate helps, at which key
+and on which signal, is yours to determine.
+
+## 0c. The feature-builder label rule is scoped to `features.py`
+
+**A sixth defect, found by running the agent — this is the one that was actually
+blocking every iteration.**
+
+`pipeline/train.py` legitimately reads `IDX['label']`: it builds training targets and
+hands ground truth to `evaluate()`. Three such lines ship in the file today. The static
+guard knows this and scopes its feature-builder rule to `features.py`.
+
+`scan_diff` did not honour that scope. It flattened the added lines of *every* file in a
+diff into one blob and scanned it as if it were `features.py`. Because `coder.py` emits
+whole files, every line of `train.py` reappears as an added line — so **any** change to
+`train.py` was rejected, including a re-emission of the pristine shipped file.
+
+The effect: the entire training loop was sealed off — loss function, batching, early
+stopping, model selection. Three measured runs proposed a within-user listwise softmax
+(headroom idea 1, the one the organizers rate most likely to help) and all nine attempts
+were rejected on `train.py`'s own shipped lines. Two runs designated the baseline at a
+0.0000 delta before the cause was found.
+
+Fixed in `harness/guards.py`: `_added_by_file()` attributes added lines to their source
+file, so the feature-builder rule judges only `features.py`. Verified in three
+directions and regression-tested (`test_guard_scopes_label_rule_to_features_file`):
+pristine `train.py` passes, a direct label read in `features.py` still fails, and a diff
+touching `kit/` still fails.
+
 ## 0. Layout
 
 ```
@@ -172,6 +240,9 @@ smuggling the new logic into `kit/data.py` or `kit/evaluate.py`.
   user's past interactions — this is exactly what sequence modeling, headroom idea 2,
   needs). `features.py` enforces this: build same-row inputs through `same_row(x, name)`,
   which raises on any name in `LEAKY_COLUMNS` — don't bypass it with direct indexing.
+  **For (b), use `harness.history`** — see §0b. Rolling your own aggregate inside
+  `features.py` means touching `IDX['label']`, which the static guard rejects, and it is
+  the wrong place to get the ordering right anyway.
 
 ## 4. Already ruled out — don't re-spend iterations here
 
@@ -197,14 +268,16 @@ In the README's judged order of promise:
 2. **Sequence modeling** — no behavioral history is used at all; DIN/SIM-style user
    interest modeling is unexplored. **Correction from an earlier version of this doc:**
    `kit/data.py` is pristine vendor code and does *not* expose `is_click`/`is_like`/
-   `play_time_ms`/`hourmin`/etc. — it only loads the 5-field baseline row. Since
-   `kit/data.py` can't be touched, getting access to those columns for sequence or
-   multi-task features means `pipeline/features.py` reading the raw CSVs itself
-   (`log_standard_*.csv`, joined on `user_id`/`video_id`), independent of `kit.data.load()`
-   — that's within your editable surface, just extra work you should budget for.
+   `play_time_ms`/`hourmin`/etc. — it only loads the 5-field baseline row. **Superseded
+   by §0b:** an earlier version of this doc told you to read the raw CSVs from
+   `features.py`. Do not — the static guard rejects `open(...log_standard...)`, because
+   `log_standard_4_22_to_5_08_pure.csv` spans validation *and* test and carries
+   `long_view`. Use `harness.adapter` for raw columns and `harness.history` for prior
+   aggregates; both date-filter to train+valid before anything reaches you.
 3. **Multi-task** — auxiliary heads on `is_click`/`is_like`/`is_follow`/`is_comment`/
-   `is_forward`/`play_time_ms` alongside the `long_view` main task. Same caveat as #2 —
-   these columns need to be sourced independently in `features.py`.
+   `is_forward`/`play_time_ms` alongside the `long_view` main task. Source them with
+   `harness.adapter.auxiliary_targets()`, which returns them as targets and refuses test
+   rows.
 4. **Censored watch-time regression** (CWM's angle) — advanced, treat as a stretch goal.
 5. **Different model family** (DeepFM/DCN/xDeepFM) — lower priority than 1–3 since
    capacity isn't the bottleneck.

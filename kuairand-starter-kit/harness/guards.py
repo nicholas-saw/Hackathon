@@ -136,6 +136,34 @@ def scan_pipeline():
     return findings
 
 
+def _added_by_file(diff_text):
+    """Map file path -> its added lines.
+
+    Without this, added lines from every file were flattened into one blob and scanned
+    as if they were features.py. `pipeline/train.py` legitimately reads IDX['label'] to
+    build training targets and to hand ground truth to evaluate() -- three such lines
+    ship in the file today. Because coder.py emits whole files, every line reappears as
+    an added line, so the flattened scan rejected ANY train.py change, including a
+    re-emission of the pristine file. That closed off the whole training loop: loss
+    function, batching, early stopping, model selection.
+
+    Returns {path or None: [lines]}; None means the diff carried no usable header.
+    """
+    out, cur = {}, None
+    for ln in diff_text.split(chr(10)):
+        if ln.startswith('+++'):
+            q = ln[3:].strip().replace(chr(92), '/')
+            if q.startswith('a/') or q.startswith('b/'):
+                q = q[2:]
+            cur = None if q in ('/dev/null', '') else q
+            continue
+        if ln.startswith('---'):
+            continue
+        if ln.startswith('+'):
+            out.setdefault(cur, []).append(ln[1:])
+    return out
+
+
 def scan_diff(diff_text):
     """Check a unified diff: which files it touches, and its added lines.
 
@@ -158,10 +186,16 @@ def scan_diff(diff_text):
                                     'a new module, emit a capability request instead of '
                                     'widening the diff.' % ', '.join(sorted(EDITABLE)),
                              'snippet': ''})
-    added = '\n'.join(ln[1:] for ln in diff_text.split('\n')
-                      if ln.startswith('+') and not ln.startswith('+++'))
-    if added.strip():
-        findings += scan_source('pipeline/<diff>', text=added)
+    for path, lines_ in sorted(_added_by_file(diff_text).items(),
+                               key=lambda kv: (kv[0] is None, kv[0] or '')):
+        body = chr(10).join(lines_)
+        if not body.strip():
+            continue
+        if path is None:
+            # No parseable file header: scan strictly rather than skip.
+            findings += scan_source('pipeline/<diff>', text=body)
+        else:
+            findings += scan_source(os.path.join(ROOT, path), text=body)
     return (not findings), findings
 
 

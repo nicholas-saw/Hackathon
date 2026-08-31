@@ -133,7 +133,24 @@
    "notes": [
     "Both GAUC and nDCG@5 depend only on within-user order, which a monotone transform preserves. Exactly zero effect."
    ]
+  },
+  "objective_bpr": {
+   "id": "objective_bpr",
+   "name": "objective_bpr",
+   "summary": "(proposed by the agent)",
+   "status": "live",
+   "source": "agent",
+   "notes": [],
+   "measured": [
+    {
+     "iteration": 1,
+     "hypothesis": "Pairwise BPR sampling (one positive vs one negative drawn from the SAME user's impressions, in-batch) raises validation primary by more than 0.002 over pointwise BCE at identical f",
+     "delta": -0.00085,
+     "verdict": "REVERT",
+     "note": "The claimed mechanism (all gradient mass moved onto order-changing terms) was implemented correctly, but the effect it predicted did not appear: primary moved -0.00085, i.e. within ~1.7 sigma of the paired noise floor and an order of magnit"
+    }
+   ]
   }
  },
- "updated": "2026-08-30T18:55:50Z"
+ "updated": "2026-08-30T20:01:25Z"
 }

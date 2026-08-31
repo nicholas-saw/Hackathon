@@ -33,6 +33,8 @@ from agent.llm import LLM, LLMUnavailable, Meter, BudgetHalt      # noqa: E402
 EPS = 0.002              # organizer convergence threshold
 N_CONV = 3               # consecutive non-improving iterations
 ACCEPT = 0.0014          # 2 sigma on the measured paired noise floor (sigma ~ 0.0007)
+CONFIRM_SEEDS = [0, 1, 2]  # matched seeds for a candidate that might actually be kept
+CONFIRM_FLOOR = -0.0007  # -1 sigma: below this a single seed is enough to reject
 MAX_ITERS = 50           # official hard cap
 MAX_WALL_S = 6 * 3600    # official wall-clock ceiling
 
@@ -42,6 +44,13 @@ MAX_WALL_S = 6 * 3600    # official wall-clock ceiling
 # to ~0.00035 and make the bar mean something. Cost is 3x wall-clock per node, which
 # the 6h ceiling absorbs easily at ~60s a seed.
 SEEDS_PER_NODE = 3
+
+# A dry run only has to prove the plumbing, so it uses fewer seeds -- but it must use the
+# SAME number for the baseline and for every candidate. Measuring candidates on one seed
+# against a rank-averaged three-seed baseline handed the baseline the ensemble's variance
+# reduction (~+0.0007 here, half the accept bar) and made every idea look worse than it
+# was. Two is the minimum that still exercises the paired comparison.
+DRY_SEEDS_PER_NODE = 2
 
 # The controller injects a pure-ensemble node this often. It trains nothing and calls no
 # model, so it costs zero tokens and seconds of wall-clock — and combining diverse
@@ -100,6 +109,32 @@ def sha256_file(path):
     return h.hexdigest()
 
 
+def paired_confirmation(child_per_seed, parent_per_seed, ensemble_delta):
+    """Matched per-seed comparison of a node against its parent, or None.
+
+    Both nodes train the same seed list, so seed s can be compared with seed s. That
+    pairing removes the seed as a source of variance and gives the honest effect size
+    of the change itself. Contrasting one child seed with the parent's rank-averaged
+    ENSEMBLE would not be matched -- the ensemble sits systematically above any single
+    seed, so such a test rejects even real improvements.
+
+    Needs at least two shared seeds to say anything; an ensemble node trains none and
+    gets None, leaving the caller on the plain ensemble delta.
+    """
+    child, par = child_per_seed or {}, parent_per_seed or {}
+    shared = sorted(set(child) & set(par), key=str)
+    if len(shared) < 2:
+        return None
+    paired = [float(child[k]) - float(par[k]) for k in shared]
+    return {'seeds': [int(k) for k in shared],
+            'paired_deltas': [round(d, 6) for d in paired],
+            'mean_delta': sum(paired) / len(paired),
+            'worst_delta': min(paired),
+            'all_paired_positive': all(d > 0 for d in paired),
+            'ensemble_delta': ensemble_delta,
+            'basis': 'paired_per_seed'}
+
+
 def workspace_hash(root=ROOT):
     """Merkle-ish fingerprint of everything that must not change during a run."""
     h = hashlib.sha256()
@@ -130,6 +165,8 @@ class Controller:
         os.makedirs(self.preds_dir, exist_ok=True)
         self.jr = J.Journal(self.run_dir)
         self.dry_run = dry_run
+        # One seed count governs baseline AND candidates; see DRY_SEEDS_PER_NODE.
+        self.seeds_per_node = DRY_SEEDS_PER_NODE if dry_run else SEEDS_PER_NODE
         self.max_iters = max_iters
         self.meter = Meter(ceiling_usd=budget_usd)
         self.llm = None
@@ -202,15 +239,20 @@ class Controller:
         t_start = time.time()
 
         # Iteration 0 is the untouched baseline: the parent everything is measured against.
-        res0, p0 = self.run_node(0, {}, list(range(SEEDS_PER_NODE)), timeout=1800)
+        res0, p0 = self.run_node(0, {}, list(range(self.seeds_per_node)), timeout=1800)
         if not p0:
             self.jr.append(J.ERROR_RECOVERY, {'iteration': 0, 'fatal': True, **res0})
             raise RuntimeError('baseline node failed; harness is not trustworthy:\n%s'
                                % res0['stderr'][-1500:])
         parent = {'primary': p0['metrics']['primary'], 'label': 'baseline',
-                  'iteration': 0, 'preds': p0['preds_path']}
+                  'iteration': 0, 'preds': p0['preds_path'],
+                  'per_seed': p0.get('per_seed_primary') or {}}
         self.node_times.append(p0['seconds'])
         self.nodes.append({'iteration': 0, 'primary': parent['primary'],
+                           'seeds': list(range(self.seeds_per_node)),
+                           'artifact': ('rank_average_ensemble'
+                                        if self.seeds_per_node > 1 else 'single_seed'),
+                           'artifact_source': 'official_baseline',
                            'preds': p0['preds_path'], 'label': 'baseline',
                            'metrics': p0['metrics']})
         self.best_history.append(parent['primary'])
@@ -241,6 +283,13 @@ class Controller:
                     self.nodes.append({'iteration': it, 'primary': m['primary'],
                                        'preds': ens['preds_path'], 'metrics': m,
                                        'is_ensemble': True,
+                                       # It trains nothing, so it has no seeds of its
+                                       # own. Defaulting to [0]/single_seed would report
+                                       # a rank-average of several nodes as one model.
+                                       'seeds': [],
+                                       'artifact': 'rank_average_of_nodes',
+                                       'artifact_source': 'harness_ensemble',
+                                       'members': list(ens['members']),
                                        'label': 'rank-average of %s'
                                                 % ','.join(map(str, ens['members']))})
                     self.jr.append(J.ITERATION, {
@@ -314,11 +363,71 @@ class Controller:
             self.node_times.append(parsed['seconds'])
             m = parsed['metrics']
             delta = m['primary'] - parent['primary']
+
+            # A single seed can reject safely -- the deltas that matter are several
+            # sigma. It cannot ACCEPT safely: at the 0.0014 bar, a true improvement and
+            # a true zero are only ~2 sigma apart on one seed, and a false negative does
+            # not merely lose an iteration, it burns one of the three that trigger
+            # convergence. So anything not clearly negative is re-measured on matched
+            # seeds, and the decision uses the MEAN PER-SEED primary. (run_node
+            # rank-averages multiple seeds into an ensemble; that ensemble score is a
+            # different quantity and would flatter the candidate.)
+            confirm = None
+            # Every node already trains SEEDS_PER_NODE seeds, and the parent kept its own
+            # per-seed primaries, so the honest effect size is free: pair seed s against
+            # seed s. That is a matched comparison. Contrasting one child seed with the
+            # parent's rank-averaged ENSEMBLE is not -- the ensemble sits systematically
+            # above any single seed, so such a test would reject even real improvements.
+            confirm = paired_confirmation(parsed.get('per_seed_primary'),
+                                          parent.get('per_seed'), delta)
+            if confirm is not None:
+                print('iter %03d  paired seeds: mean %+.5f  worst %+.5f  (%d/%d up)'
+                      % (it, confirm['mean_delta'], confirm['worst_delta'],
+                         sum(1 for d in confirm['paired_deltas'] if d > 0),
+                         len(confirm['paired_deltas'])), flush=True)
+
+            # Fallback: a single-seed node cannot be paired, so re-measure it on matched
+            # seeds. Confirmation spends training time, not tokens, and training is not
+            # the binding constraint (100 baseline iterations is ~28 min of one CPU core).
+            if confirm is None and len(seeds) == 1 and delta > CONFIRM_FLOOR:
+                cres, cparsed = self.run_node(
+                    it, cfg, CONFIRM_SEEDS,
+                    executor.adaptive_timeout(self.node_times) * len(CONFIRM_SEEDS))
+                if cparsed and cparsed.get('per_seed_primary'):
+                    per = sorted(float(v) for v in cparsed['per_seed_primary'].values())
+                    mean_primary = sum(per) / len(per)
+                    confirm = {'seeds': CONFIRM_SEEDS, 'per_seed_primary': per,
+                               'basis': 'rerun_on_matched_seeds',
+                               'mean_primary': mean_primary,
+                               'mean_delta': mean_primary - parent['primary'],
+                               'worst_delta': per[0] - parent['primary'],
+                               'single_seed_delta': delta,
+                               'ensemble_primary': cparsed['metrics']['primary'],
+                               'seconds': cparsed['seconds']}
+                    # The confirmation run is now the node: its metrics and predictions
+                    # are the artifact that would actually be submitted.
+                    m, parsed = cparsed['metrics'], cparsed
+                    delta = confirm['mean_delta']
+                    seeds = CONFIRM_SEEDS
+                    print('iter %03d  confirming on %d seeds: mean %+.5f  worst %+.5f'
+                          % (it, len(CONFIRM_SEEDS), confirm['mean_delta'],
+                             confirm['worst_delta']), flush=True)
+
             verdict = self._verdict(hyp, diff, m, parent)
 
             self.nodes.append({'iteration': it, 'primary': m['primary'],
                                'preds': parsed['preds_path'],
-                               'label': hyp.get('hypothesis', '')[:80], 'metrics': m})
+                               'label': hyp.get('hypothesis', '')[:80], 'metrics': m,
+                               'seeds': list(seeds),
+                               'artifact': ('rank_average_ensemble' if len(seeds) > 1
+                                            else 'single_seed'),
+                               # Only the re-run branch REPLACES the node's artifact.
+                               # A paired confirmation just measures the one already
+                               # trained, so it must not relabel its provenance.
+                               'artifact_source': (
+                                   'harness_confirmation'
+                                   if (confirm or {}).get('basis') == 'rerun_on_matched_seeds'
+                                   else 'agent_hypothesis')})
 
             self.jr.append(J.ITERATION, {
                 'iteration': it, 'hypothesis': hyp.get('hypothesis', ''),
@@ -330,6 +439,7 @@ class Controller:
                 'mechanism_update': verdict.get('mechanism_update', ''),
                 'deprioritise': verdict.get('deprioritise', []),
                 'metrics': m, 'delta_vs_parent': delta, 'accept_bar': ACCEPT,
+                'confirmation': confirm,
                 'seconds': parsed['seconds'], 'config': cfg, 'seeds': seeds,
                 'diff': diff, 'note': note,
                 'provenance': 'harness' if self.dry_run else 'agent',
@@ -340,13 +450,26 @@ class Controller:
                                  verdict['verdict'], verdict.get('reason', ''),
                                  hyp.get('hypothesis', ''))
 
+            # KEEP needs the shipped artifact to clear the bar AND every matched seed
+            # to improve, so one lucky seed cannot carry a change into the lineage.
+            # Under the null, 3/3 paired seeds agreeing has p = 0.125 on its own; with
+            # the accept bar on top, a noise iteration essentially never gets kept.
             keep = verdict['verdict'] == 'KEEP' and delta > ACCEPT
+            if keep and confirm is not None and confirm['worst_delta'] <= 0:
+                keep = False
+                print('iter %03d  delta cleared the bar but seed delta %+.5f was not '
+                      'positive -- not kept' % (it, confirm['worst_delta']), flush=True)
+            if keep and confirm is None and len(seeds) == 1:
+                keep = False
+                print('iter %03d  unconfirmed single-seed gain -- not kept' % it,
+                      flush=True)
             print('iter %03d  primary %.5f  delta %+.5f  %s%s'
                   % (it, m['primary'], delta, verdict['verdict'],
                      '' if keep else '  (reverted)'), flush=True)
             if keep:
                 parent = {'primary': m['primary'], 'label': hyp.get('hypothesis', '')[:60],
-                          'iteration': it, 'preds': parsed['preds_path']}
+                          'iteration': it, 'preds': parsed['preds_path'],
+                          'per_seed': parsed.get('per_seed_primary') or {}}
             elif prev:
                 coder_mod.restore(ROOT, prev)
 
@@ -381,7 +504,9 @@ class Controller:
             if it - 1 >= len(DRY_IDEAS):
                 return None, None, None, None, '', ''
             idea = dict(DRY_IDEAS[it - 1])
-            return idea, idea.get('config', {}), idea.get('seeds', [0]), None, '', 'fixed idea'
+            return (idea, idea.get('config', {}),
+                    idea.get('seeds', list(range(self.seeds_per_node))),
+                    None, '', 'fixed idea')
 
         entries = list(self.jr.events(J.ITERATION))
         digest = proposer_mod.digest(entries)
@@ -436,7 +561,7 @@ class Controller:
         after, note, _ = coder_mod.code(self.llm, hyp, ROOT)
         before = coder_mod.current_files(ROOT)
         diff = coder_mod.make_diff(before, after)
-        return hyp, {}, list(range(SEEDS_PER_NODE)), after, diff, note
+        return hyp, {}, list(range(self.seeds_per_node)), after, diff, note
 
     def _verdict(self, hyp, diff, metrics, parent, failure=None):
         if self.dry_run or self.llm is None:
@@ -497,6 +622,28 @@ class Controller:
         else:
             test_vec = choice['test']
 
+        # Provenance of what is actually being submitted. Selection may land on a node
+        # (which carries its own provenance), or on something the harness builds at
+        # designation time -- the rank-average ensemble (iteration -1) or the banked
+        # floor (-2) -- which has no node and must not borrow one's label.
+        chosen_node = next((n for n in self.nodes
+                            if n['iteration'] == choice['iteration']), None)
+        if chosen_node is not None:
+            chosen_artifact = chosen_node.get('artifact', 'single_seed')
+            chosen_source = chosen_node.get('artifact_source', 'agent_hypothesis')
+            chosen_seeds = chosen_node.get('seeds', [0])
+        elif choice['kind'] == 'ensemble':
+            chosen_artifact = 'rank_average_ensemble'
+            chosen_source = 'harness_selection'
+            chosen_seeds = sorted({sd for n in self.nodes
+                                   if n['iteration'] in (sel_report.get('ensemble') or {})
+                                                        .get('members', [])
+                                   for sd in n.get('seeds', [])})
+        else:
+            chosen_artifact = 'banked_floor'
+            chosen_source = 'human_banked_floor'
+            chosen_seeds = []
+
         sub = os.path.join(SUBMISSIONS, '%s_final.csv' % self.run_id)
         write(sub, 'test', test_vec)
         ok, msg, _ = check(sub, 'test')
@@ -508,8 +655,19 @@ class Controller:
             'validation_primary': choice['primary'],
             'selection': sel_report,
             'candidates_considered': [
-                {'iteration': n['iteration'], 'primary': n['primary'], 'label': n['label']}
+                {'iteration': n['iteration'], 'primary': n['primary'], 'label': n['label'],
+                 'seeds': n.get('seeds', [0]),
+                 'artifact': n.get('artifact', 'single_seed'),
+                 'artifact_source': n.get('artifact_source', 'agent_hypothesis')}
                 for n in self.nodes],
+            # Provenance of the thing actually submitted. A rank-average ensemble
+            # produced by a harness confirmation run scores higher than the single-seed
+            # model the agent proposed, purely from variance reduction. That is a real
+            # and permitted gain, but it is the harness's doing, not the agent's, and
+            # the run log has to say so rather than let it read as a discovery.
+            'chosen_artifact': chosen_artifact,
+            'chosen_artifact_source': chosen_source,
+            'chosen_seeds': chosen_seeds,
             'submission': sub,
             'submission_sha256': sha256_file(sub),
             'submission_check_ok': ok, 'submission_check_msg': msg,

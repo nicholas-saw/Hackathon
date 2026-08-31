@@ -494,5 +494,114 @@ def test_a_split_decision_still_fails_the_unanimous_bar():
     assert c['mean_delta'] > UNANIMOUS_ACCEPT, 'mean alone would have passed'
 
 
+def _fresh_registry(tmp):
+    """A registry file seeded from SEED, isolated from the real context/ one."""
+    from harness import knowledge as K
+    path = os.path.join(tmp, 'directions.json')
+    K.save(K.load(path), path)
+    return path
+
+
+def test_registry_closes_a_direction_after_two_misses():
+    from harness import knowledge as K
+    with tempfile.TemporaryDirectory() as tmp:
+        path = _fresh_registry(tmp)
+        K.record('made_up', 1, -0.003, 'REVERT', 'miss', path=path)
+        d = K.record('made_up', 2, -0.002, 'REVERT', 'miss', path=path)
+        assert d['status'] == K.REFUTED
+        assert 'made_up' in K.closed_ids(path)
+
+
+def test_registry_reopens_a_closed_direction_on_a_confirmed_win():
+    """The real listwise chronology, replayed.
+
+    A direction id names an intent, not a formulation: nine independently written
+    listwise implementations spanned -0.00318 to +0.00162. The two opening misses close
+    the direction three runs BEFORE the verified win arrives, so "never close over a
+    confirmed win" is not enough on its own -- the win has to reopen it, and the misses
+    that follow must not close it again.
+    """
+    from harness import knowledge as K
+    with tempfile.TemporaryDirectory() as tmp:
+        path = _fresh_registry(tmp)
+        for i, miss in enumerate([-0.00273, -0.00273, -0.00230, -0.00155], start=1):
+            d = K.record('listwise_like', i, miss, 'REVERT', 'miss', path=path)
+        assert d['status'] == K.REFUTED, 'precondition: misses close it first'
+
+        d = K.record('listwise_like', 5, 0.00197, 'INCONCLUSIVE', 'verified', path=path,
+                     confirm={'mean_delta': 0.00162, 'worst_delta': 0.00097})
+        assert d['status'] == K.LIVE, 'a confirmed win must reopen a closed direction'
+
+        for i, miss in enumerate([-0.00233, -0.00318, -0.00233], start=6):
+            d = K.record('listwise_like', i, miss, 'REVERT', 'miss', path=path)
+        assert d['status'] == K.LIVE, 'later misses re-closed a confirmed direction'
+        assert 'listwise_like' not in K.closed_ids(path)
+
+
+def test_registry_confirmation_below_the_bar_does_not_protect():
+    """Protection requires clearing the accept bar, not merely being positive."""
+    from harness import knowledge as K
+    with tempfile.TemporaryDirectory() as tmp:
+        path = _fresh_registry(tmp)
+        K.record('weak_thing', 1, 0.0005, 'INCONCLUSIVE', 'weak', path=path,
+                 confirm={'mean_delta': 0.0005, 'worst_delta': 0.0001})
+        d = K.record('weak_thing', 2, -0.002, 'REVERT', 'miss', path=path)
+        assert d['status'] == K.REFUTED
+
+
+def test_impl_id_separates_implementations_that_share_a_label():
+    """Prose cannot distinguish implementations; the diff can.
+
+    Every one of the 29 recorded agent iterations produced a unique diff, including the
+    nine that all called themselves "within-user listwise softmax".
+    """
+    from harness import knowledge as K
+    a = K.impl_id('--- a/pipeline/model.py\n+    pure softmax, no BCE mix\n')
+    b = K.impl_id('--- a/pipeline/model.py\n+    softmax + 0.3 * BCE\n')
+    assert a != b, 'different code must not collide'
+    assert a == K.impl_id('--- a/pipeline/model.py\n+    pure softmax, no BCE mix\n')
+    assert K.impl_id('') == K.impl_id(None)
+
+
+def test_ablation_candidate_fires_when_implementations_disagree_in_sign():
+    from harness import knowledge as K
+    with tempfile.TemporaryDirectory() as tmp:
+        path = _fresh_registry(tmp)
+        K.record('obj_x', 1, -0.0030, 'REVERT', 'lost', diff='DIFF-ONE',
+                 objective_family='listwise', path=path)
+        assert K.ablation_candidates(path) == [], 'one implementation cannot disagree'
+
+        K.record('obj_x', 2, 0.0025, 'KEEP', 'won', diff='DIFF-TWO',
+                 objective_family='listwise', path=path)
+        got = K.ablation_candidates(path)
+        assert len(got) == 1 and got[0]['direction_id'] == 'obj_x'
+        assert got[0]['n_implementations'] == 2
+        assert abs(got[0]['spread'] - 0.0055) < 1e-9
+
+
+def test_ablation_candidate_silent_when_implementations_agree():
+    """Consistent losers are a settled direction, not a contradiction to spend on."""
+    from harness import knowledge as K
+    with tempfile.TemporaryDirectory() as tmp:
+        path = _fresh_registry(tmp)
+        for i, d in enumerate([-0.0030, -0.0021, -0.0014], start=1):
+            K.record('obj_y', i, d, 'REVERT', 'lost', diff='DIFF-%d' % i,
+                     objective_family='pairwise', path=path)
+        assert K.ablation_candidates(path) == []
+
+
+def test_traits_accumulate_across_sightings_of_the_same_code():
+    from harness import knowledge as K
+    with tempfile.TemporaryDirectory() as tmp:
+        path = _fresh_registry(tmp)
+        K.record('obj_z', 1, 0.001, 'INCONCLUSIVE', 'a', diff='SAME',
+                 traits=['no BCE mix'], path=path)
+        K.record('obj_z', 2, 0.002, 'KEEP', 'b', diff='SAME',
+                 traits=['no BCE mix', 'uncapped lists'], path=path)
+        ims = K.implementations_of('obj_z', path)
+        assert len(ims) == 1, 'identical diffs must share one implementation id'
+        assert ims[0]['traits'] == ['no BCE mix', 'uncapped lists']
+        assert len(ims[0]['measured']) == 2
+
 if __name__ == '__main__':
     raise SystemExit(1 if _run_all() else 0)

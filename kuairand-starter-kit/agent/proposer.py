@@ -82,7 +82,12 @@ Return ONE JSON object, no prose, no code fence. Either:
       "invalid_if": "the observation that would refute this",
       "files_to_modify": ["pipeline/model.py"],
       "extends_refuted": null,
-      "config": {"model": "fm", "lr": 0.001}
+      "config": {"model": "fm", "lr": 0.001},
+      "model_family": "FM",
+      "objective_family": "pointwise" | "pairwise" | "listwise" | "listwise+pointwise",
+      "implementation_traits": ["how THIS code differs from the other attempts at the
+                                 same objective_family: grouping, normalisation, loss
+                                 composition, list handling, capping"]
     },
     ... exactly 3 ...
   ],
@@ -99,6 +104,20 @@ or:
   "question": "what you are trying to learn",
   "why_needed": "which candidate this would change, and how"
 }
+
+NAME THE IMPLEMENTATION, NOT JUST THE DIRECTION. `objective_family` says WHAT you are
+optimising; `implementation_traits` says HOW this particular attempt does it. They are
+not the same thing and the difference is the largest measured effect in this project:
+
+- Nine implementations of "within-user listwise softmax" scored between -0.00318 and
+  +0.00162. The spread across implementations of one label is 5.2x the spread across
+  seeds of one implementation. The label predicts almost nothing; the traits do.
+- So "listwise failed seven times" is not a reason to avoid listwise, and "listwise won
+  once" is not a reason to expect it to win again. What matters is which traits the
+  winner had. The registry lists them under the winning implementation.
+- If you propose something in a family that already has recorded attempts, your
+  `implementation_traits` must say what you are doing DIFFERENTLY from them, in terms
+  that could be checked against the code. "A better listwise loss" is not a trait.
 
 `config` IS HOW YOU ACTIVATE WHAT THE CODER WRITES. The harness runs exactly
 `pipeline.train.fit_predict(enc, dim, seed=s, **config)` and nothing else.

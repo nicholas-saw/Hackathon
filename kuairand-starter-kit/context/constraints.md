@@ -719,18 +719,57 @@ That the current repository implements any of these checks — see C22.
   `agent/prompts/` are empty directories.
 - An earlier probe counted only seven such files; review corrected this to 15.
 
-**Interpretation:**
-Nothing in the autonomous system is built yet. Every guarantee the run depends on —
-scoring, execution, timeout handling, caching, logging, submission validation — is
-currently a comment.
+**Status: SUPERSEDED — no longer true.** Retained with its ID rather than deleted, per
+the ID-stability rule in the header.
+
+**Interpretation (as recorded at audit time):**
+Nothing in the autonomous system was built yet. Every guarantee the run depends on —
+scoring, execution, timeout handling, caching, logging, submission validation — was
+at that moment a comment.
+
+**Current state (2026-08-31):** the same three directories hold 22 files and 3,262
+executable non-comment lines. The harness has since completed 18 designated runs
+(`runlogs/*/journal.jsonl`) and passes 37 tests in `tests/test_harness.py`. Do not cite
+this entry as evidence about present repository state.
 
 **Does NOT establish:**
 Any estimate of the effort required, or that the intended design is sound. It states
-repository state at audit time; re-verify before relying on it.
+repository state at audit time only.
 
 **Provenance:**
 - PRE_AUDIT I01
 - REVIEW_REPORT §3, §9: APPROVE
+- Superseded by direct observation of the working tree at commit 4215473
+
+---
+
+### C24 — An inactive opt-in branch reruns the parent bit-for-bit
+
+**Classification:** ENGINEERING CONSTRAINT
+
+**Evidence:**
+- The node process runs exactly `pipeline.train.fit_predict(enc, dim, seed=s, **config)`
+  (`harness/run_node.py`). A code path added behind a new `model=` value is entered only
+  if `config` selects it.
+- Run `20260830T230438Z` iterations 1 and 3 added a listwise path and a BPR path
+  respectively. Both journalled `"config": {}` and both scored `delta_vs_parent`
+  **exactly +0.00000**.
+- Cause: `Controller._plan` returned a hardcoded `{}` in place of the proposer's
+  `config`. Fixed at commit `4215473`; `_plan` now forwards `hyp['config']`.
+
+**Interpretation:**
+A delta of exactly `+0.00000` in a journal means the edited path was never executed. Two
+iterations of that run are non-measurements that still counted toward the convergence
+rule.
+
+**Does NOT establish:**
+Anything about the methods nominally under test in those two iterations. They were not
+tested. Journal rows `20260830T230438Z` it1 and it3 must not be read as evidence for or
+against listwise or pairwise objectives.
+
+**Provenance:**
+- `runlogs/run_20260830T230438Z/journal.jsonl`, iterations 1 and 3
+- Fix and regression note in `agent/controller.py::_plan`, commit `4215473`
 
 ---
 
@@ -753,3 +792,214 @@ scope Z", it does not belong here.
 
 Every addition requires: finding, classification, numerical evidence with scope,
 investigation ID, what it establishes, what it does not establish, and human review.
+
+---
+
+## 10. Agent Run Evidence — Autonomous Loop, 2026-08-30/31
+
+> Source: `runlogs/*/journal.jsonl`, 18 designated runs. Validation only; no entry here
+> touches the evaluation split.
+>
+> **Read the scope lines carefully.** Each run's coder wrote its own implementation of
+> the direction its proposer named, so a direction id names an *intent*, not a
+> formulation. C25 is the worked example of why that distinction decides whether an
+> entry is a dead end or the banked result.
+>
+> Unless a row says otherwise, a delta is single-seed and the paired noise floor is
+> sigma ≈ 0.0005–0.0007 (C8).
+
+### C25 — Listwise softmax replacing pointwise BCE: outcome is implementation-dependent
+
+**Classification:** INCONCLUSIVE (as a direction) / WEAK POSITIVE EVIDENCE (for the one
+verified formulation)
+
+**Evidence:**
+- Nine independently coded implementations of the same nominal direction, across eight
+  runs. Deltas vs. the run's own baseline:
+
+  | Run | Iter | Delta | Seeds |
+  |---|---:|---:|---:|
+  | 20260830T155011Z | 1 | −0.00273 | 1 |
+  | 20260830T164210Z | 1 | −0.00273 | 1 |
+  | 20260830T222356Z | 1 | −0.00230 | 1 |
+  | 20260830T234014Z | 1 | −0.00155 | 1 |
+  | 20260831T004013Z | 1 | −0.00233 | 1 |
+  | 20260831T005603Z | 1 | −0.00318 | 1 |
+  | 20260831T011354Z | 1 | −0.00233 | 1 |
+  | **20260830T235541Z** | **1** | **+0.00197** | 1 |
+
+- The one positive was then verified on three matched seeds, baseline and method
+  re-measured together: +0.00197 / +0.00097 / +0.00191, mean **+0.00162** (sd 0.00046),
+  all three positive, worst seed still +0.00097. That artifact is the banked submission
+  `submissions/verified_listwise_3seed_ensemble.csv` (RESULTS.md §1–2).
+- A tenth row, `20260830T230438Z` it1, shows +0.00000 and is a non-measurement — see
+  C24.
+
+**Interpretation:**
+Seven implementations of "within-user listwise softmax" measured 3–6 sigma negative and
+one measured, on repeated matched seeds, a real gain of +0.00162. The label does not
+identify a formulation; the spread is dominated by implementation detail (grouping,
+list construction, temperature, checkpoint selection), which the journals record only
+as free text.
+
+**Does NOT establish:**
+That listwise softmax is refuted — the only verified positive result in the whole
+programme is an instance of it. Nor that it is reliably positive: eight of nine
+implementations were not. It does not identify which implementation detail carries the
+sign; that remains open. Do **not** close this direction on the count of negatives.
+
+**Provenance:**
+- `runlogs/run_2026083*/journal.jsonl` (nine iterations, listed above)
+- Matched-seed verification: RESULTS.md §2
+- Registry: `objective_listwise`, deliberately held LIVE
+
+---
+
+### C26 — Within-user pairwise (BPR) terms, as tested
+
+**Classification:** STRONG NEGATIVE EVIDENCE (for the five tested formulations)
+
+**Evidence:**
+
+  | Run | Iter | Delta | Seeds | Form |
+  |---|---:|---:|---:|---|
+  | live_smoke | 1 | −0.00085 | 3 | replacement |
+  | 20260830T155011Z | 3 | −0.00279 | 1 | additive term |
+  | 20260830T222356Z | 4 | −0.00072 | 3 | replacement; confirm mean −0.00072, worst −0.00127 |
+  | 20260831T005603Z | 2 | −0.00337 | 1 | hybrid, `pair_weight` 0.5 |
+  | 20260831T011354Z | 3 | −0.00139 | 1 | `fm_bpr`, `pair_weight` 0.3 |
+
+- Five independent implementations, **zero** positive. Both replacement and additive
+  forms; pair weights 0.3 and 0.5. `20260830T230438Z` it3 (+0.00000) is excluded as a
+  non-measurement (C24).
+
+**Interpretation:**
+In this five-field FM, sampled within-user pairwise objectives underperformed the
+pointwise baseline in every tested formulation, including two measured on three seeds.
+
+**Does NOT establish:**
+That pairwise objectives are useless in another architecture, another negative-sampling
+scheme, or at other weights. The tested range of `pair_weight` is two values.
+
+**Provenance:**
+- `runlogs/*/journal.jsonl`, five iterations listed above
+- Registry: `objective_bpr`, REFUTED
+
+---
+
+### C27 — Hybrid pointwise + listwise objectives, as tested
+
+**Classification:** WEAK NEGATIVE EVIDENCE (lightly replicated, n = 2)
+
+**Evidence:**
+- `20260830T235541Z` it3: −0.00289, single seed, `lw_weight` 0.5, `patience` 6.
+- `20260831T004013Z` it2: −0.00216, single seed, `listwise_weight` 0.5, 3-epoch warmup.
+- `20260831T011354Z` it2 (`listwise_weight` 0.3) returned no usable metric and is not
+  counted.
+
+**Interpretation:**
+Both tested hybrids were 3–6 sigma below their baseline. Adding a listwise term to the
+pointwise loss did not recover the gain that the standalone listwise formulation in C25
+showed.
+
+**Does NOT establish:**
+A general result about hybrid objectives — two implementations at one weight setting
+(0.5) is thin, and the 0.3 setting was never measured. This is a WEAK NEGATIVE and must
+not be quoted as a prohibition.
+
+**Provenance:**
+- `runlogs/run_20260830T235541Z`, `run_20260831T004013Z`
+- Registry: `objective_hybrid_listwise`
+
+---
+
+### C28 — Strictly-prior USER-side behavioural aggregates as bucketized FM fields
+
+**Classification:** WEAK POSITIVE EVIDENCE (single investigation; three matched seeds)
+
+**Evidence:**
+- `20260831T011354Z` it4. Fields added, all count-smoothed and built from strictly
+  earlier rows: a user-level prior engagement-rate bucket, a user×tab affinity bucket,
+  and a user×author affinity bucket.
+- Three matched seeds: 0.603832 / 0.604448 / 0.604553; mean 0.604278. Paired mean delta
+  **+0.00281**, worst seed **+0.00236**; all three positive.
+- The shipped 3-seed rank-average artifact scored 0.606092 against a 0.601470 baseline.
+- Decomposition: GAUC 0.6674 → 0.6738; nDCG@5 0.5357 → 0.5384. The gain is mostly GAUC.
+
+**Interpretation:**
+The largest confirmed single-iteration gain in any run. Its mechanism is consistent with
+C2: `user×tab` and `user×author` vary *within* a user's impression list and so can
+reorder it first-order, while the user-level rate is constant within a user and can act
+only through its crosses with the item side.
+
+**Does NOT establish:**
+STRONG anything — this is one investigation, not a replication (RULES §8). It does not
+establish that prior-rate fields help in general; the item-side form of the same idea
+measured negative on the same model in the very next iteration (C29). It does not
+isolate which of the three added fields carries the effect.
+
+**Provenance:**
+- `runlogs/run_20260831T011354Z/journal.jsonl`, iteration 4, with its confirmation block
+- Registry: `prior_user_aggregates`, LIVE
+
+---
+
+### C29 — Strictly-prior ITEM-side and user×item identity-level aggregates
+
+**Classification:** WEAK NEGATIVE EVIDENCE (single seed in the clean form)
+
+**Evidence:**
+- `20260831T011354Z` it5, added **on top of** the C28 model: video prior long_view rate
+  + support bucket, author prior rate + support bucket, user×author prior rate + support
+  bucket. Delta **−0.00320** vs. that parent (0.60609 → 0.60289), single seed.
+- `20260831T011354Z` it6, also on top of C28: user×tab conditional prior rate + support,
+  plus a user-level prior mean `play_time_ms` bucket. Delta **−0.00333**, single seed.
+- Six earlier iterations that bundled user-side and item-side prior aggregates together
+  on the plain baseline were all negative: −0.00114, −0.00118, −0.00130, −0.00137,
+  −0.00191, −0.00229.
+
+**Interpretation:**
+Adding smoothed prior-rate fields is not uniformly beneficial. Attached to the user side
+(C28) the measured effect was positive; attached to item identities on top of that same
+model it was negative, in both tested formulations. The stated expectation for it5 was
+the opposite — that item-side priors should help *more* because they vary within a list
+— and the measured sign contradicted it.
+
+**Does NOT establish:**
+That item-side priors are useless. Both decisive measurements are single-seed and share
+one parent, and the six bundled earlier runs do not isolate the item-side contribution
+— they are consistent with this reading, not proof of it.
+
+**Provenance:**
+- `runlogs/run_20260831T011354Z/journal.jsonl`, iterations 5 and 6
+- Bundled earlier evidence: runs 155011Z, 164210Z, 222356Z, 230438Z, 004013Z, 005603Z
+- Registry: `prior_item_aggregates`
+
+---
+
+### C30 — Rank-averaging independently-seeded FMs
+
+**Classification:** WEAK POSITIVE EVIDENCE (magnitude below the practical epsilon)
+
+**Evidence:**
+- `20260831T011354Z` it12: five independently-seeded FMs over the C28 feature set, each
+  with its own validation-best checkpoint, predictions averaged.
+- Three matched seeds: 0.606991 / 0.607230 / 0.607406; mean 0.607209. Paired mean delta
+  **+0.00112**, worst **+0.00090**; all three positive.
+- Designated node of that run: validation primary **0.607243** vs. the 0.601470
+  baseline, i.e. **+0.00577** cumulative over baseline including C28.
+- Consistent with the five-seed population std of 0.00032 recorded in C8.
+
+**Interpretation:**
+Seed averaging is a small, repeatable top-up whose sign is reliable across matched
+seeds. Its magnitude is **below** the 0.002 practical epsilon.
+
+**Does NOT establish:**
+That it clears the practical epsilon — it does not, and it cannot carry a run on its own.
+It is also not free of duplication: the harness already runs a zero-token rank-average
+ensembler on a fixed cadence (`ENSEMBLE_EVERY`), so a proposal for a plain seed average
+may re-derive something the loop performs anyway.
+
+**Provenance:**
+- `runlogs/run_20260831T011354Z/journal.jsonl`, iteration 12, with its confirmation block
+- Registry: `ensembling`, LIVE

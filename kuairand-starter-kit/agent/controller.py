@@ -584,9 +584,15 @@ class Controller:
                     'cost_so_far_usd': self.meter.totals()['usd']})
 
                 if not self.dry_run:
+                    # `diff` is the implementation's identity. Without it the registry
+                    # can only see the direction label, which nine listwise runs proved
+                    # is not the same thing as the experiment.
                     knowledge.record(hyp.get('direction_id') or 'unlabelled', it, delta,
                                      verdict['verdict'], verdict.get('reason', ''),
-                                     hyp.get('hypothesis', ''))
+                                     hyp.get('hypothesis', ''), confirm=confirm,
+                                     diff=diff, traits=hyp.get('implementation_traits'),
+                                     model_family=hyp.get('model_family') or 'FM',
+                                     objective_family=hyp.get('objective_family'))
 
                 # KEEP needs the shipped artifact to clear the bar AND every matched seed
                 # to improve, so one lucky seed cannot carry a change into the lineage.

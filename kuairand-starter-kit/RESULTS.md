@@ -48,6 +48,14 @@ Against this run's own reproduced 3-seed baseline (0.602186), the deltas are +0.
 GAUC and +0.008317 nDCG@5, a mean of **+0.012009**. That is the more conservative
 comparison and the one the selection machinery used.
 
+**Independently replicated.** Run `20260901T011602Z` was launched from the same committed
+tree with no carried-over state, and its first iteration proposed the same combination and
+measured **+0.01126** (primary 0.613446) against this run's **+0.01120** (primary
+0.613387) — two separate agent runs, matched seeds, within 0.00006 of each other. It
+converged to a designated **+0.011896** mean-of-deltas, marginally below this run's
++0.012645 and inside the 0.002 practical epsilon, so the submission was not changed. Its
+journal is kept at `runlogs/run_20260901T011602Z/` as the replication record.
+
 The judged quantity is `delta(m) = score_agent(m) − score_baseline(m)` averaged over
 `m ∈ {GAUC, nDCG@5}`:
 

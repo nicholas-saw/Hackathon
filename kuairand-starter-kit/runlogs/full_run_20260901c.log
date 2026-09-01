@@ -1,0 +1,298 @@
+FULL RUN  key=set  workspace=wrkspc_01B1ri56yfTa9r6U2Qr2akSY
+model: claude-opus-4-8
+wall-clock cap: 105 min
+iter 000  baseline  valid primary 0.60219
+iter 001  paired seeds: mean +0.01057  worst +0.00986  (3/3 up)
+iter 001  primary 0.61345  delta +0.01126  KEEP
+iter 002  ROLE FAILED (ValueError) -> skipped
+iter 003  ENSEMBLE of [1, 0]  primary 0.60849  delta -0.00496
+iter 004  paired seeds: mean -0.00174  worst -0.00226  (0/3 up)
+iter 004  primary 0.61200  delta -0.00145  REVERT  (reverted)
+iter 005  ANALYSIS standalone_rank({'column': 'time_ms'})
+iter 005  proposal rejected: candidate 2 is missing proposed_change
+iter 005  paired seeds: mean -0.01150  worst -0.01267  (0/3 up)
+iter 005  primary 0.60087  delta -0.01258  REVERT  (reverted)
+designating (stability-tested, 5-fold):
+  cand iter 1   pooled +0.01131  folds won 5/5  STABLE
+  cand iter 4   pooled +0.00999  folds won 5/5  STABLE
+  cand iter 3   pooled +0.00634  folds won 5/5  STABLE
+  cand iter 0   pooled +0.00000  folds won 0/5  not stable
+  cand iter 5   pooled -0.00126  folds won 1/5  not stable
+  ensemble of 4 (diverse, unfiltered): pooled -0.00202 vs single, folds won 0/5  not stable
+{
+  "stop_reason": "converged",
+  "chosen_kind": "single",
+  "chosen_iteration": 1,
+  "chosen_label": "Rebuilding the two independently-confirmed changes together \u2014 a pure within-user",
+  "validation_primary": 0.6134634017944336,
+  "selection": {
+    "n_candidates": 5,
+    "folds": 5,
+    "min_fold_wins": 4,
+    "evaluated": [
+      {
+        "iteration": 1,
+        "label": "Rebuilding the two independently-confirmed changes together \u2014 a pure w",
+        "pooled_a": 0.61346,
+        "pooled_b": 0.60216,
+        "pooled_delta": 0.01131,
+        "fold_wins": 5,
+        "folds": 5,
+        "fold_deltas": [
+          0.01474,
+          0.01096,
+          0.00575,
+          0.01464,
+          0.01067
+        ],
+        "fold_delta_mean": 0.01135,
+        "fold_delta_sd": 0.00368,
+        "stable": true
+      },
+      {
+        "iteration": 4,
+        "label": "Replacing the binary within-user softmax target with a graded target d",
+        "pooled_a": 0.61214,
+        "pooled_b": 0.60216,
+        "pooled_delta": 0.00999,
+        "fold_wins": 5,
+        "folds": 5,
+        "fold_deltas": [
+          0.01175,
+          0.01047,
+          0.00584,
+          0.01234,
+          0.0097
+        ],
+        "fold_delta_mean": 0.01002,
+        "fold_delta_sd": 0.00256,
+        "stable": true
+      },
+      {
+        "iteration": 3,
+        "label": "rank-average of 1,0",
+        "pooled_a": 0.60849,
+        "pooled_b": 0.60216,
+        "pooled_delta": 0.00634,
+        "fold_wins": 5,
+        "folds": 5,
+        "fold_deltas": [
+          0.00795,
+          0.00677,
+          0.00367,
+          0.00823,
+          0.00519
+        ],
+        "fold_delta_mean": 0.00636,
+        "fold_delta_sd": 0.00192,
+        "stable": true
+      },
+      {
+        "iteration": 0,
+        "label": "baseline",
+        "pooled_a": 0.60216,
+        "pooled_b": 0.60216,
+        "pooled_delta": 0.0,
+        "fold_wins": 0,
+        "folds": 5,
+        "fold_deltas": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fold_delta_mean": 0.0,
+        "fold_delta_sd": 0.0,
+        "stable": false
+      },
+      {
+        "iteration": 5,
+        "label": "Adding a pointwise BCE term on ONLY the rows the listwise loss current",
+        "pooled_a": 0.6009,
+        "pooled_b": 0.60216,
+        "pooled_delta": -0.00126,
+        "fold_wins": 1,
+        "folds": 5,
+        "fold_deltas": [
+          -0.00097,
+          -0.00149,
+          -0.00682,
+          0.00326,
+          -6e-05
+        ],
+        "fold_delta_mean": -0.00122,
+        "fold_delta_sd": 0.00364,
+        "stable": false
+      }
+    ],
+    "decisions": [
+      "best stable single candidate: iteration 1"
+    ],
+    "baseline_primary": 0.60216,
+    "ensemble": {
+      "members": [
+        1,
+        4,
+        3,
+        5
+      ],
+      "members_individually_stable": [
+        1,
+        4,
+        3
+      ],
+      "vs": "single",
+      "pooled_a": 0.61144,
+      "pooled_b": 0.61346,
+      "pooled_delta": -0.00202,
+      "fold_wins": 0,
+      "folds": 5,
+      "fold_deltas": [
+        -0.00233,
+        -0.00187,
+        -0.00279,
+        -0.0017,
+        -0.00144
+      ],
+      "fold_delta_mean": -0.00202,
+      "fold_delta_sd": 0.00054,
+      "stable": false
+    },
+    "vs_floor": {
+      "pooled_a": 0.61346,
+      "pooled_b": 0.60274,
+      "pooled_delta": 0.01072,
+      "fold_wins": 5,
+      "folds": 5,
+      "fold_deltas": [
+        0.01462,
+        0.01022,
+        0.0063,
+        0.01326,
+        0.00942
+      ],
+      "fold_delta_mean": 0.01077,
+      "fold_delta_sd": 0.00328,
+      "stable": true
+    },
+    "chosen": {
+      "kind": "single",
+      "iteration": 1,
+      "label": "Rebuilding the two independently-confirmed changes together \u2014 a pure within-user",
+      "validation_primary": 0.61346,
+      "delta_vs_baseline": 0.01131
+    }
+  },
+  "candidates_considered": [
+    {
+      "iteration": 0,
+      "primary": 0.6021857857704163,
+      "label": "baseline",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "artifact": "rank_average_ensemble",
+      "artifact_source": "official_baseline"
+    },
+    {
+      "iteration": 1,
+      "primary": 0.613445520401001,
+      "label": "Rebuilding the two independently-confirmed changes together \u2014 a pure within-user",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "artifact": "rank_average_ensemble",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 3,
+      "primary": 0.608485996723175,
+      "label": "rank-average of 1,0",
+      "seeds": [],
+      "artifact": "rank_average_of_nodes",
+      "artifact_source": "harness_ensemble"
+    },
+    {
+      "iteration": 4,
+      "primary": 0.6120004653930664,
+      "label": "Replacing the binary within-user softmax target with a graded target distributio",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "artifact": "rank_average_ensemble",
+      "artifact_source": "agent_hypothesis"
+    },
+    {
+      "iteration": 5,
+      "primary": 0.6008656024932861,
+      "label": "Adding a pointwise BCE term on ONLY the rows the listwise loss currently discard",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "artifact": "rank_average_ensemble",
+      "artifact_source": "agent_hypothesis"
+    }
+  ],
+  "chosen_artifact": "rank_average_ensemble",
+  "chosen_artifact_source": "agent_hypothesis",
+  "chosen_seeds": [
+    0,
+    1,
+    2
+  ],
+  "submission": "C:\\Users\\nicho\\OneDrive\\Documents\\Hackathon\\kuairand-starter-kit\\submissions\\run_20260901T011602Z_final.csv",
+  "submission_sha256": "e130ddb70bfd5d13601a769d91882bd1236b9283e39a260947fad98cc4a27064",
+  "submission_check_ok": true,
+  "submission_check_msg": "row_id contract OK: 170588 rows, split=test",
+  "iterations_used": 4,
+  "iteration_cap": 50,
+  "wall_clock_s": 3031.8,
+  "resources": {
+    "calls": 15,
+    "input": 119692,
+    "output": 185543,
+    "cache_write": 70103,
+    "cache_read": 446845,
+    "usd": 6.1615,
+    "by_role": {
+      "proposer": {
+        "calls": 6,
+        "input": 243506,
+        "output": 47711,
+        "cache_write": 35434,
+        "cache_read": 177170,
+        "usd": 1.79021
+      },
+      "coder": {
+        "calls": 6,
+        "input": 282536,
+        "output": 134452,
+        "cache_write": 33772,
+        "cache_read": 168860,
+        "usd": 4.18297
+      },
+      "reflector": {
+        "calls": 3,
+        "input": 110598,
+        "output": 3380,
+        "cache_write": 897,
+        "cache_read": 100815,
+        "usd": 0.188308
+      }
+    },
+    "tokens_total": 822183
+  },
+  "gpu_hours": 0.0,
+  "cache_working": true
+}
+
+journal: C:\Users\nicho\OneDrive\Documents\Hackathon\kuairand-starter-kit\runlogs\run_20260901T011602Z\journal.jsonl

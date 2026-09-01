@@ -61,7 +61,11 @@ CONFIRM_SEEDS = [0, 1, 2]  # matched seeds for a candidate that might actually b
 CONFIRM_FLOOR = -0.0007  # -1 sigma: below this a single seed is enough to reject
 MAX_ROLE_FAILURES = 3    # consecutive LLM-role failures before giving up on the loop
 MAX_ITERS = 50           # official hard cap
-MAX_WALL_S = 6 * 3600    # official wall-clock ceiling
+# Official ceiling is 6h. MAX_WALL_S_ENV lets an operator bound a run to a delivery
+# deadline instead. The check runs at the top of each iteration, so a run can
+# overshoot by at most one iteration (~10 min at 3 seeds); designation then adds a
+# few minutes of 5-fold stability testing. Budget for both when setting it.
+MAX_WALL_S = int(os.environ.get('MAX_WALL_S') or 6 * 3600)
 
 # Every node is a rank-average of this many seeds. One seed per node makes each
 # measurement carry sigma ~ 0.0006, which is half the accept bar, so a real +0.001

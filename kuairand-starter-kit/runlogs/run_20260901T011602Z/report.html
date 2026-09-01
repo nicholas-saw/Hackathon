@@ -1,0 +1,357 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Run report — run_20260901T011602Z</title>
+<style>
+:root{--bg:#eef1f4;--card:#fff;--ink:#101820;--ink2:#46525e;--ink3:#7c8894;
+--rule:#cdd5dd;--ok:#2d6a4f;--bad:#a31621;--warn:#b45309;--code:#2a6f97}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 24px 72px}
+h1{font-size:30px;letter-spacing:-.02em;margin:0 0 4px}
+h2{font-size:17px;margin:34px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.sub{color:var(--ink2);margin:0 0 20px}
+.panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;
+background:var(--rule);border:1px solid var(--rule);margin:18px 0}
+.panel div{background:var(--card);padding:11px 13px}
+.panel dt{font:11px ui-monospace,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+.panel dd{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.panel dd small{display:block;font-size:11px;font-weight:400;color:var(--ink3);margin-top:2px}
+table{border-collapse:collapse;width:100%;background:var(--card);border:1px solid var(--rule);font-size:13px}
+th{text-align:left;font:11px ui-monospace,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;
+color:var(--ink3);background:#e7ebef;padding:8px 10px;border-bottom:1px solid var(--rule)}
+td{padding:9px 10px;border-bottom:1px solid #e6eaee;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.n{text-align:right;font-family:ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:10px ui-monospace,Consolas,monospace;letter-spacing:.06em;
+text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid}
+.keep{color:var(--ok);background:#eaf3ee;border-color:var(--ok)}
+.revert{color:var(--bad);background:#fbeced;border-color:var(--bad)}
+.inconclusive{color:var(--warn);background:#fdf3e7;border-color:var(--warn)}
+.pos{color:var(--ok);font-weight:600}.neg{color:var(--bad);font-weight:600}
+.card{background:var(--card);border:1px solid var(--rule);padding:15px 17px;margin:12px 0}
+.card.good{border-top:3px solid var(--ok)}.card.bad{border-top:3px solid var(--bad)}
+details{margin-top:7px}summary{cursor:pointer;color:var(--code);font-size:12px}
+pre{font:12px/1.45 ui-monospace,Consolas,monospace;background:#f5f7f9;border:1px solid var(--rule);
+padding:9px 11px;overflow-x:auto;white-space:pre-wrap;margin:7px 0 0}
+.mono{font-family:ui-monospace,Consolas,monospace}
+.muted{color:var(--ink3)}
+</style></head><body><div class="wrap">
+<h1>Autonomous run report</h1>
+<p class="sub mono">run_20260901T011602Z &middot; KuaiRand-Pure &middot; stopped: <b>converged</b></p>
+<div class="panel">
+<div><dt>Validation primary</dt><dd>0.61346<small>designated checkpoint</small></dd></div>
+<div><dt>Iterations</dt><dd>4<small>of 50</small></dd></div>
+<div><dt>Wall-clock</dt><dd>3032 s<small>of 21600 s ceiling</small></dd></div>
+<div><dt>LLM tokens</dt><dd>822,183<small>fresh input + output + cache</small></dd></div>
+<div><dt>  of which fresh input</dt><dd>119,692<small>excludes 516,948 cached</small></dd></div>
+<div><dt>Cost</dt><dd>$6.16<small>Anthropic API</small></dd></div>
+<div><dt>GPU-hours</dt><dd>0.0<small>CPU only by design</small></dd></div>
+<div><dt>Interventions</dt><dd>0<small>L2-L5, counted</small></dd></div>
+</div>
+<h2>Integrity</h2>
+<div class="card good">
+<div><span class="pill keep">pass</span> <b>Hash chain</b> — <span class="muted">11 events, chain intact</span></div>
+<div><span class="pill keep">pass</span> <b>Designation before test read</b> — <span class="muted">FINAL_DESIGNATION at seq 9; test never opened</span></div>
+<div style="margin-top:9px" class="mono muted">submission run_20260901T011602Z_final.csv<br>sha256 e130ddb70bfd5d13601a769d91882bd1236b9283e39a2609<br>row_id contract OK: 170588 rows, split=test</div>
+<div style="margin-top:9px" class="muted">Reproduce: <span class="mono">python verify.py --chain --order runlogs\run_20260901T011602Z\journal.jsonl</span></div>
+</div>
+<h2>Iterations</h2>
+<table><thead><tr><th>#</th><th>Hypothesis</th><th class="n">Primary</th><th class="n">&Delta; vs parent</th><th>Verdict</th><th class="n">Sec</th></tr></thead><tbody>
+<tr><td class="n">0</td><td>reproduce the official baseline<details><summary>detail</summary><div style="margin-top:6px"><span class="muted">none recorded</span></div></details></td><td class="n">0.60219</td><td class="n muted">+0.00000</td><td><span class="pill keep">KEEP</span></td><td class="n">133</td></tr>
+<tr><td class="n">1</td><td>Rebuilding the two independently-confirmed changes together — a pure within-user listwise softmax (the 121bb7fdf312 / 50cebc5d897d implementation) plus six strictly-prior user-side aggregate fields — raises validation primary by at least +0.0035 over the reproduced baseline at 0.60219.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> Two separate first-order effects on within-user order. (a) The listwise softmax normalises over exactly the set the metric ranks — one user's impression list — so every gradient step trades score mass between rows of the same user, which is the only thing GAUC/nDCG can see; pointwise BCE instead spends capacity on the global positive rate, which is per-user constant and hence invisible. Restricting eligible groups to mixed-label users removes the 42.2% of users whose order is pinned and who otherwise contribute pure noise to the gradient. (b) The user-tab and user-author prior-rate buckets vary WITHIN a user's list (a user sees several tabs/authors per day), so they reorder rows first-order; the user-level prior rate is C2-constant and acts only through its FM crosses with video_id/author_id/dur_bucket.<br><b>Falsifier:</b> Validation primary lands below 0.6045 (i.e. delta &lt; +0.0023) as a 3-seed mean, which would mean the two confirmed effects do not stack.<br><b>Verdict reason:</b> Validation primary rose +0.01126, roughly 22x the paired noise floor and 5.6x eps, and both metrics moved together (GAUC +, nDCG +). The gain is unambiguously real and far exceeds the +0.0035 the hypothesis required to stack, so it clears the invalid_if threshold decisively. This becomes the new parent.<br><b>Mechanism update:</b> The two confirmed within-user effects — a list-normalised objective that spends every gradient step on same-user score mass, plus prior aggregates that vary within a user's list — combine to a gain larger than either was measured to give alone. That is consistent with them acting on the metric through different channels (objective reweights the order the loss optimises; the aggregates add first-order reorderings the FM crosses can exploit) rather than competing for the same headroom.<br><b>Evidence:</b> Registry: prior_user_aggregates iter 4 delta +0.00281, 3/3 matched seeds positive, worst +0.00236 (largest single confirmed gain in the project); Registry: controlled objective ablation, listwise 0.603059 vs official 0.60147 = +0.00162, 3/3 seeds up; the winner is reproducible as model key `fm_listwise_pure`; Registry: node objective_listwise+prior_user_aggregates recorded KEEP with a large positive delta, i.e. the two stack rather than cancel; This run currently sits at the plain pointwise 5-field baseline, so neither confirmed change is present</div><pre>--- a/pipeline/features.py
++++ b/pipeline/features.py
+@@ -1,111 +1,154 @@
+-"""Feature engineering -- the only place feature changes are allowed. See AGENT_RULES.md.
+-
+-kit/data.py is frozen Starter Kit code. It cannot be edited, and this file imports
+-nothing from it: it only reads the splits returned by kit.data.load(splits). The per-row
+-schema is restated as IDX below. That restatement is not a second source of truth -- if
+-anyone changes the row layout in kit/data.py, this has to follow.
+-
+-Never use ANY test-split data to build features, including its labels and any statistic
+-derived from it (for example, do not fit bucket edges on the test split).
+-
+-Same-row input features must go through same_row(x, name). It refuses the
+-post-impression outcome columns in LEAKY_COLUMNS (is_click / is_like / ... /
+-play_time_ms / label). Those columns are legal only as multi-task targets for the same
+-row, or as history aggregated from OTHER rows (the user's past interactions).
+-
+-For history aggregates, use harness.history -- do not hand-roll them here:
+-
+-    from harness.history import prior_stats, bucketize
+-    rate, count = prior_stats(splits, signal='label', key='user_id')
+-
+-It guarantees strictly-earlier ordering, treats tied timestamps as non-predecessors, and
+-keeps test outcomes out of every aggregate. Building the same thing by hand in this file
+-means touching the label directly, which the static guard rejects, and it is the wrong
+-place to get the ordering right anyway.
+-
+-kit/data.py currently loads only the label out of those 11 columns. The other 10 are not
+-in IDX, so same_row() raises KeyError on them, which is the safe failure. Reach them
+-through harness.adapter, never by opening a raw CSV: log_standard_4_22_to_5_08_pure.csv
+-spans validation AND test and carries long_view.
+-
+-Public contract:
+-
+-    encode(splits) -&gt; (enc, dim)
+-    enc[name] = (X, y, users)    # X: int32 (N, len(FIELDS)); y: float32 (N,); users: list
+-    dim                          # total vocab size across fields, fed to model.FM(dim, ...)
+-
+-FIELDS is not documentation: len(FIELDS) sizes vocabs and the second dimension of X. Add a
+-column to raw() and you must register its name in FIELDS, or the shapes will not match.
+-"""
+-import numpy as np
+-
+-# Field order of the fixed-length tuple returned by kit/data.py's load(). A restatement;
+-# kit/data.py itself remains the only source of truth.
+-IDX = {'date': 0, 'user_id': 1, 'video_id': 2, 'author_id': 3,
+-       'tab': 4, 'duration_ms': 5, 'label': 6}
+-
+-# Post-impression outcome/feedback columns. Never use these to predict the label of the
+-# SAME row. Even computed purely from train data, a same-row use leaks: they are
+-# concurrent outcomes of the same impression as the label, not information available
+-# before it. kit/data.py currently loads only the label; the rest are absent from IDX, so
+-# same_row() raises KeyError on them (the safe failure). The full set of 11 names is
+-# listed here for when those columns are eventually read in.
+-LEAKY_COLUMNS = frozenset({
+-    'label',            # long_view, the main task target itself
+-    'is_click', 'is_like', 'is_follow', 'is_comment', 'is_forward',
+-    'is_hate', 'play_time_ms', 'profile_stay_time', 'comment_stay_time',
+-    'is_profile_enter',
+-})
+-
+-# The 5 feature fields of the current kit baseline. To add a feature, add a column in
+-# raw() and register its name here.
+-FIELDS = ['user_id', 'video_id', 'author_id', 'tab', 'dur_bucket']
+-
+-def _bucket_edges(values, n=10):
+-    return np.quantile(np.asarray(values), np.linspace(0, 1, n + 1)[1:-1])
+-
+-def same_row(x, name):
+-    """Read one column of the current row as an input feature for that row.
+-
+-    Post-impression outcome columns (see LEAKY_COLUMNS) raise here. They are legal only
+-    as multi-task targets for the same row, or as history features built from other
+-    rows -- never as an input for the row being p</pre></details></td><td class="n">0.61345</td><td class="n pos">+0.01126</td><td><span class="pill keep">KEEP</span></td><td class="n">282</td></tr>
+<tr><td class="n">3</td><td>Rank-averaging the 2 best distinct candidates decorrelates their errors.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> An ensemble buys decorrelation, not strength; a member that is individually weaker can still help.<br><b>Verdict reason:</b> ensemble of iterations 1,0</div></details></td><td class="n">0.60849</td><td class="n neg">-0.00496</td><td><span class="pill inconclusive">INCONCLUSIVE</span></td><td class="n">2</td></tr>
+<tr><td class="n">4</td><td>Replacing the binary within-user softmax target with a graded target distribution that gives clicked-but-not-long-viewed impressions partial probability mass raises validation primary by more than +0.0015 over the current best (0.61345).<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> Inside one user's list the current loss treats all long_view=0 rows as interchangeable, so the model gets no supervision about the ordering among the 4 of a user's 5 negatives -- yet GAUC and nDCG@5 are decided precisely by where the positive sits among those negatives. Giving clicked negatives partial target mass imposes an ordering (long_view &gt; clicked &gt; ignored) that is 0.75-correlated with the scored label, and it makes lists that are uniform in long_view but mixed in click non-degenerate, so users currently contributing zero gradient start training their own user embedding and the item embeddings they saw.<br><b>Falsifier:</b> Validation primary over 3 matched seeds fails to exceed the current best by +0.0015, or GAUC falls while nDCG@5 rises (which would show the click grading is reordering negatives without helping the scored order).<br><b>Verdict reason:</b> Predicted +0.0015; measured -0.00145, a small but above-noise regression (~3 sigma over the 0.0005 floor, still under eps). The clicked-negative grading did not sharpen within-user order -- both GAUC (0.68078) and nDCG@5 (0.54322) sit at or below the binary-listwise parent, so the invalid_if 'GAUC down while nDCG up' pattern did not occur; instead the graded mass diffused supervision away from the scored positive rather than usefully ordering the negatives.<br><b>Mechanism update:</b> Imposing long_view&gt;clicked&gt;ignored via target mass does not translate into better long_view ranking here. Click is 0.75-correlated with long_view marginally, but within a single user's short list that correlation is largely absorbed by the positive's own mass; handing partial mass to clicked negatives pulls softmax probability toward rows the metric scores as 0, which slightly degrades the ordering the metric actually rewards. The newly-admitted click-mixed-but-long_view-uniform groups did not add net signal.<br><b>Evidence:</b> The confirmed winner trains a pure within-user softmax on MIXED-LABEL long_view groups only, so every all-negative and all-positive long_view user is skipped entirely; validation shows 30.3% all-negative and 11.9% all-positive users, and the train split has the same structural property at lower rate.; data_profile 7: validation Pearson r(is_click, long_view) = 0.7515 with is_click density 0.44 -- a dense, strongly aligned ordering signal.; C3/C4: post-impression columns are legal as TARGETS; harness.adapter.auxiliary_targets(('is_click',)) returns them aligned and test-free.; Registry: the two REFUTED hybrid attempts mixed a pointwise BCE term into the loss at weight 0.5/0.3; this changes only the target distribution of the same pure listwise loss and adds no BCE term and no extra head.</div><pre>--- a/pipeline/features.py
++++ b/pipeline/features.py
+@@ -36,6 +36,11 @@
+ 
+ FIELDS is not documentation: len(FIELDS) sizes vocabs and the second dimension of X. Add a
+ column to raw() and you must register its name in FIELDS, or the shapes will not match.
++
++Multi-task auxiliary target (this iteration): is_click is pulled through
++harness.adapter.auxiliary_targets and stashed in a module global keyed by split, retrieved
++via get_aux_click(). It is a TARGET only -- it never enters FIELDS or X, and it is never a
++same-row input. The adapter refuses test rows, so no test outcome ever reaches here.
+ """
+ import numpy as np
+ 
+@@ -75,6 +80,47 @@
+ ]
+ _HIST_NBUCKETS = 5
+ 
++# Module-level cache of the is_click auxiliary TARGET, keyed by split name, populated by
++# encode() and read by train.py via get_aux_click(). Target only; never an input feature.
++_AUX_CLICK = {}
++
++def get_aux_click():
++    """Return {split: float32 click array} as populated by the last encode() call.
++
++    is_click is a permitted multi-task TARGET (LEAKY_COLUMNS forbids it only as a
++    same-row input). Sourced through harness.adapter, which drops test rows, so this dict
++    never carries a test outcome.
++    """
++    return _AUX_CLICK
++
++def _load_aux_click(splits):
++    """Populate _AUX_CLICK with the is_click column per split via harness.adapter.
++
++    Positional alignment with kit.data.load() is guaranteed by the adapter, so each array
++    lines up 1:1 with that split's encoded rows. On any failure (adapter missing, etc.)
++    the cache is left empty and callers fall back to zeros -- the default fm_listwise_pure
++    path never reads this, so a failure here cannot break the banked model.
++    """
++    global _AUX_CLICK
++    _AUX_CLICK = {}
++    try:
++        from harness.adapter import auxiliary_targets
++        raw = auxiliary_targets(('is_click',))
++    except Exception:
++        return
++    if not isinstance(raw, dict):
++        return
++    for s in splits:
++        if s not in raw:
++            continue
++        v = raw[s]
++        col = v.get('is_click') if isinstance(v, dict) else v
++        if col is None:
++            continue
++        arr = np.asarray(col, dtype=np.float32)
++        if len(arr) == len(splits[s]):
++            _AUX_CLICK[s] = arr
++
+ def _bucket_edges(values, n=10):
+     return np.quantile(np.asarray(values), np.linspace(0, 1, n + 1)[1:-1])
+ 
+@@ -120,6 +166,9 @@
+ 
+     hist_cols = _history_columns(splits)
+     n_hist = len(FIELDS) - 5
++
++    # Populate the is_click auxiliary target cache (target only; not used below).
++    _load_aux_click(splits)
+ 
+     def base_vals(x):
+         return [same_row(x, 'user_id'), same_row(x, 'video_id'), same_row(x, 'author_id'),
+--- a/pipeline/model.py
++++ b/pipeline/model.py
+@@ -10,6 +10,16 @@
+             # ALL positives are skipped -- they carry no ordering signal. Normalised by
+             # total positives. This is the loss behind the banked submission; see
+             # `fm_listwise_pure` in train.py. Not interchangeable with step_list below.
++        .step_listwise_graded(X, t, group_offsets) -&gt; loss:float
++            # Same packed-group softmax cross-entropy as step_listwise, but the per-row
++            # target is a graded MASS t_i (e.g. label_i + aux_w * click_i) rather than a
++            # 0/1 label. Within each group the target is normalised to a distribution
++            # p_i = t_i / sum(t); the loss is CE(softmax(scores), p). Groups whose target
++            # vector is CONSTANT (all rows equal -- including all-zero) carry no ordering
++            # signal and are skipped, which is what makes lists uniform in long_view but
++            # mixed in click non-degenerate. Normalised by total target mass in the batch,
++            # mirroring step_listwise's normalise-by-positives. With t == binary label
++            # this reduces exactly to step_listwise.
+         .step_list(X, y, group_ends, lw_alpha=0.3) -&gt; loss:float
+             # X, y must be pre-sorted so that each user's row</pre></details></td><td class="n">0.61200</td><td class="n neg">-0.00145</td><td><span class="pill revert">REVERT</span></td><td class="n">254</td></tr>
+<tr><td class="n">5</td><td>Adding a pointwise BCE term on ONLY the rows the listwise loss currently discards (users whose training list is all-positive or all-negative) will raise validation primary by more than 0.002, because those rows currently supply zero gradient and their item-side information is exactly what the -0.00239 grouped-batching cost measured.<details><summary>detail</summary><div style="margin-top:6px"><b>Mechanism:</b> The discarded rows are almost all item-side observations (this video/author/tab was or was not long-viewed for this user). Learning from them sharpens the item and item-cross embeddings, and those embeddings are precisely the terms that VARY inside a mixed user's list at scoring time. So the extra signal reaches the metric through within-user reordering of mixed-label users, who carry 100% of GAUC weight and 78.9% of rows — while the listwise gradient on those users is left untouched and undiluted, unlike the REFUTED hybrid which put BCE on the same rows the softmax already covers.<br><b>Falsifier:</b> Validation primary drops by more than 0.0008 versus the current best 0.61345 at uni_w=0.3, or the model's best epoch collapses to 1-2 indicating the BCE term dominates.<br><b>Verdict reason:</b> Adding a pointwise BCE term on the uniform-label rows dropped validation primary by -0.01258, ~25x the noise floor and far past the -0.0008 refutation bar the hypothesis itself set. Both GAUC (0.66607) and nDCG@5 (0.53566) fell below the pure-listwise parent, so the extra term did not sharpen item embeddings in a way that helped within-user reordering — it degraded the ordering the pure softmax had learned.<br><b>Mechanism update:</b> The claim that discarded uniform-user rows are 'free' item-side signal is not borne out here. Those rows pull item/item-cross embeddings toward global long_view base rates, and that pointwise pressure competes with, rather than complements, the within-user contrast the softmax builds — even though the two gradients touch disjoint row sets, they share the same embedding parameters, so the BCE term still leaks a first-order global bias into the terms that vary inside mixed lists. The banked pure-listwise loss appears to depend on the softmax being the ONLY thing shaping item embeddings.<br><b>Evidence:</b> Confirmed winner 121bb7fdf312/50cebc5d897d restricts eligible groups to MIXED-LABEL users only, so every row of a uniform-label training user contributes nothing to any gradient.; Controlled ablation: the same pointwise loss on user-grouped batches scores 0.599047 vs 0.601440 on random batches, i.e. grouping alone costs -0.00239; the registry explicitly flags 'a pointwise term restored on ungrouped rows alongside the ranking term' as untested.; C9: 42.2% of validation users have uniform labels; the train split has a comparable uniform share, so a large block of impressions is being dropped from training entirely.</div><pre>--- a/pipeline/model.py
++++ b/pipeline/model.py
+@@ -10,6 +10,11 @@
+             # ALL positives are skipped -- they carry no ordering signal. Normalised by
+             # total positives. This is the loss behind the banked submission; see
+             # `fm_listwise_pure` in train.py. Not interchangeable with step_list below.
++        .step_listwise_uni(X_list, y_list, group_offsets, X_uni, y_uni, uni_w=0.3) -&gt; loss:float
++            # Same PURE within-group softmax on the mixed-label rows (X_list/y_list),
++            # PLUS a plain pointwise BCE term on the uniform-label rows (X_uni/y_uni)
++            # that step_listwise would otherwise discard. No row is in both terms; the
++            # two gradients are summed into ONE Adam update. uni_w scales the BCE term.
+         .step_list(X, y, group_ends, lw_alpha=0.3) -&gt; loss:float
+             # X, y must be pre-sorted so that each user's rows are contiguous.
+             # group_ends: 1D int array of exclusive end offsets into X/y marking each
+@@ -102,6 +107,65 @@
+         self._apply_grad(X, g, S, E)
+         return float(loss_sum / total_pos)
+ 
++    def step_listwise_uni(self, X_list, y_list, group_offsets, X_uni, y_uni, uni_w=0.3):
++        """Pure within-group softmax on mixed-label rows + pointwise BCE on the uniform
++        rows the softmax discards, applied as ONE Adam update.
++
++        The mixed part is exactly step_listwise (softmax CE normalised by total
++        positives). Every group in group_offsets is assumed mixed (0 &lt; positives &lt;
++        size), because train.py's uni batch builder routes uniform/single-row groups to
++        the BCE side instead. The uniform part is a plain pointwise BCE gradient scaled
++        by uni_w / (# uniform rows). No row appears in both terms, so the listwise
++        gradient on mixed users is left undiluted; the extra signal only sharpens
++        item-side embeddings, which is what reorders mixed users at scoring time.
++        """
++        parts_X, parts_g, parts_S, parts_E = [], [], [], []
++        total_pos, loss_sum = 0.0, 0.0
++
++        # listwise term on mixed-label rows
++        if len(y_list) &gt; 0:
++            z, E, S = self.logits(X_list)
++            grad = np.zeros(len(z), dtype=np.float32)
++            offs = group_offsets
++            for gi in range(len(offs) - 1):
++                s_i, e_i = int(offs[gi]), int(offs[gi + 1])
++                if e_i - s_i &lt; 2:
++                    continue
++                zg, yg = z[s_i:e_i], y_list[s_i:e_i]
++                pos_count, size = float(yg.sum()), e_i - s_i
++                if pos_count &lt;= 0.0 or pos_count &gt;= size:
++                    continue
++                mx = zg.max()
++                expz = np.exp(zg - mx)
++                denom = expz.sum()
++                grad[s_i:e_i] = pos_count * (expz / denom) - yg
++                loss_sum += -(float(np.sum(yg * zg)) - pos_count * (mx + np.log(denom)))
++                total_pos += pos_count
++            if total_pos &gt; 0.0:
++                parts_X.append(X_list)
++                parts_g.append(grad / total_pos)
++                parts_S.append(S)
++                parts_E.append(E)
++
++        # pointwise BCE term on the discarded uniform-label rows
++        if len(y_uni) &gt; 0:
++            zu, Eu, Su = self.logits(X_uni)
++            Bu = len(y_uni)
++            gu = (uni_w * (sigmoid(zu) - y_uni) / Bu).astype(np.float32)
++            parts_X.append(X_uni)
++            parts_g.append(gu)
++            parts_S.append(Su)
++            parts_E.append(Eu)
++
++        if not parts_X:
++            return 0.0
++        X_all = np.concatenate(parts_X, axis=0)
++        g_all = np.concatenate(parts_g).astype(np.float32)
++        S_all = np.concatenate(parts_S, axis=0)
++        E_all = np.concatenate(parts_E, axis=0)
++        self._apply_grad(X_all, g_all, S_all, E_all)
++        return float(loss_sum / total_pos) if total_pos &gt; 0.0 else 0.0
++
+     def step_list(self, X, y, group_ends, lw_alpha=0.3):
+         """Within-user listwise so</pre></details></td><td class="n">0.60087</td><td class="n neg">-0.01258</td><td><span class="pill revert">REVERT</span></td><td class="n">199</td></tr>
+</tbody></table>
+<h2>Evidence the agent requested</h2>
+<p class="sub">Diagnostics run on train and validation before spending an iteration. Asking costs seconds; finding out by training costs a minute and one of roughly ten iterations.</p>
+<table><thead><tr><th class="n">Iter</th><th>Analysis</th><th>Question</th><th>Result</th></tr></thead><tbody>
+<tr><td class="n">5</td><td class="mono">standalone_rank("column": "time_ms")</td><td>Ranking each validation user's impressions purely by time_ms (i.e. by their position in that user's own exposure sequence), what GAUC / nDCG@5 does it get? Equivalently: does within-user impression ORDER carry ordering signal about long_view, in either direction?</td><td>0.47405<details><summary>full</summary><pre>{
+ "column": "time_ms",
+ "negated": false,
+ "GAUC": 0.48403,
+ "nDCG@5": 0.46408,
+ "primary": 0.47405,
+ "reference": {
+  "random": 0.4834,
+  "item_popularity": 0.5807,
+  "fm_baseline": 0.6015
+ }
+}</pre></details></td></tr>
+</tbody></table>
+<h2>Robustness</h2>
+<table><thead><tr><th>Seq</th><th>Kind</th><th>Detail</th><th>Recovered</th></tr></thead><tbody>
+<tr><td class="n">3</td><td>agent_role</td><td>iteration skipped</td><td><span class="pill keep">yes</span> node pruned</td></tr>
+</tbody></table>
+<h2>Manual interventions</h2>
+<p class="sub">Counted classes are L2 environment repair, L3 code edit, L4 steering and L5 human selection. L0 setup (before RUN_START) and L1 observation are logged but do not count against autonomy.</p>
+<div class="card good"><b>0 counted interventions.</b> No human touched the run between RUN_START and FINAL_DESIGNATION.</div>
+<h2>Why this checkpoint</h2>
+<p class="sub">Selection is not an argmax. Best-of-N on a metric whose paired noise is sigma ~ 0.0005 picks the luckiest draw, and that inflation is exactly what does not survive to the hidden test set. A candidate must beat the incumbent on the pooled score <b>and</b> on 4 of 5 independent user folds.</p>
+<table><thead><tr><th class="n">Iter</th><th>Candidate</th><th class="n">Pooled &Delta;</th><th class="n">Folds won</th><th>Stable?</th></tr></thead><tbody>
+<tr><td class="n">1</td><td>Rebuilding the two independently-confirmed changes together — a pure w</td><td class="n pos">+0.01131</td><td class="n">5/5</td><td><span class="pill keep">stable</span></td></tr>
+<tr><td class="n">4</td><td>Replacing the binary within-user softmax target with a graded target d</td><td class="n pos">+0.00999</td><td class="n">5/5</td><td><span class="pill keep">stable</span></td></tr>
+<tr><td class="n">3</td><td>rank-average of 1,0</td><td class="n pos">+0.00634</td><td class="n">5/5</td><td><span class="pill keep">stable</span></td></tr>
+<tr><td class="n">0</td><td>baseline</td><td class="n muted">+0.00000</td><td class="n">0/5</td><td><span class="pill revert">not stable</span></td></tr>
+<tr><td class="n">5</td><td>Adding a pointwise BCE term on ONLY the rows the listwise loss current</td><td class="n neg">-0.00126</td><td class="n">1/5</td><td><span class="pill revert">not stable</span></td></tr>
+</tbody></table>
+<p class="sub">Ensemble of iterations 1, 4, 3, 5 vs the best single: pooled -0.00202, 0/5 folds — rejected.</p>
+<div class="card good">best stable single candidate: iteration 1</div>
+<p class="sub mono">vs banked floor: pooled +0.01072, 5/5 folds</p>
+<h2>All candidates</h2>
+<p class="sub">Every scored node. The frozen list was written to the journal before any test label was read.</p>
+<table><thead><tr><th class="n">Iter</th><th>Candidate</th><th class="n">Validation primary</th><th></th></tr></thead><tbody>
+<tr><td class="n">1</td><td>Rebuilding the two independently-confirmed changes together — a pure within-user</td><td class="n">0.61345</td><td><span class="pill keep">designated</span></td></tr>
+<tr><td class="n">4</td><td>Replacing the binary within-user softmax target with a graded target distributio</td><td class="n">0.61200</td><td></td></tr>
+<tr><td class="n">3</td><td>rank-average of 1,0</td><td class="n">0.60849</td><td></td></tr>
+<tr><td class="n">0</td><td>baseline</td><td class="n">0.60219</td><td></td></tr>
+<tr><td class="n">5</td><td>Adding a pointwise BCE term on ONLY the rows the listwise loss currently discard</td><td class="n">0.60087</td><td></td></tr>
+</tbody></table>
+<h2>Where the tokens went</h2>
+<table><thead><tr><th>Role</th><th class="n">Calls</th><th class="n">Fresh in</th><th class="n">Cached in</th><th class="n">Output</th><th class="n">Total</th><th class="n">USD</th></tr></thead><tbody>
+<tr><td class="mono">coder</td><td class="n">6</td><td class="n">79,904</td><td class="n">202,632</td><td class="n">134,452</td><td class="n">416,988</td><td class="n">$4.18</td></tr>
+<tr><td class="mono">proposer</td><td class="n">6</td><td class="n">30,902</td><td class="n">212,604</td><td class="n">47,711</td><td class="n">291,217</td><td class="n">$1.79</td></tr>
+<tr><td class="mono">reflector</td><td class="n">3</td><td class="n">8,886</td><td class="n">101,712</td><td class="n">3,380</td><td class="n">113,978</td><td class="n">$0.19</td></tr>
+</tbody></table>
+<p class="sub">Controller, governor, guards, executor, cache, scorer and the submission builder make no model calls at all.</p>
+</div></body></html>
